@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="../../../../../../../lib/internal/Magento/Framework/View/Layout/etc/page_configuration.xsd">
+
+    <body>
+		<referenceContainer name="page.wrapper">
+            <block class="Themevast\Themeoption\Block\Themeoption" name="themevast_header" template="html/header.phtml" before="-">
+                <block class="Magento\Framework\View\Element\Template" name="top.search" as="topSearch" template="Magento_Search::form.mini.phtml" />
+				<block class="Magento\Framework\View\Element\Template" name="top.navigation.sections" template="Magento_Theme::html/sections.phtml">
+					<arguments>
+						<argument name="group_name" xsi:type="string">navigation-sections</argument>
+						<argument name="group_css" xsi:type="string">nav-sections</argument>
+					</arguments>
+					<block class="Themevast\CustomMenu\Block\Topmenu" name="custom.topnav" template="Themevast_CustomMenu::topmenu.phtml" group="navigation-sections" ttl="3600" before="-"/>
+				</block>
+            </block>
+        </referenceContainer>
+		<move element="store_language" destination="themevast_header"/>
+		<move element="currency" destination="themevast_header"/>
+		<move element="header" destination="themevast_header"/>
+		<move element="header.links" destination="themevast_header" />		
+		<move element="logo" destination="themevast_header"/>		
+		<move element="minicart" destination="themevast_header"/>
+		<move element="top.search" destination="themevast_header" />
+		<move element="top.links" destination="themevast_header" />
+		<move element="slideshow.top" destination="themevast_header" />
+		<move element="custom.topnav" destination="top.navigation.sections" />
+		
+		<referenceContainer name="header.container" remove="true"/>
+        <referenceContainer name="header.panel" remove="true"/>
+        <referenceContainer name="header-wrapper" remove="true"/>
+        <referenceContainer name="navigation.sections" remove="true"/>
+		<referenceContainer name="footer-container">
+            <block class="Themevast\Themeoption\Block\Themeoption" name="themevast_footer" template="html/footer.phtml" />	
+        </referenceContainer>
+		<move element="footer_links" destination="themevast_footer" />
+		<move element="store_switcher" destination="themevast_footer" />
+		<move element="copyright" destination="themevast_footer" />
+		<referenceContainer name="report.bugs" remove="1"/>
+		<referenceContainer name="form.subscribe" remove="1"/>
+    </body>
+</page>

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @author Amasty Team
+ * @copyright Copyright (c) 2020 Amasty (https://www.amasty.com)
+ * @package Amasty_AdvancedReview
+ */
+-->
+
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="content">
+            <block class="Amasty\AdvancedReview\Block\Customer\Review\View"
+                   name="amasty_advancedreview_content"
+                   after="customers_review">
+                <arguments>
+                    <argument name="config" xsi:type="object">Amasty\AdvancedReview\Helper\Config</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

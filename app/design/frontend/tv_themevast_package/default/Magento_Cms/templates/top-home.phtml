@@ -1,0 +1,33 @@
+<?php echo $block->getLayout()->createBlock('Themevast\SlideBanner\Block\Slider')->setSliderId('default')->toHtml(); ?>
+<div class="top-content-home">
+	<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('home1_category')->toHtml();?>
+	<div class="container">
+		<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('home1_banner_static_top')->toHtml();?>
+		<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('home1_tabs')->toHtml();?>
+	</div>
+	<div class="home1_banner_content">
+		<div class="background">
+			<div class="container">
+				<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('home1_banner_content')->toHtml();?>
+			</div>
+		</div>
+	</div>
+	<div class="box-product">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-8 col-md-8 col-sm-12 col-xs-12">
+					<?php echo $block->getLayout()->createBlock('Themevast\Featuredpro\Block\Featured')->setTemplate('Themevast_Featuredpro::featured.phtml')->toHtml();?>
+					<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('home1_featured')->toHtml();?>
+				</div>
+				<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">					
+					<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('home1_hot_deal')->toHtml();?>
+				</div>
+			</div>
+		</div>
+	</div>	
+	<div class="container">
+		<?php echo $block->getLayout()->createBlock('Themevast\Blog\Block\Sidebar\Recent')->setTemplate('Themevast_Blog::sidebar/slider.phtml')->toHtml();?>
+		<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('testimonial-instalgram')->toHtml();?>
+	</div>
+	<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('brand_logo')->toHtml();?>
+</div>

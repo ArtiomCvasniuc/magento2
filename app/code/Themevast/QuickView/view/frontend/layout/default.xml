@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../../../lib/internal/Magento/Framework/View/Layout/etc/page_configuration.xsd">
+	<head>
+		<!-- <link src="Themevast_QuickView::css/tv_quickview.css"/> -->
+        <!-- <css src="Magento_Swatches::css/swatches.css"/> -->
+    </head>
+	<referenceContainer name="content">
+		<block class="Magento\Framework\View\Element\Template" name="quickview" template="Themevast_QuickView::quickview.phtml" />
+	</referenceContainer>
+</page>

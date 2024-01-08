@@ -1,0 +1,1653 @@
+<?php
+if (file_exists("conf/conf.php")) 
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+
+$date = date("Y-m-d");
+
+if(isset($_POST['add-new-discount'])) {
+    $sellerId = $_POST['seller_id'];
+    $category = $_POST['category'];
+    $subcategory = $_POST['subcategory'];
+    $discountType = $_POST['discount-type'];
+    $dateFrom = $_POST['date_from'];
+    $dateTo = $_POST['date_to'];
+
+    $query = "INSERT INTO mgkf_marketplace_discount_category ";
+    $query .= "(seller_id, category_id, subcategory_name, discount_type, is_active, date_from, date_to) ";
+    $query .= "VALUES ('".$sellerId."', '".$category."', '".$subcategory."', '".$discountType."', '1', '".$dateFrom."', '".$dateTo."')";
+    $result = $conn->query($query);
+    ?>
+    <br>
+    <span class="alert alert-success">
+        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type_added_successfully')->toHtml(); ?>
+    </span>
+    <br><br>
+    <?php
+}
+if(isset($_POST['id'])) {
+    $id = $_POST['id'];
+
+    $query = "DELETE FROM mgkf_marketplace_discount_category ";
+    $query .= "WHERE id = '".$id."'";
+    $result = $conn->query($query);
+    ?>
+    <br>
+    <span class="alert alert-success">
+        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type_deleted_successfully')->toHtml(); ?>
+    </span>
+    <br><br>
+    <?php
+}
+if(isset($_POST['edit-discount'])) {
+    $sellerId = $_POST['seller_id'];
+    $id = $_POST['edit_id'];
+    $discountType = $_POST['discount_type'];
+    $dateFrom = $_POST['edit_date_from'];
+    $dateTo = $_POST['edit_date_to'];
+    if($date >= $dateFrom && $date <= $dateTo) {
+        $isActive = 1;
+    }
+    else {
+        $isActive = 0;
+    }
+
+    $query = "UPDATE mgkf_marketplace_discount_category ";
+    $query .= "SET discount_type = '".$discountType."', ";
+    $query .= "is_active = '".$isActive."', ";
+    $query .= "date_from = '".$dateFrom."', ";
+    $query .= "date_to = '".$dateTo."'";
+    $query .= "WHERE id = '".$id."'";
+    $result = $conn->query($query);
+    ?>
+    <br>
+    <span class="alert alert-success">
+        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type_updated_successfully')->toHtml(); ?>
+    </span>
+    <br><br>
+    <?php
+}
+if(isset($_POST['add_product_discount_form'])) {
+    $sellerId = $_POST['seller_id'];
+    $productId = $_POST['product_id'];
+    $productName = $_POST['product_name'];
+    $productPrice = $_POST['product_price'];
+    $discountType = $_POST['product_discount_type'];   
+    $dateFrom = $_POST['product_date_from'];
+    $dateTo = $_POST['product_date_to'];
+    if($date >= $dateFrom && $date <= $dateTo) {
+        $isActive = 1;
+    }
+    else {
+        $isActive = 0;
+    }
+
+    $query = "INSERT INTO mgkf_marketplace_discount_products ";
+    $query .= "(seller_id, product_id, product_name, product_price, discount, is_active, date_from, date_to) ";
+    $query .= "VALUES ('".$sellerId."', '".$productId."', '".$productName."', '".$productPrice."', '".$discountType."', '".$isActive."', '".$dateFrom."', '".$dateTo."')";
+    $result = $conn->query($query);
+    ?>
+    <br>
+    <span class="alert alert-success">
+        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type_added_successfully')->toHtml(); ?>
+    </span>
+    <br><br>
+    <?php
+}
+if(isset($_POST['edit_product_discount_form'])) {
+    $sellerId = $_POST['seller_id'];
+    $productId = $_POST['product_id'];
+    $discountType = $_POST['edit_product_discount_type'];
+    $dateFrom = $_POST['edit_product_date_from'];
+    $dateTo = $_POST['edit_product_date_to'];
+    if($date >= $dateFrom && $date <= $dateTo) {
+        $isActive = 1;
+    }
+    else {
+        $isActive = 0;
+    }
+
+    $query = "UPDATE mgkf_marketplace_discount_products ";
+    $query .= "SET discount = '".$discountType."', ";
+    $query .= "is_active = '".$isActive."', ";
+    $query .= "date_from = '".$dateFrom."', ";
+    $query .= "date_to = '".$dateTo."' ";
+    $query .= "WHERE product_id = '".$productId."' ";
+    $query .= "AND seller_id = '".$sellerId."'";
+    $result = $conn->query($query);
+    ?>
+    <br>
+    <span class="alert alert-success">
+        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type_updated_successfully')->toHtml(); ?>
+    </span>
+    <br><br>
+    <?php
+}
+if(isset($_POST['delete_product_discount'])) {
+    $sellerId = $_POST['seller_id'];
+    $productId = $_POST['product_id'];
+
+    $query = "DELETE FROM mgkf_marketplace_discount_products ";
+    $query .= "WHERE product_id = '".$productId."' ";
+    $query .= "AND seller_id = '".$sellerId."'";
+    $result = $conn->query($query);
+    ?>
+    <br>
+    <span class="alert alert-success">
+        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type_deleted_successfully')->toHtml(); ?>
+    </span>
+    <br><br>
+    <?php
+}
+if(isset($_POST['general_discount_type_1'])) {
+    $sellerId = $_POST['seller_id'];
+    $cartAmount = $_POST['general_discount_shopping_cart_amount'];
+    $discountType = $_POST['general_discount_type_1'];
+    
+    $query = "INSERT INTO mgkf_marketplace_discount_general ";
+    $query .= "(seller_id, discount_type, cart_amount, discount_value) ";
+    $query .= "VALUES ";
+    $query .= "('".$sellerId."', '1', '".$cartAmount."', '".$discountType."')";
+    $result = $conn->query($query);
+    ?>
+    <br>
+    <span class="alert alert-success">
+        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type_added_successfully')->toHtml(); ?>
+    </span>
+    <br><br>
+    <?php
+}
+if(isset($_POST['general_discount_type_2'])) {
+    $sellerId = $_POST['seller_id'];
+    $discountType = $_POST['general_discount_type_2'];
+
+    $query = "INSERT INTO mgkf_marketplace_discount_general ";
+    $query .= "(seller_id, discount_type, discount_value) ";
+    $query .= "VALUES ";
+    $query .= "('".$sellerId."', '2', '".$discountType."')";
+    $result = $conn->query($query);
+    ?>
+    <br>
+    <span class="alert alert-success">
+        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type_added_successfully')->toHtml(); ?>
+    </span>
+    <br><br>
+    <?php
+}
+if(isset($_POST['edit_general_discount'])) {
+    $id = $_POST['edit_general_discount'];
+    $sellerId = $_POST['seller_id'];    
+    $discountValue = $_POST['general_discount_type'];
+
+    if(isset($_POST['general_discount_shopping_cart_amount'])) {
+        $cartAmount = $_POST['general_discount_shopping_cart_amount'];
+        
+        $query = "UPDATE mgkf_marketplace_discount_general ";
+        $query .= "SET cart_amount = '".$cartAmount."', ";
+        $query .= "discount_value = '".$discountValue."' ";
+        $query .= "WHERE id = '".$id."'";
+        $result = $conn->query($query);
+    }
+    else {
+        $query = "UPDATE mgkf_marketplace_discount_general ";
+        $query .= "SET discount_value = '".$discountValue."' ";
+        $query .= "WHERE id = '".$id."'";
+        $result = $conn->query($query);
+    }
+    ?>
+    <br>
+    <span class="alert alert-success">
+        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type_updated_successfully')->toHtml(); ?>
+    </span>
+    <br><br>
+    <?php
+}
+if(isset($_POST['delete_general_discount'])) {
+    $id = $_POST['general_discount_id'];
+    $sellerId = $_POST['seller_id'];
+
+    $query = "DELETE FROM mgkf_marketplace_discount_general ";
+    $query .= "WHERE id = '".$id."'";
+    $result = $conn->query($query);
+    ?>
+    <br>
+    <span class="alert alert-success">
+        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type_deleted_successfully')->toHtml(); ?>
+    </span>
+    <br><br>
+    <?php
+}
+
+$query_category = "SELECT DISTINCT(category_id), value ";
+$query_category .= "FROM mgkf_catalog_category_product, mgkf_catalog_product_entity_int ";
+$query_category .= "WHERE mgkf_catalog_category_product.product_id = mgkf_catalog_product_entity_int.entity_id ";
+$query_category .= "AND mgkf_catalog_product_entity_int.attribute_id = 158 ";
+$query_category .= "AND mgkf_catalog_category_product.category_id <= 368 ";
+$query_category .= "AND mgkf_catalog_product_entity_int.value = '".$customerId."' ";
+$query_category .= "ORDER BY value";
+$result_category = $conn->query($query_category);
+
+$query_discounts = "SELECT * FROM mgkf_marketplace_discount_category ";
+$query_discounts .= "WHERE seller_id = '".$customerId."'";
+$result_discounts = $conn->query($query_discounts);
+$countDiscounts = $result_discounts->num_rows;
+
+$query_base = "SELECT DISTINCT(mgkf_catalog_product_entity.entity_id) as id, sku as name, mgkf_catalog_product_index_price.max_price as price, mgkf_catalog_product_entity_int.value as seller_id ";
+$query_base .= "FROM mgkf_catalog_product_entity, mgkf_catalog_product_index_price, mgkf_catalog_product_entity_int ";
+$query_base .= "WHERE mgkf_catalog_product_entity.entity_id = mgkf_catalog_product_index_price.entity_id ";
+$query_base .= "AND mgkf_catalog_product_entity_int.entity_id = mgkf_catalog_product_entity.entity_id ";
+$query_base .= "AND mgkf_catalog_product_entity_int.attribute_id = 158 ";
+$query_base .= "AND mgkf_catalog_product_entity_int.value = '".$customerId."' ";
+$query_base .= "AND mgkf_catalog_product_entity.type_id = 'configurable' ";
+$query_base .= "ORDER BY id DESC";
+$result_base = $conn->query($query_base);
+$countSellerProducts = $result_base->num_rows;
+
+$query_general_discount = "SELECT * FROM mgkf_marketplace_discount_general ";
+$query_general_discount .= "WHERE seller_id = '".$customerId."'";
+$result_general_discount = $conn->query($query_general_discount);
+$countSellerGeneralDiscounts = $result_general_discount->num_rows;
+
+$query_seller_currency = "SELECT currency FROM mgkf_marketplace_seller_currency ";
+$query_seller_currency .= "WHERE seller_id = $customerId";
+$result_seller_currency = $conn->query($query_seller_currency);
+$row_seller_currency = $result_seller_currency->fetch_row();
+$sellerCurrency = $row_seller_currency[0];
+?>
+<main class="main-tabs">
+    <div class="tab">
+        <div class="justify-content-between justify-content-md-start tab-menu">
+            <button class="tab-menu-link border-0 active" data-content="first">
+                <span data-title="first">
+                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('category_discount')->toHtml(); ?>
+                </span>
+            </button>
+            <button class="tab-menu-link border-0" data-content="second">
+                <span data-title="second">
+                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('products_discount')->toHtml(); ?>
+                </span>
+            </button>
+            <button class="tab-menu-link border-0" data-content="third">
+                <span data-title="third">
+                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('general_discounts')->toHtml(); ?>
+                </span>
+            </button>
+        </div>
+        <div class="tab-bar">
+            <div class="tab-bar-content active" id="first">
+                <div class="d-flex justify-content-end mb-3">
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addDiscountModal">
+                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_category_discount')->toHtml(); ?>
+                    </button>
+                </div>
+                <input type="hidden" id="category-discounts-count" value="<?php echo $countDiscounts; ?>" />
+                <?php
+                $i = 1;
+                while($row_discounts = $result_discounts->fetch_assoc()) {
+                    $id = $row_discounts['id'];
+                    $sellerId = $row_discounts['seller_id'];
+                    $categoryId = $row_discounts['category_id'];
+                    $subcategoryName = ucfirst($row_discounts['subcategory_name']);
+                    $discountType = $row_discounts['discount_type'];
+                    $dateFrom = $row_discounts['date_from'];
+                    $dateTo = $row_discounts['date_to'];
+                    $isActive = $row_discounts['is_active'];
+                    if($isActive == 1) $active = '<i style="font-size:18px;" class="fal fa-check" aria-hidden="true"></i>';
+                    if($isActive == 0) $active = '<i style="font-size:18px;" class="fal fa-times" aria-hidden="true"></i>';
+                    
+                    $query_category_name = "SELECT value FROM mgkf_catalog_category_entity_varchar ";
+                    $query_category_name .= "WHERE attribute_id = 45 ";
+                    $query_category_name .= "AND store_id = 0 ";
+                    $query_category_name .= "AND entity_id = '".$categoryId."'"; 
+                    $result_category_name = $conn->query($query_category_name);
+                    $row_category_name = $result_category_name->fetch_assoc();
+                    $categoryName = $row_category_name['value'];
+                    ?>
+                    <div class="shadow py-3 px-4 mb-3">
+                        <h5><?php echo $categoryName . ' ' . $subcategoryName; ?></h5>
+                        <?php
+                        if($dateFrom <= $date && $date <= $dateTo) {
+                        ?>
+                            <span class="badge bg-info">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('active')->toHtml(); ?>
+                            </span>
+                        <?php
+                        }
+                        else {
+                        ?>
+                            <span class="badge bg-warning">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('expired')->toHtml(); ?>
+                            </span>
+                        <?php
+                        }
+                        ?>
+                        <div class="row mt-3">
+                            <div class="col-md-9 col-xl-11">
+                                <div class="row">
+                                    <div class="col-sm-6 col-lg-4">
+                                        <div class="flex-column">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type')->toHtml(); ?>:
+                                            </p>
+                                            <span><?php echo $discountType; ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-lg-4">
+                                        <div class="flex-column">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_from')->toHtml(); ?>:
+                                            </p>
+                                            <span><?php echo $dateFrom; ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-lg-4">
+                                        <p class="m-0 font-weight-bold">
+                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_to')->toHtml(); ?>:
+                                        </p>
+                                        <span><?php echo $dateTo; ?></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-xl-1 mt-2 mt-md-0">
+                                <div class="d-flex justify-content-md-end">
+                                    <button class="btn-sm rounded border-0 mr-2 btn-secondary edit-prod-cat" title="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('edit')->toHtml(); ?>" onclick="editCategoryDiscount(<?php echo $i; ?>);">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                    <form method="post" action="">
+                                        <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>" />
+                                        <input type="hidden" name="id" value="<?php echo $id; ?>" />
+                                        <button class="btn-sm rounded border-0 btn-secondary" title="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('delete')->toHtml(); ?>">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="edit-cat-discount-<?php echo $i; ?>" class="mt-3 d-none">
+                            <form method="post" action="">
+                                <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>" />
+                                <input type="hidden" name="edit_id" value="<?php echo $id; ?>" />
+                                <div class="row align-items-end">
+                                    <div class="col-sm-6 col-lg-3">
+                                        <label class="form-label">
+                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type')->toHtml(); ?>
+                                        </label>
+                                        <select class="form-select mb-2" name="discount_type" id="edit-discount-type-<?php echo $i; ?>">
+                                            <option value="<?php echo $discountType; ?>" selected><?php echo $discountType; ?></option>
+                                            <?php
+                                            $query_discount_type = "SELECT discount_type ";
+                                            $query_discount_type .= "FROM mgkf_marketplace_discount_type ";
+                                            $query_discount_type .= "WHERE discount_type != '".$discountType."' ";
+                                            $query_discount_type .= "ORDER BY discount_type ASC";
+                                            $result_discount_type = $conn->query($query_discount_type);
+                                            while($row_discount_type = $result_discount_type->fetch_assoc()) {
+                                                $option = $row_discount_type['discount_type']; ?>
+                                                <option value="<?php echo $option; ?>"><?php echo $option; ?></option>
+                                            <?php
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-6 col-lg-3">
+                                        <label class="form-label">
+                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_from')->toHtml(); ?>
+                                        </label>
+                                        <div class="input-group mb-2">
+                                            <input type="date" class="form-control rounded-0 rounded-left border-right-0" name="edit_date_from" value="<?php echo $dateFrom; ?>">
+                                            <span class="input-group-text">
+                                                <i class="far fa-calendar-plus"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-lg-3">
+                                        <label class="form-label">
+                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_to')->toHtml(); ?>
+                                        </label>
+                                        <div class="input-group mb-2">
+                                            <input type="date" class="form-control rounded-0 rounded-left border-right-0" name="edit_date_to" value="<?php echo $dateTo; ?>">
+                                            <span class="input-group-text">
+                                                <i class="far fa-calendar-plus"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-lg-3 mt-2">
+                                        <button type="submit" class="btn btn-primary btn-block mb-2" name="edit-discount" id="edit-discount">
+                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('save')->toHtml(); ?>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal fade" id="addDiscountModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">
+                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_category_discount')->toHtml(); ?>
+                                        </h5>
+                                        <button type="button" class="btn-close bg-transparent border-0" data-dismiss="modal" aria-label="Close">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="add-new-discount-form" method="post" action="" onsubmit="return false">
+                                            <div class="row align-items-end">                                        
+                                                <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>" />
+                                                <div class="col-sm-6">
+                                                    <label class="form-label">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('category')->toHtml(); ?>
+                                                    </label>
+                                                    <select class="form-select mb-2" id="category" name="category" onchange="get_selected_category();">
+                                                        <option></option>
+                                                        <?php 
+                                                        while($row_category = $result_category->fetch_assoc()) {
+                                                            $categoryId = $row_category['category_id'];
+
+                                                            $query = "SELECT value ";
+                                                            $query .= "FROM mgkf_catalog_category_entity_varchar ";
+                                                            $query .= "WHERE store_id = 0 ";
+                                                            $query .= "AND attribute_id = 45 ";
+                                                            $query .= "AND value != 'PRODUCTS' ";
+                                                            $query .= "AND value NOT LIKE '%Default%' ";
+                                                            $query .= "AND value NOT LIKE '%Root%' ";
+                                                            $query .= "AND value NOT LIKE '%Page%' ";
+                                                            $query .= "AND value NOT LIKE '%Dama%' ";
+                                                            $query .= "AND value NOT LIKE '%Barbati%' ";
+                                                            $query .= "AND value NOT LIKE '%Fete%' ";
+                                                            $query .= "AND value NOT LIKE '%Baieti%' ";
+                                                            $query .= "AND value NOT LIKE '%Barbabti%' ";
+                                                            $query .= "AND entity_id = '".$categoryId."' ";
+                                                            $result = $conn->query($query);
+                                                            $row = $result->fetch_assoc();
+
+                                                            $categoryName = $row['value'];
+                                                            if($categoryName != '') {
+                                                            ?>
+                                                                <option value="<?php echo $categoryId; ?>"><?php echo $categoryName; ?></option>
+                                                            <?php
+                                                            }
+                                                        }
+                                                        ?>
+                                                    </select>
+                                                    <span style="display:none;" id="category-not-selected" class="alert alert-warning">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('category_not_selected')->toHtml(); ?>
+                                                    </span>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <label class="form-label">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('subcategory')->toHtml(); ?>
+                                                    </label>
+                                                    <select class="form-select mb-2" id="subcategory" name="subcategory" onchange="get_selected_subcategory();">
+                                                        <option></option>
+                                                    </select>
+                                                    <span style="display:none;" id="subcategory-not-selected" class="alert alert-warning">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('subcategory_not_selected')->toHtml(); ?>
+                                                    </span>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <label class="form-label">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type')->toHtml(); ?>
+                                                    </label>
+                                                    <select class="form-select mb-2" id="discount-type" name="discount-type" onchange="get_selected_discount_type();">
+                                                        <option></option>
+                                                        <?php
+                                                        $query_discount_type = "SELECT discount_type ";
+                                                        $query_discount_type .= "FROM mgkf_marketplace_discount_type ";
+                                                        $query_discount_type .= "ORDER BY discount_type ASC";
+                                                        $result_discount_type = $conn->query($query_discount_type);
+                                                        while($row_discount_type = $result_discount_type->fetch_assoc()) {
+                                                            $option = $row_discount_type['discount_type']; ?>
+                                                            <option value="<?php echo $option; ?>"><?php echo $option; ?></option>
+                                                        <?php
+                                                        }
+                                                        ?>
+                                                    </select>
+                                                    <span style="display:none;" id="discount-type-not-selected" class="alert alert-warning">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type_not_selected')->toHtml(); ?>
+                                                    </span>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <label class="form-label">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_from')->toHtml(); ?>
+                                                    </label>
+                                                    <div class="input-group mb-2">
+                                                        <input type="date" class="form-control rounded-0 rounded-left border-right-0" id="date-from" name="date_from" onchange="get_selected_date_from();">
+                                                        <span class="input-group-text">
+                                                            <i class="far fa-calendar-plus"></i>
+                                                        </span>
+                                                        <span style="display:none;" id="date-from-not-selected" class="alert alert-warning">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('date_from_not_selected')->toHtml(); ?>
+                                                        </span>                    
+                                                        <span style="display:none;" id="date-from-smaller-date-to" class="alert alert-warning">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('wrong_date_selection')->toHtml(); ?>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <label class="form-label">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_to')->toHtml(); ?>
+                                                    </label>
+                                                    <div class="input-group mb-2">
+                                                        <input type="date" class="form-control rounded-0 rounded-left border-right-0" id="date-to" name="date_to" onchange="get_selected_date_to();">
+                                                        <span class="input-group-text">
+                                                            <i class="far fa-calendar-plus"></i>
+                                                        </span>
+                                                        <span style="display:none;" id="date-to-not-selected" class="alert alert-warning">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('date_to_not_selected')->toHtml(); ?>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6 mt-2">
+                                                    <button type="submit" class="btn btn-primary btn-block mb-2" name="add-new-discount" id="add-discount" onclick="add_discount();">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('save')->toHtml(); ?>
+                                                    </button>
+                                                </div>
+                                            </div>                        
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php
+                    $i++;
+                }
+                ?>                
+            </div>
+            <div class="tab-bar-content" id="second">
+                <div class="input-group mb-3">
+                    <input type="text" id="searched" class="form-control rounded-0 rounded-left border-right-0" placeholder="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('search_for_discount_items')->toHtml(); ?>" oninput="find_results();">
+                    <button type="button" class="input-group-text" onclick="find_results();">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </div>
+                <input type="hidden" id="product-discounts-count" value="<?php echo $countSellerProducts; ?>" />
+                <?php                        
+                $i = 1;
+                if(count($_GET) < 1) {
+                    while($row_base = $result_base->fetch_assoc()) {
+                        $id = $row_base['id'];
+                        $name = $row_base['name'];
+                        $price = $row_base['price'];
+
+                        $query_seller_currency = "SELECT currency FROM mgkf_marketplace_seller_currency ";
+                        $query_seller_currency .= "WHERE seller_id = $customerId";
+                        $result_seller_currency = $conn->query($query_seller_currency);
+                        $row_seller_currency = $result_seller_currency->fetch_row();
+                        $sellerCurrency = $row_seller_currency[0];
+
+                        if($sellerCurrency != '') {
+                            $currency = $sellerCurrency;
+                            if($currency == 'RON') {
+                                $price = $price * 4.726883;
+                            }
+                            else if($currency == 'USD') {
+                                $price = $price * 1.121762;
+                            }
+                            else if($currency == 'EUR') {
+                                $price = $price;
+                            }
+                        }
+
+                        $query_discount = "SELECT * FROM mgkf_marketplace_discount_products ";
+                        $query_discount .= "WHERE product_id = '".$id."'";
+                        $result_discount = $conn->query($query_discount);
+                        $discounts = $result_discount->num_rows;              
+                        if($discounts > 0) {
+                            $row_discount = $result_discount->fetch_assoc();
+                            $discountId = $row_discount['id'];
+                            $discountType = $row_discount['discount'];
+                            $discountValue = str_replace("%", "", $discountType);
+                            $isActive = $row_discount['is_active'];
+                            $dateFrom = $row_discount['date_from'];
+                            $dateTo = $row_discount['date_to'];
+                            $newPrice = $price - ($price * ($discountValue / 100));
+                        }
+                        ?>
+                        <div class="shadow py-3 px-4 mb-3" id="row-<?php echo $i; ?>">
+                            <h5><?php echo $name; ?></h5>
+                            <input type="hidden" id="product-name-<?php echo $i; ?>" value="<?php echo $name; ?>" />
+                            <span class="badge bg-success">
+                                <?php echo number_format($price, 2, '.', '') . ' ' . ucfirst(strtolower($sellerCurrency)); ?>
+                            </span>
+                            <?php 
+                            if($discounts > 0) {
+                                if($dateFrom <= $date && $date <= $dateTo) {
+                                ?>
+                                    <span class="badge bg-info">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('active')->toHtml(); ?>
+                                    </span>
+                                <?php
+                                }
+                                else {
+                                ?>
+                                    <span class="badge bg-warning">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('expired')->toHtml(); ?>
+                                    </span>
+                                <?php
+                                }
+                            }
+                            ?>
+                            <div class="row">
+                                <div class="col-md-9 col-xl-11">
+                                    <div class="row">
+                                        <div class="col-md-6 col-lg-3">
+                                            <div class="flex-column">
+                                                <p class="m-0 font-weight-bold">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_new_price')->toHtml(); ?>:
+                                                </p>
+                                                <span>
+                                                    <?php
+                                                    if($discounts > 0) {
+                                                        echo number_format($newPrice, 2, '.', '') . ' ' . ucfirst(strtolower($sellerCurrency));
+                                                    }
+                                                    else {
+                                                        echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('no_discount')->toHtml();
+                                                    }
+                                                    ?>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-lg-3">
+                                            <div class="flex-column">
+                                                <p class="m-0 font-weight-bold">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type')->toHtml(); ?>:
+                                                </p>
+                                                <span>
+                                                    <?php 
+                                                    if($discounts > 0) {
+                                                        echo $discountType;
+                                                    }
+                                                    else {
+                                                        echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('no_discount')->toHtml();
+                                                    }
+                                                    ?>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-lg-3">
+                                            <div class="flex-column">
+                                                <p class="m-0 font-weight-bold">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_from')->toHtml(); ?>:
+                                                </p>
+                                                <span>
+                                                    <?php
+                                                    if($discounts > 0) {
+                                                        echo $dateFrom;
+                                                    }
+                                                    else {
+                                                        echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('is_not_set')->toHtml();
+                                                    }
+                                                    ?>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-lg-3">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_to')->toHtml(); ?>:
+                                            </p>
+                                            <span>
+                                                <?php 
+                                                if($discounts > 0) {
+                                                    echo $dateTo;
+                                                }
+                                                else {
+                                                    echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('is_not_set')->toHtml();
+                                                }
+                                                ?>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-xl-1 mt-2 mt-md-0">
+                                    <div class="d-flex justify-content-md-end">
+                                        <form method="post" action="">
+                                            <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>" />
+                                            <input type="hidden" name="product_id" value="<?php echo $id; ?>" />
+                                            <?php
+                                            if($discounts > 0) { ?>
+                                                <button type="button" class="btn-sm rounded border-0 mr-2 btn-secondary edit-prod" data-toggle="tooltip" title="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('edit')->toHtml(); ?>" name="edit" onclick="editProductDiscount(<?php echo $i; ?>);">
+                                                    <i class="fas fa-pencil-alt"></i>
+                                                </button>
+                                            <?php
+                                            }
+                                            else { ?>
+                                                <button type="button" title="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add')->toHtml(); ?>" class="btn-sm rounded border-0 btn-secondary" name="add" onclick="show_add_product_discount_block(<?php echo $i; ?>);">
+                                                    <i class="fas fa-plus" aria-hidden="true"></i>
+                                                </button>
+                                            <?php
+                                            }
+                                            ?>
+                                            <button type="submit" name="delete_product_discount" class="btn-sm rounded border-0 btn-secondary" data-toggle="tooltip" title="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('delete')->toHtml(); ?>" style="<?php if($discounts < 1) { ?> pointer-events:none; <?php } ?>">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="edit-product-discount-<?php echo $i; ?>" class="mt-3 d-none">
+                                <form method="post" action="">
+                                    <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>" />
+                                    <input type="hidden" name="product_id" value="<?php echo $id; ?>" />
+                                    <div class="row align-items-end">
+                                        <div class="col-sm-6 col-lg-3">
+                                            <label class="form-label">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type')->toHtml(); ?>:
+                                            </label>
+                                            <select class="form-select mb-2" id="edit-product-discount-type-<?php echo $i; ?>" name="edit_product_discount_type" onchange="get_selected_product_discount_type(<?php echo $i; ?>);">
+                                                <option value="<?php echo $discountType; ?>" selected><?php echo $discountType; ?></option>
+                                                <?php
+                                                $query_discount_type = "SELECT discount_type ";
+                                                $query_discount_type .= "FROM mgkf_marketplace_discount_type ";
+                                                $query_discount_type .= "WHERE discount_type != '".$discountType."' ";
+                                                $query_discount_type .= "ORDER BY discount_type ASC";
+                                                $result_discount_type = $conn->query($query_discount_type);
+                                                while($row_discount_type = $result_discount_type->fetch_assoc()) {
+                                                    $option = $row_discount_type['discount_type']; ?>
+                                                    <option value="<?php echo $option; ?>"><?php echo $option; ?></option>
+                                                <?php
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-6 col-lg-3">
+                                            <label class="form-label">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_from')->toHtml(); ?>:
+                                            </label>
+                                            <div class="input-group mb-2">
+                                                <input type="date" class="form-control rounded-0 rounded-left border-right-0" id="edit_product-date-from-<?php echo $i; ?>" name="edit_product_date_from" value="<?php echo $dateFrom; ?>">
+                                                <span class="input-group-text">
+                                                    <i class="far fa-calendar-plus"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-lg-3">
+                                            <label class="form-label">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_to')->toHtml(); ?>:
+                                            </label>
+                                                <div class="input-group mb-2">
+                                                <input type="date" class="form-control rounded-0 rounded-left border-right-0" id="edit_product-date-to-<?php echo $i; ?>" name="edit_product_date_to" value="<?php echo $dateTo; ?>">
+                                                <span class="input-group-text">
+                                                    <i class="far fa-calendar-plus"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-lg-3 mt-2">
+                                            <button type="submit" class="btn btn-primary btn-block mb-2" name="edit_product_discount_form" id="edit-product-discount-<?php echo $i; ?>">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('save')->toHtml(); ?>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div id="add-product-discount-block-<?php echo $i; ?>" class="mt-3 d-none">
+                                <form id="add-product-discount-form-<?php echo $i; ?>" method="post" action="" onsubmit="return false">
+                                    <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>" />
+                                    <input type="hidden" name="product_id" value="<?php echo $id; ?>" />
+                                    <input type="hidden" name="product_name" value="<?php echo $name; ?>" />
+                                    <input type="hidden" name="product_price" value="<?php echo number_format($price, 2, '.', '') . ' ' . $currency; ?>" />
+                                    <div class="row align-items-end">
+                                        <div class="col-sm-6 col-lg-3">
+                                            <label class="form-label">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type')->toHtml(); ?>:
+                                            </label>
+                                            <select class="form-select mb-2" id="product-discount-type-<?php echo $i; ?>" name="product_discount_type" onchange="get_selected_product_discount_type(<?php echo $i; ?>);">
+                                                <option></option>
+                                                <?php
+                                                $query_discount_type = "SELECT discount_type ";
+                                                $query_discount_type .= "FROM mgkf_marketplace_discount_type ";
+                                                $query_discount_type .= "ORDER BY discount_type ASC";
+                                                $result_discount_type = $conn->query($query_discount_type);
+                                                while($row_discount_type = $result_discount_type->fetch_assoc()) {
+                                                    $option = $row_discount_type['discount_type']; ?>
+                                                    <option value="<?php echo $option; ?>"><?php echo $option; ?></option>
+                                                <?php
+                                                }
+                                                ?>
+                                            </select>
+                                            <span style="display:none;" id="product-discount-type-not-selected-<?php echo $i; ?>" class="alert alert-warning">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type_not_selected')->toHtml(); ?>
+                                            </span>
+                                        </div>
+                                        <div class="col-sm-6 col-lg-3">
+                                            <label class="form-label">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_from')->toHtml(); ?>:
+                                            </label>
+                                            <div class="input-group mb-2">
+                                                <input type="date" class="form-control rounded-0 rounded-left border-right-0" id="product-date-from-<?php echo $i; ?>" name="product_date_from" onchange="product_get_selected_date_from(<?php echo $i; ?>);">
+                                                <span class="input-group-text">
+                                                    <i class="far fa-calendar-plus"></i>
+                                                </span>
+                                                <span style="display:none;" id="product-date-from-not-selected-<?php echo $i; ?>" class="alert alert-warning">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('date_from_not_selected')->toHtml(); ?>
+                                                </span>
+                                                <span style="display:none;" id="product-date-from-smaller-date-to-<?php echo $i; ?>" class="alert alert-warning">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('wrong_date_selection')->toHtml(); ?>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-lg-3">
+                                            <label class="form-label">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_to')->toHtml(); ?>:
+                                            </label>
+                                            <div class="input-group mb-2">
+                                                <input type="date" class="form-control rounded-0 rounded-left border-right-0" type="date" id="product-date-to-<?php echo $i; ?>" name="product_date_to" onchange="product_get_selected_date_to(<?php echo $i; ?>);">
+                                                <span class="input-group-text">
+                                                    <i class="far fa-calendar-plus"></i>
+                                                </span>
+                                                <span style="display:none;" id="product-date-to-not-selected-<?php echo $i; ?>" class="alert alert-warning">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('date_to_not_selected')->toHtml(); ?>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-lg-3 mt-2">
+                                            <button type="submit" class="btn btn-primary btn-block mb-2" onclick="add_product_discount(<?php echo $i; ?>);" name="add_product_discount_form" id="add-product-discount-<?php echo $i; ?>">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add')->toHtml(); ?>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    <?php 
+                        $i++;
+                    }
+                }
+                ?>                
+            </div>
+            <div class="alert alert-warning" id="no-products" style="display:none;">
+                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('no_records_found')->toHtml(); ?>
+            </div>
+            <div class="tab-bar-content" id="third">
+                <div class="row">
+                    <?php 
+                    if($countSellerGeneralDiscounts > 0) {
+                    ?>
+                        <table class="d-md-table table table-bordered table-hover table-responsive table-striped">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type')->toHtml(); ?></th>
+                                    <th><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_value')->toHtml(); ?></th>
+                                    <th><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('action')->toHtml(); ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php 
+                                $i = 1;
+                                while($row_general_discounts = $result_general_discount->fetch_assoc()) {
+                                    $id = $row_general_discounts['id'];
+                                    $sellerId = $row_general_discounts['seller_id'];
+                                    $discountType = $row_general_discounts['discount_type'];
+                                    $cartAmount = $row_general_discounts['cart_amount'];
+                                    $discountValue = $row_general_discounts['discount_value'];
+                                    ?>
+                                    <tr>
+                                        <td>
+                                            <?php 
+                                            if($discountType == 1) {
+                                                $discountInfo = $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('if_cart_amount_exceeds_value')->toHtml() . ' ' . $cartAmount . ', ' . $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('then_discount_will_be_applied_for_products')->toHtml() . ' ' . $discountValue;
+                                            }
+                                            if($discountType == 2) {
+                                                $discountInfo = $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('if_cart_has_3_products_then_discount')->toHtml() . ' ' . $discountValue;
+                                            }
+                                            echo $discountInfo;
+                                            ?>
+                                        </td>
+                                        <td><?php echo $discountValue; ?></td>
+                                        <td>
+                                            <form method="post" action="">
+                                                <input type="hidden" name="seller_id" value="<?php echo $sellerId; ?>" />
+                                                <input type="hidden" name="general_discount_id" value="<?php echo $id; ?>" />
+                                                <a id="edit-general-discount-<?php echo $i; ?>" onclick="edit_general_discount(<?php echo $i; ?>);">
+                                                    <i class="fal fa-pencil" aria-hidden="true"></i>
+                                                </a>
+                                                <button style="border:none;background-color:inherit;" type="submit" name="delete_general_discount">
+                                                    <i class="fal fa-trash" aria-hidden="true"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="display:none;" id="edit-general-discount-block-<?php echo $i; ?>" colspan="8">
+                                            <div>
+                                                <form method="post" action="">
+                                                    <input type="hidden" name="edit_general_discount" value="<?php echo $id; ?>" />
+                                                    <input type="hidden" name="seller_id" value="<?php echo $sellerId; ?>" />
+                                                    <div class="row">
+                                                        <?php
+                                                        if($cartAmount != '') {
+                                                        ?>
+                                                            <div class="col-3">
+                                                                <label class="control-label"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('general_discount_shopping_cart_amount')->toHtml(); ?></label>
+                                                                <input class="form-control rounded shadow-none" type="number" id="general-discount-shopping-cart-amount" name="general_discount_shopping_cart_amount" value="<?php echo $cartAmount; ?>">
+                                                                <br>
+                                                                <span style="display:none;" id="shopping-cart-amount-is-not-selected" class="alert alert-warning">
+                                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('shopping_cart_amount_is_not_selected')->toHtml(); ?>                
+                                                                </span>
+                                                            </div>
+                                                        <?php 
+                                                        }
+                                                        ?>
+                                                        <div class="col-2">
+                                                            <label class="control-label"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_value')->toHtml(); ?></label>
+                                                            <select class="form-control" name="general_discount_type" id="general-discount-type" onchange="general_discount_type_list(1);">
+                                                                <option value="<?php echo $discountValue; ?>"><?php echo $discountValue; ?></option>
+                                                                <?php
+                                                                $query_discount_type = "SELECT discount_type ";
+                                                                $query_discount_type .= "FROM mgkf_marketplace_discount_type ";
+                                                                $query_discount_type .= "WHERE discount_type != '".$discountValue."' ";
+                                                                $query_discount_type .= "ORDER BY discount_type ASC";
+                                                                $result_discount_type = $conn->query($query_discount_type);
+                                                                while($row_discount_type = $result_discount_type->fetch_assoc()) {
+                                                                    $option = $row_discount_type['discount_type']; ?>
+                                                                    <option value="<?php echo $option; ?>"><?php echo $option; ?></option>
+                                                                <?php
+                                                                }
+                                                                ?>
+                                                            </select>
+                                                            <br>
+                                                            <span style="display:none;" id="discount-value-is-not-selected" class="alert alert-warning">
+                                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_value_is_not_selected')->toHtml(); ?>                
+                                                            </span>
+                                                        </div>
+                                                        <div class="col-1">
+                                                            <i class="fal fa-times-circle" aria-hidden="true" onclick="hide_edit_general_discount(<?php echo $i; ?>);"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mt-3">
+                                                        <div class="col-12 col-md-3">
+                                                            <button type="submit" name="general_discount_1" id="general-discount-submit-1" class="btn btn-block btn-primary" onclick="add_general_discount(1);">
+                                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('save')->toHtml(); ?>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <?php
+                                    $i++;
+                                }
+                                ?>
+                            </tbody>
+                        </table>
+                    <?php 
+                    }
+                    else { ?>
+                        <div id="no-general-discounts" class="alert alert-warning">
+                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('no_general_discounts')->toHtml(); ?>
+                        </div>
+                    <?php
+                    }
+                    ?>
+                </div>
+                <h4><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_new_general_discount')->toHtml(); ?></h4>
+                <div class="row">
+                    <div class="col-4">
+                        <?php 
+                        if($countSellerGeneralDiscounts == 2) { ?>
+                            <div class="alert alert-info">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('you_have_selected_all_possible_options')->toHtml(); ?>
+                            </div>
+                        <?php
+                        }
+                        else { ?>
+                            <label class="control-label"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('choose_discount_option')->toHtml(); ?></label>
+                            <select class="form-control" id="select-general-discount" onchange="get_selected_general_discount();">
+                                <option selected disabled><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('select')->toHtml(); ?></option>                    
+                                <?php
+                                $query_check_first_general_discount = "SELECT discount_type ";
+                                $query_check_first_general_discount .= "FROM mgkf_marketplace_discount_general ";
+                                $query_check_first_general_discount .= "WHERE discount_type = 1 ";
+                                $query_check_first_general_discount .= "AND seller_id = '".$customerId."'";
+                                $result_check_first_general_discount = $conn->query($query_check_first_general_discount);
+                                $checkFirst = $result_check_first_general_discount->num_rows;
+                                if($checkFirst < 1) {
+                                ?>
+                                    <option value="discount-1"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('general_discount_1')->toHtml(); ?></option>
+                                <?php
+                                }
+                                $query_check_second_general_discount = "SELECT discount_type ";
+                                $query_check_second_general_discount .= "FROM mgkf_marketplace_discount_general ";
+                                $query_check_second_general_discount .= "WHERE discount_type = 2 ";
+                                $query_check_second_general_discount .= "AND seller_id = '".$customerId."'";
+                                $result_check_second_general_discount = $conn->query($query_check_second_general_discount);
+                                $checkSecond = $result_check_second_general_discount->num_rows;
+                                if($checkSecond < 1) {
+                                ?>
+                                    <option value="discount-2"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('general_discount_2')->toHtml(); ?></option>
+                                <?php
+                                }
+                                ?>
+                            </select>
+                        <?php
+                        }
+                        ?>                
+                    </div>
+                    <div style="display:none;" class="col-8" id="selected-general-discount-block">
+                        <label class="control-label"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('you_have_selected')->toHtml(); ?>:</label>
+                        <div style="font-weight:700;" id="selected-general-discount"></div>
+                    </div>
+                </div>
+                <form style="display:none;" id="general-discount-1" method="post" action="" onsubmit="return false">
+                    <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>" />
+                    <div class="row">
+                        <br>
+                        <div class="col-3">
+                            <label class="control-label"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('general_discount_shopping_cart_amount')->toHtml(); ?></label>
+                            <input class="form-control rounded shadow-none" type="number" id="general-discount-shopping-cart-amount" name="general_discount_shopping_cart_amount" onchange="get_shopping_cart_amount();">
+                            <br>
+                            <span style="display:none;" id="shopping-cart-amount-is-not-selected" class="alert alert-warning">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('shopping_cart_amount_is_not_selected')->toHtml(); ?>                
+                            </span>
+                        </div>
+                        <div class="col-3">
+                            <label class="control-label"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_value')->toHtml(); ?></label>
+                            <select class="form-control" name="general_discount_type_1" id="general-discount-type-1" onchange="general_discount_type_list(1);">
+                                <option></option>
+                                <?php
+                                $query_discount_type = "SELECT discount_type ";
+                                $query_discount_type .= "FROM mgkf_marketplace_discount_type ";
+                                $query_discount_type .= "WHERE discount_type != '".$discountType."' ";
+                                $query_discount_type .= "ORDER BY discount_type ASC";
+                                $result_discount_type = $conn->query($query_discount_type);
+                                while($row_discount_type = $result_discount_type->fetch_assoc()) {
+                                    $option = $row_discount_type['discount_type']; ?>
+                                    <option value="<?php echo $option; ?>"><?php echo $option; ?></option>
+                                <?php
+                                }
+                                ?>
+                            </select>
+                            <br>
+                            <span style="display:none;" id="discount-value-is-not-selected-1" class="alert alert-warning">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_value_is_not_selected')->toHtml(); ?>                
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12 col-md-3">
+                            <button type="submit" name="general_discount_1" id="general-discount-submit-1" class="btn btn-block btn-primary" onclick="add_general_discount(1);">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add')->toHtml(); ?>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <form style="display:none;" id="general-discount-2" method="post" action="" onsubmit="return false">
+                    <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>" />
+                    <div class="row">
+                        <br>
+                        <div class="col-3">
+                            <label class="control-label"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_value')->toHtml(); ?></label>
+                            <select class="form-control" name="general_discount_type_2" id="general-discount-type-2" onchange="general_discount_type_list(2);">
+                                <option></option>
+                                <?php
+                                $query_discount_type = "SELECT discount_type ";
+                                $query_discount_type .= "FROM mgkf_marketplace_discount_type ";
+                                $query_discount_type .= "WHERE discount_type != '".$discountType."' ";
+                                $query_discount_type .= "ORDER BY discount_type ASC";
+                                $result_discount_type = $conn->query($query_discount_type);
+                                while($row_discount_type = $result_discount_type->fetch_assoc()) {
+                                    $option = $row_discount_type['discount_type']; ?>
+                                    <option value="<?php echo $option; ?>"><?php echo $option; ?></option>
+                                <?php
+                                }
+                                ?>
+                            </select>
+                            <br>
+                            <span style="display:none;" id="discount-value-is-not-selected-2" class="alert alert-warning">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_value_is_not_selected')->toHtml(); ?>                
+                            </span>
+                        </div>
+                        <div class="col-3">
+                            <label class="control-label"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_from')->toHtml(); ?></label>
+                            <input class="form-control" type="date" id="general-discount-date-from-2" name="general_discount_date_from_2" onchange="general_discount_get_selected_date_from(2);" />
+                            <br>
+                            <span style="display:none;" id="general-discount-date-from-not-selected-2" class="alert alert-warning">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('date_from_not_selected')->toHtml(); ?>
+                            </span>                    
+                            <span style="display:none;" id="general-discount-date-from-smaller-date-to-2" class="alert alert-warning">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('wrong_date_selection')->toHtml(); ?>
+                            </span>
+                        </div>
+                        <div class="col-3">
+                            <label class="control-label"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_to')->toHtml(); ?></label>
+                            <input class="form-control" type="date" id="general-discount-date-to-2" name="general_discount_date_to_2" onchange="general_discount_get_selected_date_to(2);" />
+                            <br>
+                            <span style="display:none;" id="general-discount-date-to-not-selected-2" class="alert alert-warning">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('date_to_not_selected')->toHtml(); ?>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12 col-md-3">
+                            <button type="submit" name="general_discount_2" id="general-discount-submit-2" class="btn btn-block btn-primary" onclick="add_general_discount(2);">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add')->toHtml(); ?>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+<script>
+function category_discount() {
+    document.getElementById("category-discount-block").style.display = "block";
+    document.getElementById("products-discount-block").style.display = "none";
+    document.getElementById("general-discounts-block").style.display = "none";
+    jQuery("#tab-1").addClass("active");
+    jQuery("#tab-2").removeClass("active");
+    jQuery("#tab-3").removeClass("active");
+}
+
+function products_discount() {
+    document.getElementById("products-discount-block").style.display = "block";
+    document.getElementById("category-discount-block").style.display = "none";
+    document.getElementById("general-discounts-block").style.display = "none";
+    jQuery("#tab-2").addClass("active");
+    jQuery("#tab-1").removeClass("active");
+    jQuery("#tab-3").removeClass("active");
+}
+
+function general_discounts() {
+    document.getElementById("general-discounts-block").style.display = "block";
+    document.getElementById("products-discount-block").style.display = "none";
+    document.getElementById("category-discount-block").style.display = "none";
+    jQuery("#tab-3").addClass("active");
+    jQuery("#tab-1").removeClass("active");
+    jQuery("#tab-2").removeClass("active");
+}
+
+function add_discount() {
+    var category_list = document.getElementById("category");
+    var selected_category = category_list.options[category_list.selectedIndex].value;
+    var subcategory_list = document.getElementById("subcategory");
+    var selected_subcategory = subcategory_list.options[subcategory_list.selectedIndex].value;
+    var discount_type_list = document.getElementById("discount-type");
+    var selected_discount_type = discount_type_list.options[discount_type_list.selectedIndex].value;
+    var date_from = document.getElementById("date-from").value;
+    var date_to = document.getElementById("date-to").value;
+    if(selected_category == '') {
+        document.getElementById("category-not-selected").style.display = "block";
+    }
+    else {
+        document.getElementById("category-not-selected").style.display = "none";
+    }
+    if(selected_subcategory == '') {
+        document.getElementById("subcategory-not-selected").style.display = "block";
+    }
+    else {
+        document.getElementById("subcategory-not-selected").style.display = "none";
+    }
+    if(selected_discount_type == '') {
+        document.getElementById("discount-type-not-selected").style.display = "block";
+    }
+    else {
+        document.getElementById("discount-type-not-selected").style.display = "none";
+    }
+    if(date_from == '') {
+        document.getElementById("date-from-not-selected").style.display = "block";
+    }
+    else {
+        document.getElementById("date-from-not-selected").style.display = "none";
+    }
+    if(date_to == '') {
+        document.getElementById("date-to-not-selected").style.display = "block";
+    }
+    else {
+        document.getElementById("date-to-not-selected").style.display = "none";
+    }
+    if(date_to < date_from) {
+        document.getElementById("date-from-smaller-date-to").style.display = "block";
+    }
+    else {
+        document.getElementById("date-from-smaller-date-to").style.display = "none";
+    }
+    if((selected_category != '') && (selected_subcategory != '') && (selected_discount_type != '') && (date_to > date_from) && (date_from != '') && (date_to != '')) {
+        document.getElementById("add-new-discount-form").removeAttribute("onsubmit");
+    }
+}
+
+function get_selected_category() {
+    document.getElementById("category-not-selected").style.display = "none";
+    var category_list = document.getElementById("category");
+    var selected_category = category_list.options[category_list.selectedIndex].text;
+    var subcategory_list = document.getElementById("subcategory");
+    if(selected_category.includes("Copii")) {
+        var option_1 = document.createElement("option");
+        option_1.value = "baieti";
+        option_1.text = "Baieti";
+        var option_2 = document.createElement("option");
+        option_2.value = "fete";
+        option_2.text = "Fete";
+        subcategory_list.add(option_1);
+        subcategory_list.add(option_2);
+    }
+    else {
+        var option_1 = document.createElement("option");
+        option_1.value = "barbati";
+        option_1.text = "Barbati";
+        var option_2 = document.createElement("option");
+        option_2.value = "femei";
+        option_2.text = "Femei";
+        subcategory_list.add(option_1);
+        subcategory_list.add(option_2);  
+    }
+}
+
+function get_selected_subcategory() {
+    document.getElementById("subcategory-not-selected").style.display = "none";
+}
+
+function get_selected_discount_type() {
+    document.getElementById("discount-type-not-selected").style.display = "none";
+}
+
+function edit_discount(k) {
+    document.getElementById("edit-discount-block-"+k).style.display = "table-cell";
+}
+
+function closeCollapse(k) {
+    document.getElementById("edit-discount-block-"+k).style.display = "none";
+}
+
+function get_selected_date_from() {
+    var date_from = document.getElementById("date-from").value;
+    var date_to = document.getElementById("date-to").value;
+    document.getElementById("date-from-not-selected").style.display = "none";
+    if(date_to < date_from) {
+        document.getElementById("date-from-smaller-date-to").style.display = "block";
+    }
+    else {
+        document.getElementById("date-from-smaller-date-to").style.display = "none";
+    }
+}
+
+function get_selected_date_to() {
+    var date_from = document.getElementById("date-from").value;
+    var date_to = document.getElementById("date-to").value;
+    document.getElementById("date-to-not-selected").style.display = "none";
+    if(date_to < date_from) {
+        document.getElementById("date-from-smaller-date-to").style.display = "block";
+    }
+    else {
+        document.getElementById("date-from-smaller-date-to").style.display = "none";
+    }
+}
+
+function show_add_product_discount_block(k) {
+    var count = document.getElementById("product-discounts-count").value;
+    for(var i=0; i<=count; i++) {
+        if(document.getElementById("add-product-discount-block-"+i)) {
+            document.getElementById("add-product-discount-block-"+i).classList.add("d-none");
+        }
+    }
+    document.getElementById("add-product-discount-block-"+k).classList.remove("d-none");
+}
+
+function hide_add_product_discount_block(k) {
+    document.getElementById("add-product-discount-block-"+k).classList.add("d-none");
+}
+
+function get_selected_product_discount_type(k) {
+    document.getElementById("product-discount-type-not-selected-"+k).style.display = "none";
+}
+
+function product_get_selected_date_from(k) {
+    var date_from = document.getElementById("product-date-from-"+k).value;
+    var date_to = document.getElementById("product-date-to-"+k).value;
+    document.getElementById("product-date-from-not-selected-"+k).style.display = "none";
+    if(date_to < date_from) {
+        document.getElementById("product-date-from-smaller-date-to-"+k).style.display = "block";
+    }
+    else {
+        document.getElementById("product-date-from-smaller-date-to-"+k).style.display = "none";
+    }
+}
+
+function product_get_selected_date_to(k) {
+    var date_from = document.getElementById("product-date-from-"+k).value;
+    var date_to = document.getElementById("product-date-to-"+k).value;
+    document.getElementById("product-date-to-not-selected-"+k).style.display = "none";
+    if(date_to < date_from) {
+        document.getElementById("product-date-from-smaller-date-to-"+k).style.display = "block";
+    }
+    else {
+        document.getElementById("product-date-from-smaller-date-to-"+k).style.display = "none";
+    }
+}
+
+function add_product_discount(k) {
+    var discount_type_list = document.getElementById("product-discount-type-"+k);
+    var selected = discount_type_list.options[discount_type_list.selectedIndex].value;
+    var date_from = document.getElementById("product-date-from-"+k).value;
+    var date_to = document.getElementById("product-date-to-"+k).value;
+    if(selected == '') {
+        document.getElementById("product-discount-type-not-selected-"+k).style.display = "block";
+    }
+    else {
+        document.getElementById("product-discount-type-not-selected-"+k).style.display = "none";
+    }
+    if(date_from == '') {
+        document.getElementById("product-date-from-not-selected-"+k).style.display = "block";
+    }
+    else {
+        document.getElementById("product-date-from-not-selected-"+k).style.display = "none";
+    }
+    if(date_to == '') {
+        document.getElementById("product-date-to-not-selected-"+k).style.display = "block";
+    }
+    else {
+        document.getElementById("product-date-to-not-selected-"+k).style.display = "none";
+    }
+    if((selected != '') && (date_from != '') && (date_to != '') && (date_to > date_from)) {
+        document.getElementById("add-product-discount-form-"+k).removeAttribute("onsubmit");
+    }
+}
+
+function set_active(k) {
+    if(document.getElementById("product-discount-is-active-"+k).hasAttribute("checked")) {
+        document.getElementById("product-discount-is-active-"+k).removeAttribute("checked");
+        document.getElementById("product-discount-is-active-"+k).setAttribute("value", "0");
+    }
+    else {
+        document.getElementById("product-discount-is-active-"+k).setAttribute("checked", "");
+        document.getElementById("product-discount-is-active-"+k).setAttribute("value", "1");
+    }
+}
+
+function show_edit_product_discount_block(k) {
+    document.getElementById("edit-product-discount-block-"+k).style.display = "table-cell";
+}
+
+function hide_edit_product_discount_block(k) {
+    document.getElementById("edit-product-discount-block-"+k).style.display = "none";
+}
+
+function set_active_discount_type(k) {
+    if(document.getElementById("edit-product-discount-is-active-"+k).hasAttribute("checked")) {
+        document.getElementById("edit-product-discount-is-active-"+k).removeAttribute("checked");
+        document.getElementById("edit-product-discount-is-active-"+k).setAttribute("value", "0");
+    }
+    else {
+        document.getElementById("edit-product-discount-is-active-"+k).setAttribute("checked", "");
+        document.getElementById("edit-product-discount-is-active-"+k).setAttribute("value", "1");
+    }
+}
+
+function find_results() {
+    var count_rows = document.getElementById("product-discounts-count").value;
+    var searched = document.getElementById("searched").value;
+    
+    for(var i=0; i<=count_rows; i++) {
+        if(document.getElementById("product-name-"+i)) {
+            var j = 0;
+            var product_name = document.getElementById("product-name-"+i).value;
+            if(product_name.includes(searched)) {
+                document.getElementById("row-"+i).style.display = "block";
+                document.getElementById("row-"+i).classList.add("active");
+                document.getElementById("row-"+i).classList.remove("disabled");
+                document.getElementById("no-products").style.display = "none";
+            }
+            else {
+                document.getElementById("row-"+i).style.display = "none";
+                document.getElementById("row-"+i).classList.remove("active");
+                document.getElementById("row-"+i).classList.add("disabled");
+            }
+        }
+    }
+
+    var count_active_rows = document.getElementsByClassName("shadow py-3 px-4 mb-3 active").length;
+    if(count_active_rows == 0) {
+        document.getElementById("no-products").style.display = "block";
+    }
+}
+
+function get_selected_general_discount() {
+    var discount_type_list = document.getElementById("select-general-discount");
+    var selected = discount_type_list.options[discount_type_list.selectedIndex].value;
+    
+    document.getElementById("selected-general-discount-block").style.display = "block";
+
+    if(selected == 'discount-1') {
+        document.getElementById("selected-general-discount").innerText = "";
+        document.getElementById("selected-general-discount").innerText = discount_type_list.options[discount_type_list.selectedIndex].text;
+        document.getElementById("general-discount-1").style.display = "block";
+        document.getElementById("general-discount-2").style.display = "none";
+    }
+    if(selected == 'discount-2') {
+        document.getElementById("selected-general-discount").innerText = "";
+        document.getElementById("selected-general-discount").innerText = discount_type_list.options[discount_type_list.selectedIndex].text;
+        document.getElementById("general-discount-2").style.display = "block";
+        document.getElementById("general-discount-1").style.display = "none";
+    }
+}
+
+function add_general_discount(k) {
+    if(k == 1) {
+        var cart_amount = document.getElementById("general-discount-shopping-cart-amount").value;
+        var discount_type_list = document.getElementById("general-discount-type-1");
+        var selected = discount_type_list.options[discount_type_list.selectedIndex].value;
+        if(cart_amount == '') {
+            document.getElementById("shopping-cart-amount-is-not-selected").style.display = "block";
+        }
+        else {
+            document.getElementById("shopping-cart-amount-is-not-selected").style.display = "none";
+        }
+        if(selected == '') {
+            document.getElementById("discount-value-is-not-selected-1").style.display = "block";
+        }
+        else {
+            document.getElementById("discount-value-is-not-selected-1").style.display = "none";
+        }
+        if((cart_amount != '') && (selected != '')) {
+            document.getElementById("general-discount-1").removeAttribute("onsubmit");
+        }
+    }
+    if(k == 2) {
+        var discount_type_list = document.getElementById("general-discount-type-2");
+        var selected = discount_type_list.options[discount_type_list.selectedIndex].value;
+        if(selected == '') {
+            document.getElementById("discount-value-is-not-selected-2").style.display = "block";
+        }
+        else {
+            document.getElementById("discount-value-is-not-selected-2").style.display = "none";
+        }
+        if((selected != '') && (date_to != '')) {
+            document.getElementById("general-discount-2").removeAttribute("onsubmit");
+        }
+    }
+}
+
+function get_shopping_cart_amount() {
+    var cart_amount = document.getElementById("general-discount-shopping-cart-amount").value;
+    if(cart_amount == '') {
+        document.getElementById("shopping-cart-amount-is-not-selected").style.display = "block";
+    }
+    else {
+        document.getElementById("shopping-cart-amount-is-not-selected").style.display = "none";
+    }
+}
+
+function general_discount_type_list(k) {
+    if(k == 1) {
+        var discount_type_list = document.getElementById("general-discount-type-1");
+        var selected = discount_type_list.options[discount_type_list.selectedIndex].value;
+        if(selected == '') {
+            document.getElementById("discount-value-is-not-selected-1").style.display = "block";
+        }
+        else {
+            document.getElementById("discount-value-is-not-selected-1").style.display = "none";
+        }
+    }
+    else {
+        var discount_type_list = document.getElementById("general-discount-type-2");
+        var selected = discount_type_list.options[discount_type_list.selectedIndex].value;
+        if(selected == '') {
+            document.getElementById("discount-value-is-not-selected-2").style.display = "block";
+        }
+        else {
+            document.getElementById("discount-value-is-not-selected-2").style.display = "none";
+        }
+    }
+}
+
+function general_discount_get_selected_date_from(k) {
+    if(k == 1) {
+        var date_from = document.getElementById("general-discount-date-from-1").value;
+        var date_to = document.getElementById("general-discount-date-to-1").value;
+        document.getElementById("general-discount-date-from-not-selected-1").style.display = "none";
+        if(date_to < date_from) {
+            document.getElementById("general-discount-date-from-smaller-date-to-1").style.display = "block";
+        }
+        else {
+            document.getElementById("general-discount-date-from-smaller-date-to-1").style.display = "none";
+        }
+    }
+    if(k == 2) {
+        var date_from = document.getElementById("general-discount-date-from-2").value;
+        var date_to = document.getElementById("general-discount-date-to-2").value;
+        document.getElementById("general-discount-date-from-not-selected-2").style.display = "none";
+        if(date_to < date_from) {
+            document.getElementById("general-discount-date-from-smaller-date-to-2").style.display = "block";
+        }
+        else {
+            document.getElementById("general-discount-date-from-smaller-date-to-2").style.display = "none";
+        }
+    }
+}
+
+function general_discount_get_selected_date_to(k) {
+    if(k == 1) {
+        var date_from = document.getElementById("general-discount-date-from-1").value;
+        var date_to = document.getElementById("general-discount-date-to-1").value;
+        document.getElementById("general-discount-date-to-not-selected-1").style.display = "none";
+        if(date_to < date_from) {
+            document.getElementById("general-discount-date-from-smaller-date-to-1").style.display = "block";
+        }
+        else {
+            document.getElementById("general-discount-date-from-smaller-date-to-1").style.display = "none";
+        }
+    }
+    if(k == 2) {
+        var date_from = document.getElementById("general-discount-date-from-2").value;
+        var date_to = document.getElementById("general-discount-date-to-2").value;
+        document.getElementById("general-discount-date-to-not-selected-2").style.display = "none";
+        if(date_to < date_from) {
+            document.getElementById("general-discount-date-from-smaller-date-to-2").style.display = "block";
+        }
+        else {
+            document.getElementById("general-discount-date-from-smaller-date-to-2").style.display = "none";
+        }
+    }
+}
+
+function edit_general_discount(k) {
+    document.getElementById("edit-general-discount-block-"+k).style.display = "table-cell";
+}
+
+function hide_edit_general_discount(k) {
+    document.getElementById("edit-general-discount-block-"+k).style.display = "none";
+}
+
+var k = document.getElementById("category");
+sortSelect(k);
+function sortSelect(selElem) {
+    var tmpAry = new Array();
+    for (var i=0;i<selElem.options.length;i++) {
+        tmpAry[i] = new Array();
+        tmpAry[i][0] = selElem.options[i].text;
+        tmpAry[i][1] = selElem.options[i].value;
+    }
+    tmpAry.sort();
+    while (selElem.options.length > 0) {
+        selElem.options[0] = null;
+    }
+    for (var i=0;i<tmpAry.length;i++) {
+        var op = new Option(tmpAry[i][0], tmpAry[i][1]);
+        selElem.options[i] = op;
+    }
+    return;
+}
+
+const tabLink = document.querySelectorAll(".tab-menu-link");
+const tabContent = document.querySelectorAll(".tab-bar-content");
+var editBox = document.querySelector('#edit-card');
+var discount_radio = document.querySelectorAll('.discount-radio');
+
+tabLink.forEach((el) => {
+    el.addEventListener("click", activeTab);
+});
+
+discount_radio.forEach((el) => {
+    el.addEventListener('change', radioDiscount)
+})
+
+function activeTab(el) {
+    const btnTarget = el.currentTarget;
+    const content = btnTarget.dataset.content;
+
+    tabContent.forEach((el) => {
+        el.classList.remove("active");
+    });
+
+    tabLink.forEach((el) => {
+        el.classList.remove("active");
+    });
+
+    document.querySelector("#" + content).classList.add("active");
+    btnTarget.classList.add("active");
+}
+
+function editCategoryDiscount(k) {
+    var count = document.getElementById("category-discounts-count").value;
+    for(var i=0; i<=count; i++) {
+        if(document.getElementById("edit-cat-discount-"+i)) {
+            document.getElementById("edit-cat-discount-"+i).classList.add("d-none");
+        }
+    }
+    document.getElementById("edit-cat-discount-"+k).classList.remove("d-none");
+}
+
+function editProductDiscount(k) {
+    var count = document.getElementById("product-discounts-count").value;
+    for(var i=0; i<=count; i++) {
+        if(document.getElementById("edit-product-discount-"+i)) {
+            document.getElementById("edit-product-discount-"+i).classList.add("d-none");
+        }
+    }
+    document.getElementById("edit-product-discount-"+k).classList.remove("d-none");
+}
+
+function closeToast() {
+    toastBox.classList.remove('show');
+}
+
+function radioDiscount(e) {
+    var first = document.querySelector('#discount-box-1');
+    var second = document.querySelector('#discount-box-2');
+    if (e.target.id === 'discount-1') {
+        first.classList.add('d-none')
+        second.classList.remove('d-none')
+    } else {
+        second.classList.add('d-none')
+        first.classList.remove('d-none')
+    }
+}
+</script>

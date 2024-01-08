@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <brand_setting>
+			<general>
+	            <enable_frontend>1</enable_frontend>
+				<title><![CDATA[New & Brand]]></title>
+	            <auto>1</auto>
+	            <speed>5000</speed>
+	            <pagination>500</pagination>
+				<qty>18</qty>
+				<img_width>214</img_width>
+				<img_height>106</img_height>
+	            <default>6</default>
+	            <desktop>6</desktop>
+	            <desktop_small>4</desktop_small>
+	            <tablet>3</tablet>
+	            <mobile>2</mobile>
+	            <rows>2</rows>
+	            <show_description>0</show_description>
+	            <show_next_back>1</show_next_back>
+	            <show_navigation_control>0</show_navigation_control>
+	        </general>
+        </brand_setting>
+    </default>
+</config>

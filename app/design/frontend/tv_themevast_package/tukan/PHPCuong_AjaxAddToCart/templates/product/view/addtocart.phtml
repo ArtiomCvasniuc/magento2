@@ -1,0 +1,595 @@
+<?php
+/**
+ * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+/** @var $block \Magento\Catalog\Block\Product\View */
+if (file_exists("conf/conf.php")) 
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+
+$_product = $block->getProduct();
+$_product = $block->getProduct();
+$_productId = $_product->getId();
+$_productName = $_product->getName();
+
+$date = date("Y-m-d");
+
+$remote_ip = $_SERVER['REMOTE_ADDR'];
+$remote_ip = "'$remote_ip'";
+
+$query_seller = "SELECT DISTINCT(mgkf_catalog_product_entity_int.value) AS seller_id ";
+$query_seller .= "FROM mgkf_catalog_product_entity_int, mgkf_catalog_product_entity_varchar ";
+$query_seller .= "WHERE mgkf_catalog_product_entity_int.entity_id = mgkf_catalog_product_entity_varchar.entity_id ";
+$query_seller .= "AND mgkf_catalog_product_entity_int.attribute_id = 158 ";
+$query_seller .= "AND mgkf_catalog_product_entity_varchar.value = '".$_productName."' ";
+$result_seller = $conn->query($query_seller);
+$row_seller = $result_seller->fetch_assoc();
+$sellerId = $row_seller['seller_id'];
+
+$query_category = "SELECT mgkf_catalog_category_entity_varchar.entity_id, mgkf_catalog_category_entity_varchar.value ";
+$query_category .= "FROM mgkf_catalog_category_entity_varchar, mgkf_catalog_category_product ";
+$query_category .= "WHERE mgkf_catalog_category_entity_varchar.entity_id = mgkf_catalog_category_product.category_id ";
+$query_category .= "AND mgkf_catalog_category_entity_varchar.store_id = 0 ";
+$query_category .= "AND mgkf_catalog_category_entity_varchar.attribute_id = 45 ";
+$query_category .= "AND mgkf_catalog_category_product.product_id = '".$_productId."' ";
+$query_category .= "LIMIT 0,1";
+$result_category = $conn->query($query_category);
+$row_category = $result_category->fetch_assoc();
+$categoryId = $row_category['entity_id'];
+$categoryName = $row_category['value'];
+
+$query_subcategory = "SELECT mgkf_catalog_category_entity_varchar.entity_id, mgkf_catalog_category_entity_varchar.value ";
+$query_subcategory .= "FROM mgkf_catalog_category_entity_varchar, mgkf_catalog_category_product ";
+$query_subcategory .= "WHERE mgkf_catalog_category_entity_varchar.entity_id = mgkf_catalog_category_product.category_id ";
+$query_subcategory .= "AND mgkf_catalog_category_entity_varchar.store_id = 0 ";
+$query_subcategory .= "AND mgkf_catalog_category_entity_varchar.attribute_id = 45 ";
+$query_subcategory .= "AND mgkf_catalog_category_product.product_id = '".$_productId."' ";
+$query_subcategory .= "LIMIT 1,1";
+$result_subcategory = $conn->query($query_subcategory);
+$row_subcategory = $result_subcategory->fetch_assoc();
+$subcategoryId = $row_subcategory['entity_id'];
+$subcategoryName = $row_subcategory['value'];
+
+$query_price = "SELECT DISTINCT(max_price) FROM mgkf_catalog_product_index_price ";
+$query_price .= "WHERE entity_id = '".$_productId."'";
+$result_price = $conn->query($query_price);
+$row_price = $result_price->fetch_assoc();
+$productPrice = (float)number_format($row_price['max_price'] * 4.726883, 2, ',', '');
+
+$query_category_discount = "SELECT category_id, subcategory_name, discount_type ";
+$query_category_discount .= "FROM mgkf_marketplace_discount_category ";
+$query_category_discount .= "WHERE category_id = '".$categoryId."' ";
+$query_category_discount .= "AND subcategory_name = '".$subcategoryName."' ";
+$query_category_discount .= "AND seller_id = '".$sellerId."' ";
+$query_category_discount .= "AND is_active = 1 ";
+$query_category_discount .= "AND date_from <= '".$date."' ";
+$query_category_discount .= "AND date_to >= '".$date."'";
+$result_category_discount = $conn->query($query_category_discount);
+$countCategoryDiscount = $result_category_discount->num_rows;
+if($countCategoryDiscount > 0) {
+    $row_category_discount = $result_category_discount->fetch_assoc();
+    $discountCategory = str_replace("%", "", $row_category_discount['discount_type']);
+}
+
+$query_product_discount = "SELECT * FROM mgkf_marketplace_discount_products ";
+$query_product_discount .= "WHERE is_active = 1 ";
+$query_product_discount .= "AND seller_id = '".$sellerId."' ";
+$query_product_discount .= "AND product_id = '".$_productId."' ";
+$query_product_discount .= "AND date_from <= '".$date."' ";
+$query_product_discount .= "AND date_to >= '".$date."'";
+$result_product_discount = $conn->query($query_product_discount);
+$countProductDiscount = $result_product_discount->num_rows;
+if($countProductDiscount > 0) {
+    $row_product_discount = $result_product_discount->fetch_assoc();
+    $discount = str_replace("%", "", $row_product_discount['discount']);
+    $discountProduct = $discount;
+    $discountFrom = $row_product_discount['date_from'];
+    $discountTo = $row_product_discount['date_to'];
+}
+
+if($countCategoryDiscount > 0) {
+    $discount = $discountCategory;
+    $newPrice = number_format(($productPrice - ($productPrice * ($discountCategory / 100))), 2, ',', '.');
+}
+if($countProductDiscount > 0) {
+    $discount = $discountProduct;
+    $newPrice = number_format(($productPrice - ($productPrice * ($discountProduct / 100))), 2, ',', '.');
+}
+if($countCategoryDiscount > 0 && $countProductDiscount > 0) {
+    if($discountCategory >= $discountProduct) {
+        $discount = $discountCategory;
+        $newPrice = number_format(($productPrice - ($productPrice * ($discountCategory / 100))), 2, ',', '.');
+    }
+    else {
+        $discount = $discountProduct;
+        $newPrice = number_format(($productPrice - ($productPrice * ($discountProduct / 100))), 2, ',', '.');
+    }
+}
+echo '<input type="hidden" name="customer_id" id="customer_id_value" value="'.$customerId.'">';
+?>
+<?php
+if($customerId != '') {
+    $query = "SELECT wishlist_id ";
+    $query .= "FROM mgkf_wishlist ";
+    $query .= "WHERE customer_id = '".$customerId."'";
+    $result = $conn->query($query);
+    $row = $result->fetch_assoc();
+    $wishlistId = $row['wishlist_id'];
+
+    $query = "SELECT product_id ";
+    $query .= "FROM mgkf_wishlist_item ";
+    $query .= "WHERE wishlist_id = '".$wishlistId."'";
+    $result = $conn->query($query);
+    $wishlistArr = array();
+    while($row = $result->fetch_assoc()) {
+        $wishlistProductId = $row['product_id'];
+        array_push($wishlistArr, $wishlistProductId);
+    }
+    $wishlistList = implode(",", $wishlistArr);
+    ?>
+    <div id="wishlist_items_user" class="d-none">
+        <?php echo $wishlistList; ?>
+    </div>
+    <script>
+    var interval = setInterval(myTimer, 1000);
+    function myTimer() {
+        var user_id = "<?php echo $customerId; ?>";
+        jQuery("#wishlist_items_user").load("/wishlistAdd.php", {user_id:user_id});
+    }
+    </script>
+<?php
+}
+else {
+    $query = "SELECT id ";
+    $query .= "FROM mgkf_guest_wishlist ";
+    $query .= "WHERE remote_ip = $remote_ip";
+    $result = $conn->query($query);
+    $row = $result->fetch_assoc();
+    $guestWishlistId = $row['id'];
+
+    $query = "SELECT product_id ";
+    $query .= "FROM mgkf_guest_wishlist_item ";
+    $query .= "WHERE guest_wishlist_id = '".$guestWishlistId."'";
+    $result = $conn->query($query);
+    $guestWishlistArr = array();
+    while($row = $result->fetch_assoc()) {
+        $guestWishlistProductId = $row['product_id'];
+        array_push($guestWishlistArr, $guestWishlistProductId);
+    }
+    $guestWishlistList = implode(",", $guestWishlistArr);
+    ?>
+    <div id="wishlist_items_guest" class="d-none">
+        <?php echo $guestWishlistList; ?>
+    </div>
+    <script>
+    var interval = setInterval(myTimer, 1000);
+    function myTimer() {
+        var guest_id = "<?php echo $remote_ip; ?>";
+        jQuery("#wishlist_items_guest").load("/wishlistAdd.php", {guest_id:guest_id});
+    }
+    </script>
+<?php
+}
+?>
+<?php $buttonTitle = __('Add to Cart'); ?>
+<?php if ($_product->isSaleable()) { ?>
+    <div class="box-tocart">
+        <div class="fieldset">
+            <?php if ($block->shouldRenderQuantity()) { ?>
+            <div class="field qty">
+                <label class="label" for="qty"><span><?php /* @escapeNotVerified */ echo __('Qty') ?></span></label>
+                <div class="control">
+                    <input type="number"
+                        name="qty"
+                        id="qty"
+                        maxlength="12"
+                        value="<?php /* @escapeNotVerified */ echo $block->getProductDefaultQty() * 1 ?>"
+                        title="<?php /* @escapeNotVerified */ echo __('Qty') ?>" class="input-text qty"
+                        data-validate="<?php echo $block->escapeHtml(json_encode($block->getQuantityValidators())) ?>"
+                        />
+                </div>
+            </div>
+            <?php } ?>
+            <?php /** @var \Magento\Framework\Pricing\Render\Amount $block */ ?>
+            <input type="hidden" name="price-currency" id="price-currency" value="<?php echo $block->getDisplayCurrencyCode(); ?>" />
+            <span class="price-container <?php /* @escapeNotVerified */ echo $block->getAdjustmentCssClasses() ?>"
+                <?php echo $block->getSchema() ?>>
+                <span 
+                    <?php echo($block->getPriceDisplayLabel()) ? 'data-label="' . $block->getPriceDisplayLabel() . $block->getPriceDisplayInclExclTaxes() . '"' : '' ?>
+                    data-price-amount="<?php /* @escapeNotVerified */ echo $block->getDisplayValue(); ?>"
+                    data-price-type="<?php /* @escapeNotVerified */ echo $block->getPriceType(); ?>"
+                    class="price-wrapper d-block <?php /* @escapeNotVerified */ echo $block->getPriceWrapperCss(); ?>"
+                    <?php echo $block->getSchema() ? ' itemprop="price"' : '' ?>>
+                    <?php if($countProductDiscount > 0 || $countCategoryDiscount > 0) { ?>
+                        <input type="hidden" id="discount-type" value="<?php echo $discount; ?>" />
+                        <span style="text-decoration:line-through!important;" class="price float-left text-java mb-2" id="productPrice"></span>
+                        <span style="margin-left:30px!important;color:red!important;" class="price float-left text-java mb-2 discount-price" id="product-price-discount">
+                            <?php echo $newPrice; ?>
+                        </span>
+                    <?php 
+                    } else { ?>
+                        <span class="price float-left text-java mb-2" id="productPrice"></span>
+                    <?php
+                    } 
+                    ?>
+                </span>
+                <?php if ($block->hasAdjustmentsHtml()) { ?>
+                    <?php echo $block->getAdjustmentsHtml() ?>
+                <?php } ?>
+                <?php if ($block->getSchema()) { ?>
+                    <meta itemprop="priceCurrency" content="<?php /* @escapeNotVerified */ echo $block->getDisplayCurrencyCode()?>" />
+                <?php } ?>
+            </span>
+            <?php
+            $_wishlistSubmitParams = $this->helper('Magento\Wishlist\Helper\Data')->getAddParams($_product);
+            $compareHelper = $this->helper('Magento\Catalog\Helper\Product\Compare');
+            $sellerGroupId = $customerId = $customerGroupId = $status = '';
+            $urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+            $currentUrl = $urlInterface->getCurrentUrl();
+            $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+            $customerSession = $helper->customerSession();
+            $customerDatas = $customerSession->getCustomer();
+            if ($customerSession->isLoggedIn()) {
+                $customerId = $customerSession->getId();
+                $customerGroupId = $customerDatas->getGroupId();
+                $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+                $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+                $sellerGroupId = $sellerGroupData->getId();
+                $status = $helper->sellerStatus($customerId);
+            }
+            $reviewSellerId = $this->getRequest()->getParam('seller_id');
+            ?>
+            <?php if(!($customerGroupId==$sellerGroupId && $status==1)) { ?>
+            <div class="product-addto-links float-right m-0" data-role="add-to-links">
+                <?php if ($this->helper('Magento\Wishlist\Helper\Data')->isAllow()) { ?>
+                    <?php
+                    if($customerId != '') {
+                        if(strpos($wishlistList, $_productId) !== false) {
+                        ?>
+                        <a id="add-to-wishlist-btn" class="wishlist" title="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('product_is_in_wishlist')->toHtml(); ?>">
+                            <i class="fas fa-heart text-java"></i>
+                        </a>
+                        <?php
+                        }
+                        else {
+                        ?>
+                            <a id="add-to-wishlist-btn" onclick="add_to_wishlist(<?php echo $customerId . ',' . $_productId ?>);" class="wishlist">
+                                <i class="fal fa-heart text-java" id="heart-<?php echo $_productId; ?>"></i>
+                            </a>
+                        <?php
+                        }
+                    }
+                    else {
+                        if(strpos($guestWishlistList, $_productId) !== false) {
+                        ?>
+                            <a id="add-to-wishlist-btn" class="wishlist" title="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('product_is_in_wishlist')->toHtml(); ?>">
+                                <i class="fas fa-heart text-java"></i>
+                            </a>
+                        <?php
+                        }
+                        else {
+                        ?>
+                            <a id="add-to-wishlist-btn" onclick="add_to_wishlist(<?php echo $remote_ip . ',' . $_productId ?>);" class="wishlist">
+                                <i class="fal fa-heart text-java" id="heart-<?php echo $_productId; ?>"></i>
+                            </a>
+                        <?php
+                        }
+                    }
+                    ?>
+                <?php } ?>
+                <a style="display:none;" href="#" data-post='<?php /* @escapeNotVerified */ echo $compareHelper->getPostDataParams($_product);?>' data-role="add-to-links" class="compare">
+                    <i class="storm-balance" style="display:none;"></i>
+                    <?php //echo __('Compare') ?>
+                </a>
+            </div>
+            <?php } ?>
+            <script type="text/x-magento-init">
+                {
+                    "body": {
+                        "addToWishlist": <?php /* @escapeNotVerified */ echo $this->helper('Magento\Framework\Json\Helper\Data')->jsonEncode($block->getWishlistOptions())?>
+                    }
+                }
+            </script>
+            <script>
+            var product_price = document.getElementById("product-price").value;
+            var product_price_currency = document.getElementById("current-currency").value;
+            if(document.getElementById("product-price-discount")) {
+                document.getElementById("productPrice").innerText = product_price;
+                document.getElementById("product-price-discount").innerText += ' ' + product_price_currency;
+            }
+            else {
+                document.getElementById("productPrice").innerText = product_price + ' ' + product_price_currency;
+            }
+            var interval = setInterval(check_preview, 1000);
+
+            function check_preview() {
+                if(document.getElementsByClassName("product-media")[0]) {
+                    document.getElementsByClassName("product-media")[0].setAttribute("id", "product-media");
+                    if(document.getElementById("discount-type")) {
+                        var discount = document.getElementById("discount-type").value;
+                        var div = document.createElement("div");
+                        div.className = "discount";
+                        div.innerText = "-" + discount + "%";
+                        document.getElementById("product-media").appendChild(div);
+                        clearInterval(interval);
+                    }
+                }
+            }
+            </script>
+            <div class="actions">
+                <button type="submit" onclick="addtocart();"
+                        title="<?php /* @escapeNotVerified */ echo $buttonTitle ?>"
+                        class="action primary tocart mb-3"
+                        id="product-addtocart-button">
+                    <span><?php /* @escapeNotVerified */ echo $buttonTitle ?></span>
+                </button>
+                <?php echo $block->getChildHtml('', true) ?>
+            </div>
+        </div>
+    </div>
+<?php } ?>
+<script type="text/x-magento-init">
+    {
+        "#product_addtocart_form": {
+            "Magento_Catalog/product/view/validation": {
+                "radioCheckboxClosest": ".nested"
+            }
+        }
+    }
+</script>
+<?php if (!$block->isRedirectToCartEnabled()) { ?>
+    <script type="text/x-magento-init">
+        {
+            "#product_addtocart_form": {
+                "PHPCuong_AjaxAddToCart/js/catalog-product-add-to-cart": {
+                    "catalogProductAddToCart": {
+                        "bindSubmit": false
+                    }
+                }
+            }
+        }
+    </script>
+<?php } ?>
+<script>
+function addtocart() {
+    var customer_id = document.getElementById("customer_id_value").value;
+
+    interval = setInterval(myTimer, 1000);
+    function myTimer() {
+        var btn_text = document.getElementById("product-addtocart-button").innerText;
+        if(btn_text == 'Add To Cart') {
+            jQuery("#mini-cart").load("/minicartUpdate.php", {customer_id:customer_id});
+            jQuery("#block-content-block-footer").load("/minicartUpdateTotals.php", {customer_id:customer_id});
+            stopTimer();
+        }
+    }
+    function stopTimer() {
+        if((document.getElementsByClassName("swatch-option color selected")[0]) && (document.getElementsByClassName("swatch-option text selected")[0])) {
+            var counter = document.getElementsByClassName("counter-number")[0].innerText;
+            var new_counter = Number(counter) + 1;
+            document.getElementsByClassName("counter-number")[0].innerText = new_counter;
+        }
+        if((!document.getElementsByClassName("swatch-option color")[0]) && (document.getElementsByClassName("swatch-option text selected")[0])) {
+            var counter = document.getElementsByClassName("counter-number")[0].innerText;
+            var new_counter = Number(counter) + 1;
+            document.getElementsByClassName("counter-number")[0].innerText = new_counter;
+        }
+        clearInterval(interval);
+    }
+}
+</script>
+<?php
+$query = "SELECT attribute_id, value ";
+$query .= "FROM mgkf_catalog_product_entity_int ";
+$query .= "WHERE entity_id = '".$_productId."' ";
+$query .= "AND attribute_id NOT IN (97, 99, 127, 131, 158, 159, 181, 184, 188, 195, 236, 237, 228)";
+$result = $conn->query($query);
+
+$query_return_condition = "SELECT return_condition ";
+$query_return_condition .= "FROM mgkf_marketplace_seller_return_condition ";
+$query_return_condition .= "WHERE seller_id = '".$sellerId."'";
+$result_return_condition = $conn->query($query_return_condition);
+
+$ip = $_SERVER['REMOTE_ADDR'];
+if($ip != '127.0.0.1') {
+    $details = json_decode(file_get_contents("http://ipinfo.io/{$ip}"));
+    $country = $details->country;
+
+    $query_shipping = "SELECT country, courier, average_delivery_time, price, currency ";
+    $query_shipping .= "FROM mgkf_marketplace_transports ";
+    $query_shipping .= "WHERE iso = '".$country."' ";
+    $query_shipping .= "AND seller_id = '".$sellerId."'";
+    $result_shipping = $conn->query($query_shipping);
+}
+?>
+<div class="pt-4">
+   <main class="main">
+      <div class="accordion">
+         <div id="first_accordion" class="accordion-item">
+            <h3 class="title" onclick="show_accordion(1);">
+               <span><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('specifications')->toHtml();?></span>
+               <i class="fal fa-angle-down"></i>
+            </h3>
+            <p class="animated fadeInRight paragraph">
+               <?php 
+                if($result->num_rows > 0) {
+                    while($row = $result->fetch_assoc()) {
+                        $attributeId = $row['attribute_id'];
+                        $valueId = $row['value'];
+                        $query_attribute = "SELECT frontend_label ";
+                        $query_attribute .= "FROM mgkf_eav_attribute ";
+                        $query_attribute .= "WHERE attribute_id = '".$attributeId."'";
+                        $result_attribute = $conn->query($query_attribute);
+                        $row_attribute = $result_attribute->fetch_assoc();  
+                
+                        $query_value = "SELECT value ";
+                        $query_value .= "FROM mgkf_eav_attribute_option_value ";
+                        $query_value .= "WHERE option_id = '".$valueId."'";
+                        $result_value = $conn->query($query_value);
+                        $row_value = $result_value->fetch_assoc();
+                
+                        $attribute = $row_attribute['frontend_label'];
+                        $value = $row_value['value'];
+                        ?>                
+                        <span class="float-left"><?php echo $attribute; ?></span>
+                        <span class="float-right"><?php echo $value; ?></span>
+                        <br>                        
+                    <?php                   
+                    }
+                }
+               ?>
+            </p>
+         </div>
+         <div id="second_accordion" class="accordion-item">
+            <h3 class="title" onclick="show_accordion(2);">
+               <span><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('shipping_return')->toHtml();?></span>
+               <i class="fal fa-angle-down"></i>
+            </h3>
+            <p class="animated fadeInRight paragraph">
+                <?php
+                if($customerId != '') {
+                    if($ip != '127.0.0.1') {
+                        if($result_shipping->num_rows > 0) {
+                            $row_shipping = $result_shipping->fetch_assoc();
+                            $country = $row_shipping['country'];
+                            $courier = $row_shipping['courier'];
+                            $time = $row_shipping['average_delivery_time'];
+                            $price = number_format($row_shipping['price'], 2);
+                            $currency = ucfirst(strtolower($row_shipping['currency']));
+                            if($currency == 'Ron') {
+                                $price = number_format(($row_shipping['price'] * 4.726883), 2);
+                            }
+                        ?>
+                        <span>
+                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('shipping_by')->toHtml() . '&nbsp;' . $courier . '&nbsp;' . $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('in')->toHtml() . '&nbsp;' . $time . '&nbsp;' . $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('working_days')->toHtml(); ?>
+                        </span>
+                        <span>
+                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('price')->toHtml() . '&nbsp;' . $price . ' ' . $currency; ?>
+                        </span>
+                    <?php
+                        }
+                    }
+                    else {
+                    ?>
+                        <span>
+
+                        </span>
+                    <?php 
+                    } 
+                }
+                
+                $query = "SELECT value FROM mgkf_marketplace_seller_return_condition ";
+                $query .= "WHERE seller_id = '".$sellerId."' ";
+                $query .= "AND return_condition = 'carefree_return'";
+                $result = $conn->query($query);
+                $row = $result->fetch_assoc();
+                $value = $row['value'];
+                ?>
+                <span class="float-left">
+                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('carefree_return')->toHtml() . ' ' . $value . ' ' . $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('days')->toHtml(); ?>
+                </span>
+                <span class="float-right">
+                    <span class="btn text-white bg-dark btn-sm btn-block" onclick="show_conditions();">
+                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('details')->toHtml();?>
+                    </span>
+                </span>
+                <div style="display:none;" id="return_conditions" class="mt-3">
+                    <?php 
+                    $i = 1;
+                    if($result_return_condition->num_rows > 0) {
+                        while($row_return_condition = $result_return_condition->fetch_assoc()) {
+                            $return_condition = $row_return_condition['return_condition'];
+                            if(($return_condition != 'return_free_shipping') && ($return_condition != 'carefree_return') && ($return_condition != 'return_without_new_order')) {
+                                echo '<p>' . $return_condition . '</p>';
+                                $i++;
+                            }
+                        }
+                    }
+                    ?>
+                </div>
+            </p>
+         </div>
+      </div>
+   </main>
+</div>
+<script>
+var clicked = true;
+function show_accordion(k) {
+    if(k == 1) {
+        jQuery('#first_accordion').toggleClass('active');
+    }
+    if(k == 2) {
+        jQuery('#second_accordion').toggleClass('active');
+        jQuery('#return_conditions').css('display', 'none')
+    }
+ }
+function show_conditions() {
+    jQuery('#return_conditions').slideToggle();
+}
+function add_to_wishlist(i, k) {
+    document.getElementById("heart-"+k).removeAttribute("class");
+    document.getElementById("heart-"+k).setAttribute("class", "fas fa-heart text-java");
+    document.getElementById("add-to-wishlist-btn").removeAttribute("onclick");
+    if(typeof i == 'string') {
+        var guest = i;
+        var product_id = k;
+        var wishlistItems = document.getElementById("wishlist_items_guest").innerText;
+
+        if(!wishlistItems.includes(product_id)) {
+            jQuery.ajax({
+                type: "POST",
+                url: "/wishlistAdd.php",
+                data: "guest=" + guest + "&product_id=" + product_id,
+                success: '',
+            });
+
+            var current_count = document.getElementById("wish-list-buble").innerText;
+            if (current_count >= 0) {
+                var new_count = Number(current_count) + 1;
+                document.getElementById("wish-list-buble").innerText = new_count;
+            }
+        }
+    }
+    if(typeof i == 'number') {
+        var customer_id = i;
+        var product_id = k;
+        var wishlistItems = document.getElementById("wishlist_items_user").innerText;
+
+        if(!wishlistItems.includes(product_id)) {
+            jQuery.ajax({
+                type: "POST",
+                url: "/wishlistAdd.php",
+                data: "customer_id=" + customer_id + "&product_id=" + product_id,
+                success: '',
+            });
+
+            var current_count = document.getElementById("wish-list-buble").innerText;
+            if (current_count >= 0) {
+                var new_count = Number(current_count) + 1;
+                document.getElementById("wish-list-buble").innerText = new_count;
+                document.getElementById("add-to-wishlist-btn").removeAttribute("onclick");
+            }
+        }
+    }
+}
+</script>

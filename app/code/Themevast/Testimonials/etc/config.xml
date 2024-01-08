@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <testimonials_setting>
+            <group_testimonial_general>
+                <config_toplink>1</config_toplink>
+				<config_enable>1</config_enable>
+                <config_sidebar>0</config_sidebar>
+				<config_footerlink>1</config_footerlink>
+                <config_paging>1</config_paging>
+                <config_per_page>6, 12, 18, 'all'</config_per_page>
+                <config_amount_word>250</config_amount_word>
+				<img_width>90</img_width>
+				<img_height>90</img_height>
+				<title_page></title_page>
+            </group_testimonial_general>
+			<slide_testimonial_configuration>
+				<qty>9</qty>
+				<auto>0</auto>
+				<speed>1500</speed>
+				<row_show>1</row_show>
+				<itemsDefault>5</itemsDefault>
+				<tv_column1>4</tv_column1>
+	            <tv_column2>3</tv_column2>
+	            <tv_column3>2</tv_column3>
+	            <tv_column4>1</tv_column4>
+				<tv_column5>1</tv_column5>
+				<next_back>1</next_back>
+				<nav_ctrl>0</nav_ctrl>
+				<show_rat>1</show_rat>
+				<show_job>0</show_job>
+				<show_testimonial>1</show_testimonial>
+				<show_timer>0</show_timer>
+			</slide_testimonial_configuration>
+            <group_testimonial_configuration>
+                <config_allow_customer_submit>1</config_allow_customer_submit>
+				<config_allow_guest_submit>1</config_allow_guest_submit>
+                <config_thank_you_message>Thanks you for submit !</config_thank_you_message>
+                <config_approve>0</config_approve>
+            </group_testimonial_configuration>
+            <group_testimonial_email_configuration>
+                <config_send_email_after_post>1</config_send_email_after_post>
+                <config_send_email_after_approved>1</config_send_email_after_approved>
+            </group_testimonial_email_configuration>
+        </testimonials_setting>
+		<customer>
+            <captcha>
+                <shown_to_logged_in_user>
+                    <testimonial_new_form>1</testimonial_new_form>
+                </shown_to_logged_in_user>
+                <always_for>
+                    <testimonial_new_form>1</testimonial_new_form>
+                </always_for>
+            </captcha>
+        </customer>
+        <captcha translate="label">
+            <frontend>
+                <areas>
+                    <testimonial_new_form>
+                        <label>Testimonials Form</label>
+                    </testimonial_new_form>
+                </areas>
+            </frontend>
+        </captcha>
+    </default>
+</config>

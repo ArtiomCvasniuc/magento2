@@ -1,0 +1,72 @@
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_Osc
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+<div class="order-summary hoverable">
+
+    <div id="opc-block-summary" class="mb-3 rounded shadow p-3" data-bind="blockLoader: isLoading">
+        <div class="mb-3" data-role="title">
+            <i class="fa-2x fa-check-square fal pr-2"></i>
+            <span class="h5">Detalii comandă</span>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <p class="font-weight-bold my-1">
+                    Cost Produse
+                </p>
+            </div>
+            <div class="col-6">
+                <p class="m-0">
+                    1539.00 Ron
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <p class="font-weight-bold my-1">
+                    Cost Livrare
+                </p>
+            </div>
+            <div class="col-6">
+                <p class="m-0">
+                    1539.00 Ron
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <p class="font-weight-bold my-1">
+                    Total Comanda
+                </p>
+            </div>
+            <div class="col-6">
+                <p class="m-0">
+                    1539.00 Ron
+                </p>
+            </div>
+        </div>
+        <p class="mb-0 mt-2" data-bind="visible: false">
+			<span>
+				<!-- ko i18n: 'Forgot an item?'--><!-- /ko -->
+				<a data-bind="attr: {href: window.checkout.shoppingCartUrl}, i18n: 'Edit your cart'"></a>
+			</span>
+        </p>
+    </div>
+</div>

@@ -1,0 +1,34 @@
+<?php if ($block->getCurrencyCount() > 1) { ?>
+    <?php $currencies = $block->getCurrencies(); ?>
+    <?php $currentCurrencyCode = $block->getCurrentCurrencyCode(); ?>
+    <?php $id = $block->getIdModifier() ? '-' . $block->getIdModifier() : ''?>
+    <?php 
+    $_objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+    $_Symbol = $_objectManager->create('Magento\Directory\Model\CurrencyFactory')->create()->load($currentCurrencyCode);
+    $_currentCurrency = strtolower($block->escapeHtml($currentCurrencyCode));
+    ?>
+    <li class="d-block border-top-small-sm dropdown nav-item">
+        <a class="nav-link text-dark dropdown-toggle py-2 px-3 px-lg-1" id="switcher-currency-trigger<?php echo $id?>">
+            <span class="d-block position-relative d-lg-inline currency_click currency-<?php echo $block->escapeHtml($block->getCurrentCurrencyCode()) ?>"> 
+                <?php echo ucfirst($_currentCurrency) ?>
+                <input type="hidden" id="current-currency" value="<?php echo $block->escapeHtml($currentCurrencyCode); ?>"/>
+            </span>
+        </a>
+        <div class="border-0 dropdown-menu menu-1 m-0 p-0 rounded-0">
+            <ul class="p-0 m-0">
+                <?php foreach ($currencies as $_code => $_name) { ?>
+                    <?php 
+                    if ($_code != $currentCurrencyCode) { 
+                        $_currency = strtolower($_code);
+                    ?>
+                        <li class="mb-0 currency-<?php /* @escapeNotVerified */ echo $_code ?> switcher-option">
+                            <a href="#" class="dropdown-item py-1" data-post='<?php /* @escapeNotVerified */ echo $block->getSwitchCurrencyPostData($_code); ?>'>
+                                <?php /* @escapeNotVerified */ echo ucfirst($_currency) ?>
+                            </a>
+                        </li>
+                    <?php } ?>
+                <?php } ?>
+            </ul>
+        </div>
+    </li>
+<?php } ?>

@@ -1,0 +1,44 @@
+<?php
+/**
+ * Copyright © 2016 Themevast. All rights reserved.
+ */
+
+/**
+ * Top menu for store
+ *
+ * @see \Themevast\CustomMenu\Block\Topmenu
+ */
+?>
+<?php
+$_helper = $this->helper('Themevast\CustomMenu\Helper\Data');
+$_config = $_helper->getConfig('custommenu');
+$columnsLimit = 0;
+if($_config['general']['enable']) {
+?>
+<?php $_menu = $block->getCustomMenuHtml(); ?>
+<nav class="navigation custommenu" role="navigation">
+    <ul>
+        <?php echo $_menu; ?>
+    </ul>
+    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('block_menu_links')->toHtml();?>
+</nav>
+<script type="text/javascript">
+    require([
+        'jquery',
+        'themevast/custommenu'
+    ], function ($) {
+        $(".custommenu").CustomMenu();
+    });
+</script>
+<?php
+    } else {
+?>
+<?php $_menu = $block->getHtml('level-top', 'submenu', $columnsLimit); ?>
+<nav class="navigation custommenu" role="navigation">
+    <ul data-mage-init='{"menu":{"responsive":true, "expanded":true, "position":{"my":"left top","at":"left bottom"}}}'>
+        <?php /* @escapeNotVerified */ echo $_menu; ?>
+    </ul>
+</nav>
+<?php
+    }
+?>

@@ -1,0 +1,94 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_AjaxLayer
+ * @copyright   Copyright (c) Mageplaza (http://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+?>
+<?php if ($block->canShowBlock()) { ?>
+    <?php
+    $filters = $block->getFilters();
+    $layerConfig = $this->helper(\Mageplaza\AjaxLayer\Helper\Data::class)->getLayerConfiguration($filters);
+    $filtered = count($block->getLayer()->getState()->getFilters());
+    ?>
+    <div class="block filter position-relative" id="layered-filter-block"
+         data-mage-init='{"collapsible":{"openedState": "active", "collapsible": true, "active": false, "collateral": { "openedState": "filter-active", "element": "body" } }}'>
+        <div id="ln_overlay" class="ln_overlay">
+            <div class="loader">
+                <img src="<?= /** @noEscape */ $block->getViewFileUrl('images/loader-1.gif') ?>" alt="Loading...">
+            </div>
+        </div>
+        <div class="block-content filter-content container mx-auto p-0 mt-2">
+            <h1 class="category-title py-3 py-md-4 m-0 d-md-none">
+                <?php echo $block->getLayout()->getBlock('page.main.title')->getPageTitle() ?>
+            </h1>
+            <i class="fal fa-arrow-right p-2 d-md-none" id="closeFilters"></i>
+            <?= /** @noEscape */ $block->getChildHtml('state') ?>
+            <?php if ($block->getLayer()->getState()->getFilters()) { ?>
+                <div class="mb-2">
+                    <a href="<?= /** @noEscape */ $block->getClearUrl() ?>" class="action clear filter-clear">
+                        <span></span>
+                        <button class="btn btn-outline-java btn-sm mt-1 shadow-none">
+                        <?= /** @noEscape */ __('Clear All') ?>
+                        <i class="fal fa-times ml-2"></i>
+                        </button>
+                    </a>
+                </div>
+            <?php } ?>
+            <?php $wrapOptions = false; ?>
+            <?php foreach ($filters as $key => $filter) { ?>
+                <?php if ($filter->getItemsCount()) { ?>
+                    <?php if (!$wrapOptions) { ?>
+                        <div class="filter-options" id="narrow-by-list" data-role="content">
+                        <?php $wrapOptions = true;
+                    } ?>
+                    <?php
+                    $filter_name = $filter->getName();
+                    if($filter_name != 'Categorie' && $filter_name != 'Pret') { 
+                    ?>
+                        <div data-role="ln_collapsible" class="filter-options-item" attribute="<?= /** @noEscape */ $filter->getRequestVar() ?>">
+                            <div data-role="ln_title" class="filter-options-title">
+                                <?= /** @noEscape */ __($filter->getName()) ?>
+                            </div>
+                            <div data-role="ln_content" class="filter-options-content">
+                                <?= /** @noEscape */ $block->getChildBlock('renderer')->setFilter($filter)->render($filter); ?>
+                            </div>
+                        </div>
+                    <?php } ?>
+                <?php } ?>
+            <?php } ?>
+            <?php if ($wrapOptions) { ?>
+                </div>
+            <?php } else { ?>
+            <script>
+                require([
+                    'jquery'
+                ], function ($) {
+                    $('#layered-filter-block').addClass('filter-no-options');
+                });
+            </script>
+            <?php } ?>
+            <script type="text/x-magento-init">
+                {
+                    ".block-content.filter-content":{
+                        "mpAjax": <?= /** @noEscape */ $layerConfig ?>
+                    }
+                }
+            </script>
+        </div>
+    </div>
+<?php } ?>

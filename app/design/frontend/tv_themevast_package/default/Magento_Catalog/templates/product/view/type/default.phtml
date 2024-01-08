@@ -1,0 +1,216 @@
+<?php
+/**
+ * Copyright © 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+if (file_exists("conf/conf.php")) 
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+?>
+<?php /* @var $block \Magento\Catalog\Block\Product\View\AbstractView */?>
+<?php 
+$_product = $block->getProduct();
+$_productName = $_product->getName();
+$_productId = $_product->getId();
+?>
+<div class="value"><?php echo $_productName; ?></div>
+<?php
+$query = "SELECT mgkf_catalog_product_entity_int.value AS seller_id ";
+$query .= "FROM mgkf_catalog_product_entity_int, mgkf_catalog_product_entity_varchar ";
+$query .= "WHERE mgkf_catalog_product_entity_int.entity_id = mgkf_catalog_product_entity_varchar.entity_id ";
+$query .= "AND mgkf_catalog_product_entity_int.attribute_id = 158 ";
+$query .= "AND mgkf_catalog_product_entity_varchar.value = '".$_productName."' ";
+$query .= "LIMIT 1";
+$result = $conn->query($query);
+if($result) {
+    $row = $result->fetch_assoc();
+    $seller = $row['seller_id'];
+
+    $query_store = "SELECT store_name, store_url FROM mgkf_marketplace_seller ";
+    $query_store .= "WHERE customer_id = '".$seller."'";
+    $result_store = $conn->query($query_store);
+    $row_store = $result_store->fetch_assoc();
+    $store_name = $row_store['store_name'];
+    $store_url = $row_store['store_url'];
+}
+
+$query_base_img = "SELECT mgkf_catalog_product_entity_media_gallery.value ";
+$query_base_img .= "FROM mgkf_catalog_product_entity_media_gallery, mgkf_catalog_product_entity_media_gallery_value ";
+$query_base_img .= "WHERE mgkf_catalog_product_entity_media_gallery.value_id = mgkf_catalog_product_entity_media_gallery_value.value_id ";
+$query_base_img .= "AND mgkf_catalog_product_entity_media_gallery_value.entity_id = '".$_productId."'";
+$result_base_img = $conn->query($query_base_img);
+$row_base_img = $result_base_img->fetch_assoc();
+$base_img = $row_base_img['value'];
+
+$query_price = "SELECT max_price as price ";
+$query_price .= "FROM mgkf_catalog_product_index_price ";
+$query_price .= "WHERE entity_id = '".$_productId."'";
+$result_price = $conn->query($query_price);
+$row_price = $result_price->fetch_assoc();
+$price = number_format($row_price['price'] * 4.726883, 2);
+
+$query_related = "SELECT child_id as child ";
+$query_related .= "FROM mgkf_catalog_product_relation ";
+$query_related .= "WHERE parent_id = '".$_productId."'";
+$result_related = $conn->query($query_related);
+$i = 0 ;
+while($row_related = $result_related->fetch_assoc()) {
+    $child = $row_related['child'];
+    
+    $query_sku = "SELECT value as sku ";
+    $query_sku .= "FROM mgkf_catalog_product_entity_varchar ";
+    $query_sku .= "WHERE attribute_id = 121 ";
+    $query_sku .= "AND entity_id = '".$child."'";
+    $result_sku = $conn->query($query_sku);
+    $row_sku = $result_sku->fetch_assoc();
+    $sku = $row_sku['sku'];
+    $sku = str_replace(" ", "", $sku);
+
+    $sku = explode("-", $sku);
+    $sku1 = $sku[1];
+    $sku2 = $sku[2];
+    $sku[1] = $sku2;
+    $sku[2] = $sku1;
+    
+    $sku = implode("-", $sku);
+    
+    $query_default_qty = "SELECT qty ";
+    $query_default_qty .= "FROM mgkf_cataloginventory_stock_status ";
+    $query_default_qty .= "WHERE product_id = '".$child."'";
+    $result_default_qty = $conn->query($query_default_qty);
+    $row_default_qty = $result_default_qty->fetch_assoc();
+    $default_qty = $row_default_qty['qty'];
+
+    $query_already_ordered_qty = "SELECT COUNT(id) as count ";
+    $query_already_ordered_qty .= "FROM mgkf_marketplace_sellerorderitems ";
+    $query_already_ordered_qty .= "WHERE product_sku = '".$sku."'";
+    $result_already_ordered_qty = $conn->query($query_already_ordered_qty);
+    $row_already_ordered_qty = $result_already_ordered_qty->fetch_assoc();
+    $already_ordered_qty = $row_already_ordered_qty['count'];
+    $real_qty = $default_qty - $already_ordered_qty;
+
+    ?>
+    <input type="hidden" id="<?php echo 'default_qty_'.$i; ?>" value="<?php echo intval($default_qty) . '_' . $sku; ?>" />
+    <input type="hidden" id="<?php echo 'real_qty_'.$i; ?>" value="<?php echo $real_qty . '_' . $sku; ?>" />
+    <?php
+
+    $path = '/pub/media/catalog/product/product_images/';
+    $new_path = $path.'/'.$_productId;
+    if(file_exists($path)) {
+        $dirs = scandir($path);
+        foreach($dirs as $dir) {
+            if($dir != '.' && $dir != '..') {
+                if($dir == $child) {
+                    if(!file_exists($new_path)) {
+                        mkdir($new_path, 0777, true);
+                    }
+                    $files = scandir($path.'/'.$dir);
+                    foreach($files as $file) { 
+                        if($file != '.' && $file != '..') {
+                            $old_file = $path.$dir.'/'.$file;
+                            $new_file = $new_path.'/'.$file;
+                            if(file_exists($old_file)) {
+                                rename($old_file, $new_file);
+                            }
+                        }
+                    }
+                    rmdir($path.$dir);
+                }
+            }
+        }
+    }
+    $i++;
+}
+if($result != '') {
+?>
+    <span class="alert alert-warning" id="qty-not-possible" style="display:none;">
+        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('qty_not_possible')->toHtml(); ?>
+    </span>
+    <div class="seller_store_info">
+        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('sold_and_shipped_by')->toHtml() . ': <span class="store_name"><a class="text-muted" href="'.$block->getUrl($store_url).'">' . $store_name . '</a></span>'; ?>
+    </div>
+<?php 
+}
+?>
+<input type="hidden" id="product-price" value="<?php echo $price; ?>" />
+<input type="hidden" id="product-id" value="<?php echo $_productId; ?>" />
+<input type="hidden" id="product-base-img" value="<?php echo $base_img; ?>" />
+<script>
+function show_img(k) {
+    var product_id = document.getElementById("product-id").value;
+    var img = document.getElementsByClassName("fotorama__img")[0];
+
+    var jpg = "/pub/media/catalog/product/product_images/"+product_id+"/"+k+".jpg";
+    var png = "/pub/media/catalog/product/product_images/"+product_id+"/"+k+".png";
+
+    var xhr_jpg = new XMLHttpRequest();
+    xhr_jpg.open('HEAD', jpg, false);
+    xhr_jpg.send();
+
+    var xhr_png = new XMLHttpRequest();
+    xhr_png.open('HEAD', png, false);
+    xhr_png.send();
+
+    if(xhr_jpg.status != '404') {        
+        img.removeAttribute("src");
+        img.setAttribute("src", jpg);
+    }
+    if(xhr_png.status != '404') {
+        img.removeAttribute("src");
+        img.setAttribute("src", png);
+    }
+
+    var default_img = document.getElementById("product-base-img").value;
+    var path = '/pub/media/catalog/product' + default_img;
+    var class_name = document.getElementById("option_"+k).className;
+    if(class_name.includes('selected')) {
+        img.removeAttribute("src");
+        img.setAttribute("src", path);
+    }
+}
+
+interval = setInterval(myTimer, 1000);
+function myTimer() {
+    var swatch_1 = document.getElementsByClassName("swatch-attribute-selected-option")[0].innerText;
+    var swatch_2 = document.getElementsByClassName("swatch-attribute-selected-option")[1].innerText;
+    if(swatch_1 == 'Albastru') swatch_1 = "Blue";
+    if(swatch_1 == 'Negru') swatch_1 = "Black";
+    if(swatch_1 == 'Alb') swatch_1 = "White";
+    if(swatch_1 == 'Gri') swatch_1 = "Gray";
+
+    for(var i=0; i<20; i++) {
+        if(document.getElementById("real_qty_"+i)) {
+            var value = document.getElementById("real_qty_"+i).value;
+            if((value.includes(swatch_1)) && (value.includes(swatch_2))) {
+                var real_qty = value.replace( /[^\d].*/, '' );
+                real_qty = Number(real_qty);
+                var desired_qty = document.getElementById("qty").value;
+                desired_qty = Number(desired_qty);
+                if(desired_qty > real_qty) {
+                    document.getElementById("qty-not-possible").style.display = "block";
+                    document.getElementById("product-addtocart-button").style.pointerEvents = "none";
+                }
+                else {
+                    document.getElementById("qty-not-possible").style.display = "none";
+                    document.getElementById("product-addtocart-button").style.pointerEvents = "auto";
+                }
+            }
+        }
+    }
+}
+function stopTimer() {
+    clearInterval(interval);
+}
+
+</script>
+<style>
+.product.attribute.sku {
+    display: none !important;
+}
+.swatch-option.color.selected {
+    border: 2px solid #ff5501 !important;
+}
+</style>

@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Config/etc/system_file.xsd">
+    <system>
+        <section id="brand_setting" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Brand Setting</label>
+            <tab>themevast</tab>
+			<resource>Themevast_Brand::config_brand</resource>
+            <group id="general" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Brand Slider</label>
+                <field id="enable_frontend" translate="label comment" type="select" sortOrder="0"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable</label>
+                    <comment>Enable frontend</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="title" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Title Brand Slider</label>
+                </field>
+				<field id="qty" translate="label comment" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Qty of Brand:</label>
+                </field>
+				<field id="img_width" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Image Width</label>
+                </field>
+				<field id="img_height" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Image Height</label>
+                </field>
+				<field id="auto" translate="label comment" type="select" sortOrder="4"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Auto slide:</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="speed" translate="label" type="text" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
+					<depends>
+						<field id="auto">1</field>
+					</depends>
+                    <label>Slideshow Speed</label>
+                </field>
+				<field id="pagination" translate="label" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Pause Speed</label>
+                </field>
+				<field id="rows" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Number Rows Show</label>
+                </field>
+				<field id="show_next_back" translate="label comment" type="select" sortOrder="24"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Next/Back control</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="show_navigation_control" translate="label comment" type="select" sortOrder="26"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show navigation control</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

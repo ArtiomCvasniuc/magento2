@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Backend/etc/menu.xsd">
+    <menu>
+		<add id="Themevast_ThemevastUp::themebackup" title="Theme Data" module="Themevast_ThemevastUp" sortOrder="50" parent="Themevast_Themevast::themevast" resource="Themevast_ThemevastUp::themebackup"/>
+        <add id="Themevast_ThemevastUp::themebackup_import" title="Import Data" module="Themevast_ThemevastUp" sortOrder="20" parent="Themevast_ThemevastUp::themebackup" action="themevastbackupdata/import/index" resource="Themevast_ThemevastUp::themebackup_import"/>
+		<add id="Themevast_ThemevastUp::themebackup_export" title="Export Data" module="Themevast_ThemevastUp" sortOrder="30" parent="Themevast_ThemevastUp::themebackup" action="themevastbackupdata/export/index" resource="Themevast_ThemevastUp::themebackup_export"/>
+	</menu>
+</config>

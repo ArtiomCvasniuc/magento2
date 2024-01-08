@@ -1,0 +1,125 @@
+<?php
+if (file_exists("conf/conf.php"))
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+
+?>
+<h3 class="font-weight-bold mt-3">
+    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('returns')->toHtml(); ?>
+</h3>
+<div>
+<?php
+$query = "SELECT mgkf_sales_order_grid.entity_id, mgkf_sales_order.increment_id, date(mgkf_sales_order.created_at) as date, mgkf_sales_order_grid.shipping_name, mgkf_sales_order_grid.billing_name, mgkf_sales_order.grand_total, mgkf_sales_order_grid.order_currency_code, mgkf_sales_order.status ";
+$query .= "FROM mgkf_sales_order, mgkf_sales_order_grid ";
+$query .= "WHERE mgkf_sales_order.increment_id = mgkf_sales_order_grid.increment_id ";
+$query .= "AND mgkf_sales_order.customer_id = '".$customerId."' ";
+$query .= "AND mgkf_sales_order.status LIKE '%return%' ";
+$query .= "ORDER BY mgkf_sales_order.created_at DESC";
+$result = $conn->query($query);
+$row_count = $result->num_rows;
+if ($row_count > 0) {
+?>
+    <table class="d-md-table table table-hover table-bordered table-responsive table-striped" id="my-orders-table">
+        <thead class="thead-dark">
+            <tr>
+                <th><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('order_nr')->toHtml(); ?></th>
+                <th><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('order_date')->toHtml(); ?></th>
+                <?= /* @noEscape */ $block->getChildHtml('extra.column.header') ?>
+                <th><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('ship_to')->toHtml(); ?></th>
+                <th><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('total')->toHtml(); ?></th>
+                <th><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('status')->toHtml(); ?></th>
+                <th><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('return_info')->toHtml(); ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            while ($row = $result->fetch_assoc()) {
+                $id = $row['entity_id'];
+                $order_id = $row['increment_id'];
+                $date = $row['date'];
+                $date = date("d.m.y", strtotime($date));
+                $status = ucfirst($row['status']);
+                $address = $row['shipping_name'];
+                $total = number_format((float)$row['grand_total'], 2, ',', '');
+                $currency = ucfirst(strtolower($row['order_currency_code']));
+                $reorder = "/sales/order/reorder/order_id/$id/";
+                if ($status == 'Processing') {
+                    $status = 'Shipped';
+                }                
+                if($status == 'Return_completed') $status = $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('completed')->toHtml();
+                if($status == 'Return_taken') $status = $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('taken_order')->toHtml();
+                if($status == 'Returned') $status = $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('sent_order')->toHtml();
+
+                $query_info = "SELECT entity_id, quote_id, state, status, awb_number, courier, cancelling_reason, shipping_amount, grand_total ";
+                $query_info .= "FROM mgkf_sales_order ";
+                $query_info .= "WHERE increment_id = '".$order_id."'";
+                $result_info = $conn->query($query_info);
+                $row_info = $result_info->fetch_assoc();
+                $quoteId = $row_info['quote_id'];
+                $awbNumber = $row_info['awb_number'];
+                $courier = $row_info['courier'];
+                $shippingAmount = number_format($row_info['shipping_amount'], 2, '.', '');
+                $grandTotal = number_format($row_info['grand_total'], 2, '.', '');
+
+                $query_product = "SELECT * FROM mgkf_quote_item ";
+                $query_product .= "WHERE quote_id = '".$quoteId."'";
+                $result_product = $conn->query($query_product);
+                $row_product = $result_product->fetch_assoc();
+                $productName = $row_product['name'];
+
+                $query_return = "SELECT * FROM mgkf_marketplace_return_order ";
+                $query_return .= "WHERE order_increment_id = $order_id";
+                $result_return = $conn->query($query_return);
+                $row_return = $result_return->fetch_assoc();
+                $reason = $row_return['reason'];
+                $return_action = $row_return['return_action'];
+                if ($return_action == 'money_back') {
+                    $return_action = 'Returnarea banilor';
+                }
+                if ($return_action == 'product_back') {
+                    $return_action = 'Trimiterea aceluiasi produs';
+                }
+                if ($reason == '') $reason = '';
+                if ($return_action == '') $return_action = '';
+            ?>
+                <tr>
+                    <td><?= $order_id; ?></td>
+                    <td><?= $date; ?></td>
+                    <td><?= $address; ?></td>
+                    <td><?= $total . ' ' . $currency; ?></td>
+                    <td><?= $status; ?></td>
+                    <td>
+                        <b>AWB: </b><?php echo $awbNumber; ?>
+                        <br>
+                        <b><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('courier')->toHtml() . ':</b> ' . $courier; ?>
+                        <br>
+                        <b><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('product_name')->toHtml() . ':</b> ' . $productName; ?>
+                        <br>
+                        <b><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('return_reason')->toHtml() . ':</b> ' . $reason; ?>
+                        <br>
+                        <b><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('customer_wish')->toHtml() . '</b> ' . $return_action; ?>
+                    </td>
+                </tr>
+            <?php
+            }
+            ?>
+        </tbody>
+    </table>
+<?php } ?>
+</div>

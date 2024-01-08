@@ -1,0 +1,57 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+?>
+<?php
+/**
+ * Category layered navigation state
+ *
+ * @var $block \Magento\LayeredNavigation\Block\Navigation\State
+ */
+?>
+<?php $_filters = $block->getActiveFilters() ?>
+<?php if (!empty($_filters)): ?>
+<div class="filter-current" data-mage-init='{"collapsible":{"openedState": "active", "collapsible": true, "active": false }}'>
+    <strong class="block-subtitle filter-current-subtitle"
+            role="heading"
+            aria-level="2"
+            data-role="title"
+            data-count="<?= count($_filters) ?>"><?= /* @escapeNotVerified */ __('Now Shopping by') ?></strong>
+    <ol class="p-0 m-0 d-flex">
+        <?php foreach ($_filters as $_filter): ?>
+            <li class="mr-2 mb-1">
+                <?php
+                $clearLinkUrl = $_filter->getClearLinkUrl();
+                $currentFilterName = $block->escapeHtml(__($_filter->getName())) . " " . $block->stripTags($_filter->getLabel());
+                if ($clearLinkUrl):
+                    ?>
+                    <a class="action previous" href="<?= /* @escapeNotVerified */ $_filter->getRemoveUrl() ?>"
+                       title="<?= /* @escapeNotVerified */ __('Previous') ?>">
+                        <span><?= /* @escapeNotVerified */ __('Previous') ?></span>
+                    </a>
+                    <a class="btn btn-sm btn-outline-danger"
+                       title="<?= $block->escapeHtml($_filter->getFilter()->getClearLinkText()) ?>"
+                       href="<?= /* @escapeNotVerified */ $clearLinkUrl ?>">
+                        <span><?= $block->escapeHtml($_filter->getFilter()->getClearLinkText()) ?></span>
+                                        <span class="filter-value"><?= /* @escapeNotVerified */ $block->stripTags($_filter->getLabel()) ?></span>
+
+                                                <i class="fal fa-times ml-2"></i>
+                    </a>
+                <?php else: ?>
+                    <a class="btn btn-sm btn-outline-java shadow-none" href="<?= /* @escapeNotVerified */ $_filter->getRemoveUrl() ?>"
+                       title="<?= /* @escapeNotVerified */ $block->escapeHtml(__('Remove')) . " " . $currentFilterName ?>">
+                                        <span class="filter-value"><?= /* @escapeNotVerified */ $block->stripTags($_filter->getLabel()) ?></span>
+
+                                                                        <i class="fal fa-times ml-2"></i>
+
+                    </a>
+                <?php endif; ?>
+            </li>
+        <?php endforeach; ?>
+    </ol>
+</div>
+<?php endif; ?>

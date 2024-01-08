@@ -1,0 +1,50 @@
+"Slide-in (right side)","Slide-in (right side)"
+Hover-over,Hover-over
+"Full Total Information","Full Total Information"
+"Only Subtotal","Only Subtotal"
+"My Cart","My Cart"
+of,of
+"Item in Cart","Item in Cart"
+"Items in Cart","Items in Cart"
+"Recently added item(s)","Recently added item(s)"
+"You have no items in your shopping cart.","You have no items in your shopping cart."
+"View and Edit Cart","View and Edit Cart"
+"Go to Cart","Go to Cart"
+Checkout,Checkout
+Apply,Apply
+Cancel,Cancel
+"See Details","See Details"
+"Options Details","Options Details"
+Price,Price
+"See price before order confirmation.","See price before order confirmation."
+Qty,Qty
+Update,Update
+Edit,Edit
+Remove,Remove
+"Order Summary","Order Summary"
+"Your coupon was successfully applied.","Your coupon was successfully applied."
+"Your coupon was successfully removed.","Your coupon was successfully removed."
+"Shopping Cart","Shopping Cart"
+Subtotal,Subtotal
+"Quick Cart","Quick Cart"
+General,General
+Enable,Enable
+"Select <b>Yes</b> to enable this module.","Select <b>Yes</b> to enable this module."
+"Popup Effect","Popup Effect"
+"Auto Open Minicart","Auto Open Minicart"
+"If Yes, the minicart will be opened automatically after an item is added to cart.<br/>Note it will work provided that <a href=""https://en.wikipedia.org/wiki/Ajax_(programming)"" target=""_blank"">AJAX</a> is supported.","If Yes, the minicart will be opened automatically after an item is added to cart.<br/>Note it will work provided that <a href=""https://en.wikipedia.org/wiki/Ajax_(programming)"" target=""_blank"">AJAX</a> is supported."
+"Show Coupon Box","Show Coupon Box"
+"If Yes, the coupon box is displayed on the minicart.","If Yes, the coupon box is displayed on the minicart."
+"Show Information","Show Information"
+"Fixed Minicart On Scroll","Fixed Minicart On Scroll"
+"Always display the minicart icon when the page is scrolled.","Always display the minicart icon when the page is scrolled."
+Design,Design
+"Header Background Color","Header Background Color"
+"If empty, the default color ""#1979c3"" will be used.","If empty, the default color ""#1979c3"" will be used."
+"Header Text Color","Header Text Color"
+"If empty, the default color ""#ffffff"" will be used.","If empty, the default color ""#ffffff"" will be used."
+"Subtotal Background Color","Subtotal Background Color"
+"Subtotal Text Color","Subtotal Text Color"
+"If empty, the default color ""#333333"" will be used.","If empty, the default color ""#333333"" will be used."
+"Custom CSS","Custom CSS"
+"Example: .mpquickcart .block-title {font-size: 28px;}","Example: .mpquickcart .block-title {font-size: 28px;}"

@@ -1,0 +1,132 @@
+<?php 
+use Magento\Framework\App\Action\Action;
+$_productCollection = $this->getData('productCollection');
+$rows = $block->getConfig('row');
+$_collectionSize = $_productCollection->count();
+$_imgHelper = $this->helper('Themevast\Categorytab\Helper\Image');
+$imageBlock =  $block->getLayout()->createBlock('Magento\Catalog\Block\Product\Image');
+$image = 'new_products_content_widget_grid';
+$type = 'widget-new-grid';
+$templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::DEFAULT_VIEW;
+$showWishlist = $block->getConfig('wishlist');
+$showCompare = $block->getConfig('compare');
+$showCart = $block->getConfig('addtocart');
+?>
+<?php if($_collectionSize<1){?>
+	<div class="message info empty">	
+		<p class="note-msg"><?php echo __('There are no products matching the selection.') ?></p>
+	</div>
+<?php }?>
+<div class="protab_owl">
+		<?php $i=0; foreach($_productCollection as $_item): 
+		$productImage = $block->getImage($_item, $image);
+		$i++;?>
+			<?php if($i % $rows == 1 || $rows == 1):?>
+				<div class="protab_item item">
+			<?php endif;?>
+					<div class="item-inner">
+							<!--- End -->
+							<div class="new-sale-label">
+								<?php
+								$specialprice = $_item->getSpecialPrice();
+								$specialPriceFromDate = $_item->getSpecialFromDate();
+								$specialPriceToDate = $_item->getSpecialToDate();
+
+								$today = time();
+								if ($specialprice) {
+									if ($today >= strtotime($specialPriceFromDate) && $today <= strtotime($specialPriceToDate) || $today >= strtotime($specialPriceFromDate) && is_null($specialPriceToDate)) { ?>
+										<span class="label-product label-sale"><?php echo __('Sale'); ?></span>
+									<?php }
+								}
+								?>
+								<?php
+								$now = date("Y-m-d");
+								$newsFrom = substr($_item->getNewsFromDate(), 0, 10);
+								$newsTo = substr($_item->getNewsToDate(), 0, 10);
+
+								if ($newsTo != '' || $newsFrom != '') {
+								if (($newsTo != '' && $newsFrom != '' && $now >= $newsFrom && $now <= $newsTo) || ($newsTo == '' && $now >= $newsFrom) || ($newsFrom == '' && $now <= $newsTo)) {?>
+										<span class="label-product label-new"><?php echo __('New'); ?></span>
+								<?php }
+								} ?>
+							</div>
+                            <!--- End -->
+		                    <?php // Product Image ?>
+							<div class="product-photo">
+								<a href="<?php /* @escapeNotVerified */ echo $_item->getProductUrl() ?>" class="product photo product-item-photo" tabindex="-1">
+									<?php $productImageThumb = $block->getImage($_item, 'category_page_grid-1');?>
+									<span class="image0 image-switch">
+										<?php echo $productImage->toHtml(); ?>
+									</span>
+									<span class="image1 image-switch">
+										<?php echo $productImageThumb->toHtml(); ?>
+									</span>
+								</a>
+							</div>
+								
+							<div class="product-info">
+								<p class="product-name">
+									<a title="<?php echo $block->escapeHtml($_item->getName()) ?>"
+									   href="<?php echo $block->getProductUrl($_item) ?>"
+									   class="product-item-link">
+										<?php echo $block->escapeHtml($_item->getName()) ?>
+									</a>
+								</p>
+								<?php if ($templateType): ?>
+									<?php echo $block->getReviewsSummaryHtml($_item, $templateType,true); ?>
+								<?php endif; ?>
+								 <?php
+									echo $block->getProductPrice($_item);
+								 ?>
+								<div class="actions clearfix">
+									<?php if ($showCart): ?>
+										<div class="actions-primary">
+											<?php if ($_item->isSaleable()): ?>
+												<?php $postParams = $block->getAddToCartPostParams($_item); ?>
+												<form data-role="tocart-form" action="<?php /* @escapeNotVerified */ echo $block->getAddToCartUrl($_item); ?>" method="post">
+													<input type="hidden" name="product" value="<?php /* @escapeNotVerified */ echo $postParams['data']['product']; ?>">
+													<input type="hidden" name="<?php /* @escapeNotVerified */ echo Action::PARAM_NAME_URL_ENCODED; ?>" value="<?php /* @escapeNotVerified */ echo $postParams['data'][Action::PARAM_NAME_URL_ENCODED]; ?>">
+													<?php echo $block->getBlockHtml('formkey')?>
+													<button class="btn btn-add-to-cart" type="submit"
+															title="<?php echo $block->escapeHtml(__('Add to Cart')); ?>" >
+														<span><?php echo $_post->getPostUrl() ?>"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('read_more')->toHtml();?></span>
+													</button>
+												</form>
+											<?php else: ?>
+												<?php if ($_item->getIsSalable()): ?>
+													<button class="btn btn-add-to-cart"><span><?php /* @escapeNotVerified */ echo __('In stock') ?></span></button>
+												<?php else: ?>
+													<button class="btn btn-add-to-cart"><span><?php /* @escapeNotVerified */ echo __('Out of stock') ?></span></button>
+												<?php endif; ?>
+											<?php endif; ?>
+										</div>
+									<?php endif; ?>
+									<?php if ($showWishlist): ?>
+										<ul class="add-to-links">
+											<?php if ($this->helper('Magento\Wishlist\Helper\Data')->isAllow() && $showWishlist): ?>
+												<li><a href="#"
+												   data-post='<?php echo $block->getAddToWishlistParams($_item); ?>'
+												   class="action towishlist" data-action="add-to-wishlist"
+												   title="<?php echo __('Add to Wishlist') ?>">
+													<i class="fa fa-heart-o"></i>
+												</a></li>
+											<?php endif; ?>
+										</ul>
+									<?php endif; ?>
+								</div>
+							</div>
+						</div>
+			 <?php if($i % $rows == 0 || $i == $_collectionSize):?>
+				</div>
+			<?php endif;?>
+		<?php endforeach;?>
+	</div>
+<?php if (!$block->isRedirectToCartEnabled()) : ?>
+	<script type="text/x-magento-init">
+	{
+		"[data-role=tocart-form], .form.map.checkout": {
+			"catalogAddToCart": {}
+		}
+	}
+	</script>
+<?php endif; ?>

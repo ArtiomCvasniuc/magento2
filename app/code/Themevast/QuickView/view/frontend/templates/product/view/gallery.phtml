@@ -1,0 +1,61 @@
+<?php
+$images = $block->getGalleryImages();
+if(count($images) > 0)
+{
+	$mainImage = $images->getFirstItem();
+	foreach($images as $image)
+	{
+		if($block->isMainImage($image))
+		{
+			$mainImage = $image;
+			break;
+		}
+	}
+?>
+<div class="gallery-placeholder _block-content-loading" data-gallery-role="gallery-placeholder" id="gallery_<?php $block->getProduct()->getId(); ?>" >
+	<div class="product-slider-wrapper col-md-6">
+		<div class="main-img-quickview">
+			<a href="<?php echo $mainImage->getData('large_image_url'); ?>" class="cloud-zoom" rel="transparentImage: 'data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', useWrapper: false, showTitle: false, zoomWidth:'100', adjustY:0, adjustX:0">
+				<img src="<?php echo $mainImage->getData('medium_image_url'); ?>">
+			</a>
+		</div>
+		<ul class="bxslider">
+		<?php foreach ($images as $_image) { ?>
+			<li><img src="<?php echo $_image->getData('small_image_url'); ?>" data-href="<?php echo $_image->getData('large_image_url'); ?>" data-thumb-image="<?php echo $_image->getData('medium_image_url'); ?>"></li>
+		<?php } ?>
+		</ul>
+	</div>
+</div>
+<?php } ?>
+<script>
+	jQuery(document).ready(function() {
+		jQuery('#gallery_<?php $block->getProduct()->getId(); ?> .cloud-zoom, #gallery_<?php $block->getProduct()->getId(); ?> .cloud-zoom-gallery').CloudZoom({
+			adjustX: 0,
+			adjustY: 0
+		});
+		// Horizontal
+		var horiSlider<?php $block->getProduct()->getId(); ?> = jQuery('#gallery_<?php $block->getProduct()->getId(); ?> .bxslider').bxSlider({
+			mode: 'horizontal',
+			auto: false,
+			autoControls: false, 
+			slideMargin: 9.5,
+
+			// CAROUSEL
+			minSlides: 4,
+			maxSlides: 4,
+			moveSlides: 1,
+			slideWidth: 100,
+			
+			// PAGER
+			pager: false,
+			nextText: "<i class='amz-icon foxy-arrow_right'></i>",
+			prevText: "<i class='amz-icon foxy-arrow_left'></i>",
+			onSlideAfter: function() {
+				var currentImg = horiSlider<?php $block->getProduct()->getId(); ?>.getCurrentSlideElement().children('img');
+				jQuery('#gallery_<?php $block->getProduct()->getId(); ?> a.cloud-zoom').attr('href', currentImg.attr('data-href'));
+				jQuery('#gallery_<?php $block->getProduct()->getId(); ?> a.cloud-zoom img').attr('src', currentImg.attr('data-thumb-image'));
+				jQuery('.cloud-zoom, .cloud-zoom-gallery').CloudZoom();
+			}
+		});
+	});
+</script>

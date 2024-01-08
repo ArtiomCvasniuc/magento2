@@ -1,0 +1,128 @@
+<?php
+/**
+ * Copyright © 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+/** @var $block \Magento\Catalog\Block\Product\View */
+?>
+<?php $_product = $block->getProduct(); ?>
+<?php $buttonTitle = __('Add to Cart'); ?>
+<?php if ($_product->isSaleable()) { ?>
+<?php
+$_wishlistSubmitParams = $this->helper('Magento\Wishlist\Helper\Data')->getAddParams($_product);
+$compareHelper = $this->helper('Magento\Catalog\Helper\Product\Compare');
+?>
+<div class="box-add-to-link clearfix">
+    <div class="box-tocart">
+        <div class="fieldset">
+            <?php
+            $sellerGroupId = $customerId = $customerGroupId = $status = '';
+            $urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+            $currentUrl = $urlInterface->getCurrentUrl ();
+            $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+            $customerSession = $helper->customerSession();
+            $customerDatas = $customerSession->getCustomer();
+            if ($customerSession->isLoggedIn()) {
+                $customerId = $customerSession->getId();
+                $customerGroupId = $customerDatas->getGroupId();
+                $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+                $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+                $sellerGroupId = $sellerGroupData->getId();
+                $status = $helper->sellerStatus($customerId);
+            }
+            $reviewSellerId = $this->getRequest ()->getParam ( 'seller_id' );
+            ?>
+            <?php if(!($customerGroupId==$sellerGroupId && $status==1)) { ?>
+                <?php if ($block->shouldRenderQuantity()) { ?>
+                <div class="field qty">
+                    <div class="control">
+                        <label class="qty-title"><?php /* @escapeNotVerified */ echo __('Qty:') ?></label>
+                        <div class="info-qty">
+                            <a class="qty-down" href="#">
+                                <i class="fa fa-angle-down"></i>
+                            </a>
+                                <input type="number" name="qty" id="qty" maxlength="12"
+                                    value="<?php /* @escapeNotVerified */ echo $block->getProductDefaultQty() * 1 ?>"
+                                    title="<?php /* @escapeNotVerified */ echo __('Quantity') ?>" class="input-text qty"
+                                    data-validate="<?php echo $block->escapeHtml(json_encode($block->getQuantityValidators())) ?>"
+                                    />
+                            <a class="qty-up" href="#">
+                                <i class="fa fa-angle-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <?php } ?>
+                <div class="actions">
+                    <button type="submit"
+                            title="<?php /* @escapeNotVerified */ echo $buttonTitle ?>"
+                            class="action primary tocart"
+                            id="product-addtocart-button">
+                            <i class="storm-shopping-bag"></i>
+                        <?php /* @escapeNotVerified */ echo $buttonTitle ?>
+                    </button>
+                    <?php echo $block->getChildHtml('', true) ?>
+                </div>
+            </div>
+            <?php } ?>
+        </div>
+<?php } ?>
+<?php if ($block->isRedirectToCartEnabled()) { ?>
+<script type="text/x-magento-init">
+    {
+        "#product_addtocart_form": {
+            "Magento_Catalog/product/view/validation": {
+                "radioCheckboxClosest": ".nested"
+            }
+        }
+    }
+</script>
+<?php } else { ?>
+<script>
+    require([
+        'jquery',
+        'mage/mage',
+        'Magento_Catalog/product/view/validation',
+        'Magento_Catalog/js/catalog-add-to-cart'
+    ], function ($) {
+        'use strict';
+
+        $('.qty-up').on('click',function(event){
+            event.preventDefault();
+            var input_ = $(this).closest('.info-qty').find('#qty');
+            var qtyval = parseInt(input_.val(),10);
+            qtyval=qtyval+1;
+            input_.val(qtyval);
+        });
+        $('.qty-down').on('click',function(event){
+            event.preventDefault();
+            var input_ = $(this).closest('.info-qty').find('#qty');
+            var qtyval = parseInt(input_.val(),10);
+            qtyval=qtyval-1;
+            if(qtyval>1){
+                input_.val(qtyval);
+            }else{
+                qtyval=1;
+                input_.val(qtyval);
+            }
+        });
+        
+        $('#product_addtocart_form').mage('validation', {
+            radioCheckboxClosest: '.nested',
+            submitHandler: function (form) {
+                var widget = $(form).catalogAddToCart({
+                    bindSubmit: false
+                });
+
+                widget.catalogAddToCart('submitForm', $(form));
+
+                return false;
+            }
+        });
+    });
+</script>
+<?php } ?>
+</div>

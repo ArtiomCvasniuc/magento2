@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_QuickCart
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <mpquickcart>
+            <general>
+                <enabled>1</enabled>
+                <popup_effect>slide</popup_effect>
+                <auto_open>1</auto_open>
+                <show_coupon>1</show_coupon>
+                <show_info>full</show_info>
+                <fixed_icon>0</fixed_icon>
+            </general>
+            <design>
+                <header_background>#1979c3</header_background>
+                <header_text>#ffffff</header_text>
+                <subtotal_background>#ffffff</subtotal_background>
+                <subtotal_text>#333333</subtotal_text>
+            </design>
+        </mpquickcart>
+    </default>
+</config>

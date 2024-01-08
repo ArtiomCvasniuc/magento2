@@ -1,0 +1,51 @@
+<?php
+/**
+ * Copyright © 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+/** @var $block \Magento\Catalog\Block\Product\View*/
+?>
+<?php
+$_product = $block->getProduct();
+$_wishlistSubmitParams = $this->helper('Magento\Wishlist\Helper\Data')->getAddParams($_product);
+$compareHelper = $this->helper('Magento\Catalog\Helper\Product\Compare');
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get ('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer ();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+$reviewSellerId = $this->getRequest ()->getParam ( 'seller_id' );
+?>
+<?php if(!($customerGroupId==$sellerGroupId && $status==1)) { ?>
+<div class="product-addto-links" data-role="add-to-links">
+    <?php if ($this->helper('Magento\Wishlist\Helper\Data')->isAllow()) { ?>
+        <a href="#" class="wishlist" data-post='<?php /* @escapeNotVerified */ echo $_wishlistSubmitParams; ?>' data-action="add-to-wishlist">
+            <i class="storm-heart"></i>
+            <?php //echo __('Add to Wishlist') ?>
+        </a>
+    <?php } ?>
+    <a style="display:none;" href="#" data-post='<?php /* @escapeNotVerified */ echo $compareHelper->getPostDataParams($_product);?>' data-role="add-to-links" class="compare">
+        <i class="storm-balance" style="display:none;"></i>
+        <?php //echo __('Compare') ?>
+    </a>
+</div>
+<?php } ?>
+<script type="text/x-magento-init">
+    {
+        "body": {
+            "addToWishlist": <?php /* @escapeNotVerified */ echo $this->helper('Magento\Framework\Json\Helper\Data')->jsonEncode($block->getWishlistOptions())?>
+        }
+    }
+</script>

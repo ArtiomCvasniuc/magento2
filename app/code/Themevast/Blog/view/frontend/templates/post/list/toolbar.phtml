@@ -1,0 +1,5 @@
+<?php if ($block->getCollection()->getSize()): ?>
+    <div class="toolbar toolbar-blog-posts" data-mage-init='<?php echo $block->getWidgetOptionsJson(); ?>'>
+        <?php echo $block->getPagerHtml() ?>
+    </div>
+<?php endif ?>

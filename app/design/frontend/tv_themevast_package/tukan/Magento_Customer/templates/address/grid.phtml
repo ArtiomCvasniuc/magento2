@@ -1,0 +1,110 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+/** @var \Magento\Customer\Block\Address\Grid $block */
+$customerAddressView = $block->getData('customer_address');
+?>
+<div class="block-addresses-list">
+    <div class="block-title mb-2"><strong><?= $block->escapeHtml(__('Additional Address Entries')) ?></strong></div>
+    <div class="block-content">
+        <?php if ($_pAddsses = $block->getAdditionalAddresses()) : ?>
+            <?php foreach ($_pAddsses as $address) : ?>
+
+            <div class="border d-flex flex-column flex-md-row flex-wrap justify-content-start justify-content-xxl-between rounded mb-3">
+                <div class="mb-1 mb-md-0 p-1 p-md-3">
+                    <div class="px-2">
+                    <p class="mb-1 font-weight-bold"><?= /* @escapeNotVerified */ __('First Name') ?></p>
+                    <div><?= $block->escapeHtml($address->getFirstname()) ?></div>
+                    </div>
+                </div>
+                <div class="mb-1 mb-md-0 p-1 p-md-3">
+                    <div class="px-2">
+                    <p class="mb-1 font-weight-bold"><?= /* @escapeNotVerified */ __('Last Name') ?></p>
+                    <div><?= $block->escapeHtml($address->getLastname()) ?></div>
+                    </div>
+                </div>
+                <div class="mb-1 mb-md-0 p-1 p-md-3">
+                    <div class="px-2">
+                    <p class="mb-1 font-weight-bold"><?= /* @escapeNotVerified */ __('Street Address') ?></p>
+                    <td data-th="<?= $block->escapeHtml(__('Street Address')) ?>"><?= $block->escapeHtml($block->getStreetAddress($address)) ?></td>
+                    </div>
+                </div>
+                <div class="mb-1 mb-md-0 p-1 p-md-3">
+                    <div class="px-2">
+                    <p class="mb-1 font-weight-bold"><?= /* @escapeNotVerified */ __('City') ?></p>
+                    <td data-th="<?= $block->escapeHtml(__('City')) ?>"><?= $block->escapeHtml($address->getCity()) ?></td>
+                    </div>
+                </div>
+                <div class="mb-1 mb-md-0 p-1 p-md-3">
+                    <div class="px-2">
+                    <p class="mb-1 font-weight-bold"><?= /* @escapeNotVerified */ __('Country') ?></p>
+                    <td data-th="<?= $block->escapeHtml(__('Country')) ?>"><?= /* @escapeNotVerified */ $block->getCountryByCode($address->getCountryId()) ?></td>
+                    </div>
+                </div>
+                <div class="mb-1 mb-md-0 p-1 p-md-3">
+                    <div class="px-2">
+                    <p class="mb-1 font-weight-bold"><?= /* @escapeNotVerified */ __('State') ?></p>
+                    <td data-th="<?= $block->escapeHtml(__('State')) ?>"><?= /* @escapeNotVerified */ $address->getRegion()->getRegion() ?></td>
+                    </div>
+                </div>
+                <div class="mb-1 mb-md-0 p-1 p-md-3">
+                    <div class="px-2">
+                    <p class="mb-1 font-weight-bold"><?= /* @escapeNotVerified */ __('Zip/Postal Code') ?></p>
+                    <td data-th="<?= $block->escapeHtml(__('Zip/Postal Code')) ?>"><?= $block->escapeHtml($address->getPostcode()) ?></td>
+                    </div>
+                </div>
+                <div class="mb-1 mb-md-0 p-1 p-md-3">
+                    <div class="px-2">
+                    <p class="mb-1 font-weight-bold"><?= /* @escapeNotVerified */ __('Phone') ?></p>
+                    <td data-th="<?= $block->escapeHtml(__('Phone')) ?>"><?= $block->escapeHtml($address->getTelephone()) ?></td>
+                    </div>
+                </div>
+                <div class="mb-1 mb-md-0 p-1 p-md-3">
+                    <div class="px-2">
+                    <p class="mb-1 font-weight-bold">Actions</p>
+                        <div class="d-flex align-items-center">
+                            <a class="btn btn-dark btn-sm mr-3" href="<?= $block->escapeUrl($block->getUrl('customer/address/edit', ['id' => $address->getId()])) ?>">
+                                <span><?= $block->escapeHtml(__('Edit')) ?></span>
+                            </a>
+                            <a class="action delete" href="#" role="delete-address" data-address="<?= $block->escapeHtmlAttr($address->getId()) ?>">
+                                <i class="fal fa-times-circle"></i>
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+            <?php if ($block->getChildHtml('pager')) : ?>
+                <div class="customer-addresses-toolbar toolbar bottom"><?= $block->getChildHtml('pager') ?></div>
+            <?php endif ?>
+        <?php else : ?>
+            <p class="empty"><?= $block->escapeHtml(__('You have no other address entries in your address book.')) ?></p>
+        <?php endif ?>
+    </div>
+</div>
+<div class="d-flex justify-content-between align-items-center">
+    <button type="button" role="add-address" title="<?= $block->escapeHtmlAttr(__('Add New Address')) ?>" class="btn btn-primary">
+        <span><?= $block->escapeHtml(__('Add New Address')) ?></span>
+    </button>
+    <a class="action back" href="<?= $block->escapeUrl($block->getBackUrl()) ?>">
+        <span><?= $block->escapeHtml(__('Back')) ?></span>
+    </a>
+</div>
+<script type="text/x-magento-init">
+    {
+        ".page-main": {
+            "address": {
+                "deleteAddress": "td a[role='delete-address']",
+                "deleteUrlPrefix": "<?= $block->escapeJs($block->escapeUrl($block->getDeleteUrl())) ?>id/",
+                "addAddress": "button[role='add-address']",
+                "addAddressLocation": "<?= $block->escapeJs($block->escapeUrl($block->getAddAddressUrl())) ?>"
+            }
+        }
+    }
+</script>

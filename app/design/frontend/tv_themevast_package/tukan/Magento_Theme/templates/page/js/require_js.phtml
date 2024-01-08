@@ -1,0 +1,43 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+?>
+<script>
+    var BASE_URL = '<?= $block->escapeUrl($block->getBaseUrl()) ?>';
+    var require = {
+        "baseUrl": "<?= /* @escapeNotVerified */ $block->getViewFileUrl('/') ?>"
+    };
+
+    var interval = setInterval(check, 1000);
+
+    function check() {
+        if((!document.getElementById("layered-filter-block-container")) && (!document.getElementById("cards-block")) && (!document.getElementById("returns-block")) && (!document.getElementById("product-addtocart-button")) && (!document.getElementById("category-discount-block"))) {
+            if(document.getElementsByClassName("col-12 col-md-3 col-xl-3 col-xxl-2")[0]) {
+                document.getElementsByClassName("col-12 col-md-3 col-xl-3 col-xxl-2")[0].setAttribute("id", "left-block");
+            }
+            if(document.getElementById("left-block")) {
+                document.getElementById("left-block").style.display = "none";
+            }
+            if(document.getElementsByClassName("col-12 col-md-9")[0]) {
+                document.getElementsByClassName("col-12 col-md-9")[0].setAttribute("id", "right-block");
+            }
+            if(document.getElementById("right-block")) {
+                document.getElementById("right-block").removeAttribute("class");
+                document.getElementById("right-block").setAttribute("class", "col-12 col-md-12");
+            }
+        }
+        if(document.getElementById("right-block")) {
+            clearInterval(interval);
+        }
+    }
+
+    // for tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/js/bootstrap.min.js"></script>

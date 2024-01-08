@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_QuickCart
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="mpquickcart" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Quick Cart</label>
+            <tab>mageplaza</tab>
+            <resource>Mageplaza_QuickCart::configuration</resource>
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Select <b>Yes</b> to enable this module.]]></comment>
+                </field>
+                <field id="popup_effect" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Popup Effect</label>
+                    <source_model>Mageplaza\QuickCart\Model\Config\Source\PopupEffect</source_model>
+                </field>
+                <field id="auto_open" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Auto Open Minicart</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[If Yes, the minicart will be opened automatically after an item is added to cart.<br/>Note it will work provided that <a href="https://en.wikipedia.org/wiki/Ajax_(programming)" target="_blank">AJAX</a> is supported.]]></comment>
+                    <depends>
+                        <field id="popup_effect">slide</field>
+                    </depends>
+                </field>
+                <field id="show_coupon" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Show Coupon Box</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>If Yes, the coupon box is displayed on the minicart.</comment>
+                </field>
+                <field id="show_info" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Show Information</label>
+                    <source_model>Mageplaza\QuickCart\Model\Config\Source\ShowInfo</source_model>
+                </field>
+                <field id="fixed_icon" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Fixed Minicart On Scroll</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Always display the minicart icon when the page is scrolled.</comment>
+                </field>
+            </group>
+            <group id="design" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Design</label>
+                <field id="header_background" translate="label comment" sortOrder="10" type="text" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Header Background Color</label>
+                    <comment>If empty, the default color "#1979c3" will be used.</comment>
+                    <validate>jscolor {hash:true,refine:false}</validate>
+                </field>
+                <field id="header_text" translate="label comment" sortOrder="20" type="text" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Header Text Color</label>
+                    <comment>If empty, the default color "#ffffff" will be used.</comment>
+                    <validate>jscolor {hash:true,refine:false}</validate>
+                </field>
+                <field id="subtotal_background" translate="label comment" sortOrder="30" type="text" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Subtotal Background Color</label>
+                    <comment>If empty, the default color "#ffffff" will be used.</comment>
+                    <validate>jscolor {hash:true,refine:false}</validate>
+                </field>
+                <field id="subtotal_text" translate="label comment" sortOrder="40" type="text" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Subtotal Text Color</label>
+                    <comment>If empty, the default color "#333333" will be used.</comment>
+                    <validate>jscolor {hash:true,refine:false}</validate>
+                </field>
+                <field id="custom_css" translate="label comment" sortOrder="50" type="textarea" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Custom CSS</label>
+                    <comment><![CDATA[Example: .mpquickcart .block-title {font-size: 28px;}]]></comment>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

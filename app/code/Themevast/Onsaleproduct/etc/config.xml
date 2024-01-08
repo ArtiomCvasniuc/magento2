@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Magento/Store/etc/config.xsd">
+	<default>
+        <onsaleproduct>
+			<onsaleproduct_config>
+				<enabled>1</enabled>
+				<title>Special Products</title>
+				<review>0</review>
+				<qty>3</qty>
+				<items>1</items>
+				<width>750</width>
+				<height>750</height>
+			</onsaleproduct_config>
+		</onsaleproduct>
+	</default>
+</config>

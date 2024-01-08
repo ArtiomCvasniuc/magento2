@@ -1,0 +1,87 @@
+<?php
+	use \Magento\Framework\Stdlib\StringUtils;
+?>
+<?php
+	$stringFilter = new \Magento\Framework\Stdlib\StringUtils;
+    $_post = $this->getPost();
+    $_postUrl = $_post->getPostUrl();
+    $_postName = $block->escapeHtml($_post->getTitle(), null, true);
+?>
+<li class="col-sm-6 post-holder post-holder-<?php echo $_post->getId() ?>">
+	<div class="post-images">
+		<a href="<?php echo $_post->getPostUrl() ?>">
+			<img src="<?php echo $this->getMediaFolder().$_post->getThumbnailimage() ?>"/>
+		</a>
+		<?php if ($_categoriesCount = $_post->getCategoriesCount()) { ?>
+    <div class="item post-categories">
+        <?php $n = 0; foreach($_post->getParentCategories() as $ct) { $n++; ?>
+            <a title="<?php echo $block->escapeHtml($ct->getTitle()) ?>" href="<?php echo $ct->getCategoryUrl() ?>"><?php echo $block->escapeHtml($ct->getTitle()) ?></a>
+            <?php if ($n != $_categoriesCount) { ?>, <?php } ?>
+        <?php } ?>
+    </div>
+    <?php } ?>	
+    <?php if ($_categoriesCount = $_post->getCategoriesCount()) { ?>
+    <div class="item post-categories">
+        <?php $n = 0; foreach($_post->getParentCategories() as $ct) { $n++; ?>
+            <a title="<?php echo $block->escapeHtml($ct->getTitle()) ?>" href="<?php echo $ct->getCategoryUrl() ?>"><?php echo $block->escapeHtml($ct->getTitle()) ?></a>
+            <?php if ($n != $_categoriesCount) { ?>, <?php } ?>
+        <?php } ?>
+    </div>
+    <?php } ?>  
+	</div>
+	<div class="post-content">
+		<?php echo $this->getInfoHtml() ?>
+		<div class="post-title-holder clearfix">
+			<h2 class="post-title">
+				<a class="post-item-link"
+				   href="<?php echo $_postUrl ?>">
+					<?php echo $_postName; ?>
+				</a>
+			</h2> 
+		</div>
+		<?php if ($_author = $_post->getAuthor()) { ?>
+	<div class="item post-author">
+		<span class="label">&nbsp;</span>
+		<span class="value">
+			<?php echo $block->escapeHtml($_author->getTitle()) ?>
+		</span>
+	</div>
+	<?php } ?>
+	<?php if ($block->getCommentsType()) { ?>
+											<div class="block comments">
+											  <?php if ($block->getCommentsType() == 'facebook') { ?>
+												<div class="fb-root"></div>
+												 <script>(function(d, s, id) {
+													var js, fjs = d.getElementsByTagName(s)[0];
+													if (d.getElementById(id)) return;
+													js = d.createElement(s); js.id = id;
+													js.src = "//connect.facebook.net/<?php echo $block->getLocaleCode() ?>/sdk.js#xfbml=1&version=v2.5&appId=<?php echo $block->getFacebookAppId() ?>";
+													fjs.parentNode.insertBefore(js, fjs);
+												  }(document, 'script', 'facebook-jssdk'));
+												</script>
+												<span class="label">&nbsp;</span>
+												 <span class="fb-comments-count" data-href="<?php echo $_post->getPostUrl() ?>"></span>
+												 <span>Comment</span>
+											  <?php } elseif ($block->getCommentsType() == 'disqus') { ?>
+													<span class="disqus-comment-count" data-disqus-url="<?php echo $_post->getPostUrl() ?>">
+													<script>
+														var disqus_config = function () {
+															this.page.url = "<?php echo $_post->getPostUrl() ?>";
+															this.page.identifier = "<?php echo $_post->getPostUrl()  ?>"
+														};
+
+														(function() {
+															var d = document, s = d.createElement('script');
+															s.src = '//<?php echo $block->getDisqusShortname() ?>.disqus.com/embed.js';
+															s.setAttribute('data-timestamp', +new Date());
+															(d.head || d.body).appendChild(s);
+														})();
+													</script>
+											  <?php } ?>
+											  
+											</div>
+											<?php } ?>
+			<?php //echo $stringFilter->substr($_post->getShortContent(),0,135); ?>
+
+	</div> 
+</li>

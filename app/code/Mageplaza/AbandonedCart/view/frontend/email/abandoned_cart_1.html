@@ -1,0 +1,74 @@
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_AbandonedCart
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+<!--@subject {{trans "%store_name is conserving your shopping list" store_name=$store.getFrontendName()}} @-->
+<!--@vars {
+"var coupon_code|raw":"Coupon Code",
+"var checkout_url":"Checkout Url",
+"var url_suffix":"Checkout Url Suffix"
+} @-->
+<!--@styles
+.btn-primary {
+    margin: 10px auto;
+}
+.btn-primary td a {
+    background-color: #348eda;
+    border: solid 1px #348eda;
+    border-radius: 25px;
+    border-width: 10px 20px;
+    display: inline-block;
+    color: #ffffff !important;
+    cursor: pointer;
+    font-weight: bold;
+    line-height: 2;
+    text-decoration: none;
+}
+ @-->
+
+{{template config_path="design/email/header_template"}}
+
+<p class="greeting">{{trans "Hello %name," name=$customer_name}}</p>
+<p>{{trans "We’re here to confirm your forgotten shopping cart at our shop recently. Do those items still have a warm
+    place in your wish list?"}}</p>
+
+{{layout handle="ace_email_quote_items" quote=$quote area="frontend"}}
+
+<table class="btn-primary" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td>
+            {{trans '<a href="%checkout_url">Your cart here</a>' checkout_url=$checkout_url |raw}}
+        </td>
+    </tr>
+</table>
+
+<p>{{trans "Please come back soon if you need anything from our service. %store_name is looking forward to hearing your
+    confirmation soon." store_name=$store.getFrontendName()}}</p>
+<p>
+    {{trans "We truly appreciate the time you spending with us."}}<br>
+    {{depend coupon_code}}
+    {{trans "We are leaving this coupon <b>%couponCode</b> as our special discount." couponCode=$coupon_code |raw}}<br>
+    {{/depend}}
+    {{depend to_date}}
+    {{trans "It will be valid to %to" to=$to_date}}
+    {{/depend}}
+</p>
+
+{{template config_path="design/email/footer_template"}}

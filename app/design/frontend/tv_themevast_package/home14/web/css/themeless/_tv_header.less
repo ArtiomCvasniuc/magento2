@@ -1,0 +1,259 @@
+@import url("_tv_variables.less");
+
+header {
+  .input-group-append {
+    margin-left: -42px;
+  }
+
+  .btn {
+    z-index: 3 !important;
+  }
+
+  i {
+    color: @java;
+  }
+
+  .wish-icon {
+    font-size: 25px;
+  }
+
+  .links {
+    margin-bottom: 0;
+  }
+}
+
+.lang-flag {
+  white-space: nowrap;
+  padding: 7px 2.5rem !important;
+  display: block;
+  text-transform: capitalize;
+  background-repeat: no-repeat;
+  background-position: 15px 12.2px;
+  font-size: 13px;
+}
+
+.minicart-wrapper {
+  .action.close {
+    color: #fff;
+    top: 8px;
+  }
+
+  .mage-dropdown-dialog {
+    position: absolute;
+    z-index: 998;
+    right: 0;
+    top: 85px;
+    width: 100%;
+    transition: all 0.3s;
+  }
+
+  .showcart {
+    display: flex !important;
+    align-items: center;
+    cursor: pointer;
+    text-transform: uppercase;
+    position: relative;
+    font-size: 13px;
+    color: #333;
+
+    i {
+      font-size: 25px;
+    }
+
+    .title2 {
+      display: block;
+      cursor: pointer;
+      text-transform: uppercase;
+      position: relative;
+      line-height: 1.1;
+      font-size: 13px;
+      color: #333;
+    }
+
+    .totals {
+      display: block;
+      font-weight: bold;
+      position: relative;
+      font-weight: 600;
+      display: block;
+      font-size: 1.4em;
+    }
+
+    .counter {
+      &.qty {
+        margin: 0;
+        display: block;
+        width: 25px;
+        height: 25px;
+        position: absolute;
+        background: #ed2b2b;
+        color: #fff;
+        border-radius: 100%;
+        line-height: 25px;
+        text-align: center;
+        bottom: -1px;
+        left: -9px;
+        font-weight: 400;
+        font-size: 14px;
+        font-style: normal;
+        font-family: "Rubik";
+
+        &.empty {
+          display: block;
+          width: 25px;
+          height: 25px;
+          position: absolute;
+          background: @maincolor;
+          color: #fff;
+          border-radius: 100%;
+          line-height: 25px;
+          text-align: center;
+          bottom: 24px;
+          left: 2px;
+          font-weight: 400;
+          font-size: 14px;
+          font-style: normal;
+          font-family: "Rubik";
+        }
+      }
+    }
+  }
+}
+
+.c-smartsearch__wrapper {
+  width: 100% !important;
+  top: 37px !important;
+  z-index: 999;
+  left: 0px !important;
+  border: 1px solid @java !important;
+  box-shadow: none !important;
+  border-top: none !important;
+}
+
+.c-smartsearch__overlay {
+  .c-smartsearch__wrapper--inner {
+    max-width: unset !important;
+  }
+}
+
+.view-uk {
+  margin-bottom: 0;
+}
+
+.showcart {
+  &::before {
+    content: none !important;
+  }
+}
+
+.c-smartsearch__description {
+  display: flex;
+  flex-direction: column;
+}
+
+.c-smartsearch .col-8-8 {
+  width: 100% !important;
+}
+
+a.c-smartsearch__title.h4 {
+  text-transform: capitalize;
+  @media screen and (max-width: 1200px) {
+    font-size: 17px;
+  }
+}
+
+.c-smartsearch__price {
+  @media screen and (max-width: 1200px) {
+    font-size: 14px;
+  }
+}
+
+@media screen and (max-width: 992px) {
+  .c-smartsearch__wrapper {
+    top: 36px !important;
+  }
+}
+
+.c-smartsearch .col-6-8 {
+  width: 78%;
+  float: right;
+  margin-right: 0;
+  margin-top: 0px;
+}
+
+.c-smartsearch .col-2-8 {
+  width: 17.89157% !important;
+}
+
+.c-smartsearch__product {
+  padding: 10px 15px !important;
+  display: flex;
+  align-items: center;
+  &:first-child {
+    border-top: none !important;
+  }
+  img {
+    width: 75px !important;
+  }
+}
+
+.minicart-wrapper .action.showcart .counter.qty {
+  background: #ed2b2b;
+  color: #ffffff;
+  height: 18px;
+  line-height: 18px;
+  border-radius: 50px;
+  display: inline-block;
+  margin: 0;
+  min-width: 14px;
+  overflow: hidden;
+  padding: 0;
+  text-align: center;
+  white-space: normal;
+  left: 17px;
+  top: 12px;
+  width: 18px;
+  font-size: 13px;
+
+  @media (max-width: 992px) {
+    top: 9px;
+    left: 12px;
+  }
+
+  @media (max-width: 768px) {
+    top: 9px;
+    left: 11px;
+  }
+}
+
+#mobile_search {
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 78px;
+    width: 100%;
+    right: 0;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background: white;
+    z-index: 12321;
+    padding-top: 50px;
+  }
+}
+
+.main-header {
+  position: relative;
+}
+
+.groupmenu-drop {
+  padding: 0;
+}
+
+#close_mobile_search {
+  position: absolute;
+  top: 0;
+  left: 13px;
+  padding: 17px;
+  font-size: 17px;
+  color: #ed2b2b;
+}

@@ -1,0 +1,21 @@
+<?php
+
+namespace Themevast\Brand\Controller\Adminhtml;
+
+class Brand extends Actions
+{
+	
+    protected $_formSessionKey  = '';
+
+    
+    protected $_allowedKey      = '';
+
+    
+    protected $_modelClass      = '';
+
+   
+    protected $_activeMenu      = '';
+
+
+    protected $_statusField     = '';
+}

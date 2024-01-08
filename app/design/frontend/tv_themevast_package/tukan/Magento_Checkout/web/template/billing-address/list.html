@@ -1,0 +1,39 @@
+<div class="mb-3" data-role="title">
+    <i class="fal fa-truck pr-2 fa-2x"></i>
+    <span class="h5">Date facturare</span>
+</div>
+<div id="billing-address-block">
+    <div class="row">
+        <!--        select, it is not displayed on the screan-->
+        <div style="display:none;" class="control" data-bind="if: (addressOptions.length > 1)">
+            <select class="select" id="billing_address_id" name="billing_address_id" data-bind="
+                    options: addressOptions,
+                    optionsText: addressOptionsText,
+                    value: selectedAddress,
+                    event: {change: onAddressChange(selectedAddress())};">
+            </select>
+        </div>
+        <!--        address goes gere-->
+        <div class="d-flex flex-column mt-3" id="billing-addresses"></div>
+    </div>
+    <button id="new-billing-address" type="button"
+            class="btn btn-primary btn-block" onclick="showNewBillingAddressBlock();">
+        <span>Adresa nouă</span>
+    </button>
+    <div style="display:none;" id="new-billing-address-block">
+        <!-- ko template: 'Mageplaza_Osc/container/address/shipping/form' --><!-- /ko -->
+        <div class="row">
+            <div class="col-6">
+                <button type="button" class="btn btn-dark btn-block btn-sm mt-3" onclick="saveNewBillingAddress();">
+                    Salvează
+                </button>
+            </div>
+            <div class="col-6">
+                <button type="button" class="btn btn-dark btn-block btn-sm mt-3"
+                        onclick="hideNewBillingAddressBlock();">
+                    Închide
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

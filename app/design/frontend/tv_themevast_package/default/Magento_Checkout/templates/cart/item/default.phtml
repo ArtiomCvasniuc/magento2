@@ -1,0 +1,1767 @@
+<?php
+/**
+ * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+if (file_exists("conf/conf.php")) 
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+$product_name = $block->escapeHtml($block->getProductName());
+
+$query_default_price = "SELECT DISTINCT(max_price*4.726883) AS price ";
+$query_default_price .= "FROM mgkf_catalogsearch_fulltext_scope1, mgkf_catalog_product_index_price ";
+$query_default_price .= "WHERE mgkf_catalogsearch_fulltext_scope1.entity_id = mgkf_catalog_product_index_price.entity_id ";
+$query_default_price .= "AND data_index = '".$product_name."'";
+$result_default_price = $conn->query($query_default_price);
+$row_default_price = $result_default_price->fetch_assoc();
+$default_price = $row_default_price['price'];
+$default_price = number_format($default_price, 2, ',', '');
+
+$query_product_id = "SELECT entity_id FROM mgkf_catalog_product_entity ";
+$query_product_id .= "WHERE sku = '".$product_name."'";
+$result_product_id = $conn->query($query_product_id);
+$row_product_id = $result_product_id->fetch_assoc();
+
+if($row_product_id['entity_id'] != '') {
+    $query_color = "SELECT value ";
+    $query_color .= "FROM mgkf_catalog_product_relation, mgkf_catalog_product_entity_int ";
+    $query_color .= "WHERE mgkf_catalog_product_relation.child_id = mgkf_catalog_product_entity_int.entity_id ";
+    $query_color .= "AND parent_id = '".$row_product_id['entity_id']."' ";
+    $query_color .= "AND attribute_id = 93 ";
+    $query_color .= "GROUP BY value";
+    $result_color = $conn->query($query_color); 
+
+    $query_size = "SELECT value ";
+    $query_size .= "FROM mgkf_catalog_product_relation, mgkf_catalog_product_entity_int ";
+    $query_size .= "WHERE mgkf_catalog_product_relation.child_id = mgkf_catalog_product_entity_int.entity_id ";
+    $query_size .= "AND parent_id = '".$row_product_id['entity_id']."' ";
+    $query_size .= "AND attribute_id = 136 ";
+    $query_size .= "GROUP BY value";
+    $result_size = $conn->query($query_size);
+}
+
+/** @var $block \Magento\Checkout\Block\Cart\Item\Renderer */
+
+$_item = $block->getItem();
+$product = $_item->getProduct();
+
+$isVisibleProduct = $product->isVisibleInSiteVisibility();
+/** @var \Magento\Msrp\Helper\Data $helper */
+$helper = $this->helper('Magento\Msrp\Helper\Data');
+$canApplyMsrp = $helper->isShowBeforeOrderConfirm($product) && $helper->isMinimalPriceLessMsrp($product);
+$product_name = $block->escapeHtml($block->getProductName());
+
+$query = "SELECT mgkf_catalog_product_entity_int.value AS seller_id ";
+$query .= "FROM mgkf_catalog_product_entity_int, mgkf_catalog_product_entity_varchar ";
+$query .= "WHERE mgkf_catalog_product_entity_int.entity_id = mgkf_catalog_product_entity_varchar.entity_id ";
+$query .= "AND mgkf_catalog_product_entity_int.attribute_id = 158 ";
+$query .= "AND mgkf_catalog_product_entity_varchar.value = '".$product_name."' ";
+$query .= "GROUP BY mgkf_catalog_product_entity_varchar.value";
+$result = $conn->query($query);
+$row = $result->fetch_row();
+$seller = $row[0];
+
+$seller_product_price = $this->helper('Magento\Checkout\Helper\Data')->formatPrice($_item->getRowTotal());
+$price = $seller_product_price;
+
+$query_market = "SELECT store_name FROM mgkf_marketplace_seller ";
+$query_market .= "WHERE customer_id = '".$seller."'";
+$result_market = $conn->query($query_market);
+$row_market = $result_market->fetch_row();
+$market = $row_market[0];
+$store = $market;
+if($market == '') $market = 'none';
+$market = str_replace(" ", "", $market);
+
+if($customerId != '') {
+    $query = "SELECT country_id, city, postcode ";
+    $query .= "FROM mgkf_customer_address_entity ";
+    $query .= "WHERE parent_id = $customerId ";
+    $query .= "LIMIT 0,1";
+    $result = $conn->query($query);
+    $row = $result->fetch_assoc();
+
+    // Shipping
+    $country = $row['country_id'];
+    $city = $row['city'];
+    $postcode = $row['postcode'];
+
+    $query_shipping = "SELECT * FROM mgkf_marketplace_transports ";
+    $query_shipping .= "WHERE iso LIKE '%$country%' ";
+    $query_shipping .= "AND seller_id = '".$seller."' ";
+    $query_shipping .= "LIMIT 0,1";
+    $result_shipping = $conn->query($query_shipping);
+    $row_shipping = $result_shipping->fetch_assoc();
+    $country_shipping = $row_shipping['country'];
+    $price_shipping = $row_shipping['price'] * 4.726883;
+    $price_shipping = number_format($price_shipping, 2, '.', '');
+    $price_free_shipping = $row_shipping['price_free_transport'];
+    $price_free_shipping = $row_shipping['price_free_transport'] * 4.726883;
+    $price_free_shipping = number_format($price_free_shipping, 2, '.', '');
+
+    $qty = $block->getQty();
+    $price = str_replace(",", ".", $default_price);
+    $seller_product_price = $qty * $price;
+    $seller_product_price = number_format($seller_product_price, 2, ',', '');
+
+    $query_seller_2 = "SELECT price, price_free_transport FROM mgkf_marketplace_transports ";
+    $query_seller_2 .= "WHERE seller_id = 2 ";
+    $query_seller_2 .= "AND country = 'Germany'";
+    $result_seller_2 = $conn->query($query_seller_2);
+    $row_seller_2 = $result_seller_2->fetch_assoc();
+    $price_shipping_seller_2_DE = $row_seller_2['price'] * 4.726883;
+    $price_shipping_seller_2_DE = number_format($price_shipping_seller_2_DE, 2, '.', '');
+    $price_free_shipping_seller_2_DE = $row_seller_2['price_free_transport'];
+    $price_free_shipping_seller_2_DE = $row_seller_2['price_free_transport'] * 4.726883;
+    $price_free_shipping_seller_2_DE = number_format($price_free_shipping_seller_2_DE, 2, '.', '');
+
+    if($market == 'MagazinulLuiIonut') {
+    ?>
+    <tbody style="" class="cart item <?php echo $market; ?>">
+        <tr id="seller_<?php echo $seller; ?>" style="display:none">    
+            <input type="hidden" class="seller_<?php echo $seller; ?>" name="seller" value="<?php echo $seller; ?>">
+            <input type="hidden" class="seller_2_qty" value="<?php echo $qty; ?>">
+            <input type="hidden" class="seller_2_product_price_test" value="<?php echo $seller_product_price; ?>">
+            <input type="hidden" class="seller_2_default_price" value="<?php echo $seller_product_price; ?>">
+            <input type="hidden" class="seller_2_product_price" value="<?php echo $seller_product_price; ?>">
+            <input type="hidden" class="seller_<?php echo $seller; ?>_shipping_price" name="price_shipping" value="<?php echo $price_shipping; ?>">
+            <input type="hidden" class="seller_<?php echo $seller; ?>_free_shipping_price" name="price_free_shipping" value="<?php echo $price_free_shipping; ?>">              
+        </tr>
+        <tr class="item-info">  
+            <td data-th="<?php echo $block->escapeHtml(__('Item')); ?>" class="col item">
+                <?php if ($block->hasProductUrl()) { ?>   
+                    <?php
+                    if($market != '') {
+                        $message = 'Produse vândute și livrate de "' . $store . '"'; ?>
+                        <div class="info_message">
+                            <?php echo $message; ?>
+                        </div>
+                        <br>
+                    <?php
+                    }
+                    else {
+                        $message = '';
+                    }
+                    ?>   
+                    <a href="<?php /* @escapeNotVerified */ echo $block->getProductUrl() ?>"
+                    title="<?php echo $block->escapeHtml($block->getProductName()) ?>"
+                    tabindex="-1"
+                    class="product-item-photo">
+                <?php } else { ?>
+                    <span class="product-item-photo">
+                <?php } ?>
+                <?php echo $block->getImage($block->getProductForThumbnail(), 'cart_page_product_thumbnail')->toHtml(); ?>
+                <?php if ($block->hasProductUrl()) { ?>
+                    </a>
+                <?php } else { ?>
+                    </span>
+                <?php } ?>            
+                <div class="product-item-details">
+                    <strong class="product-item-name">
+                        <?php if ($block->hasProductUrl()) { ?>
+                            <a href="<?php /* @escapeNotVerified */ echo $block->getProductUrl() ?>"><?php echo $block->escapeHtml($block->getProductName()) ?></a>
+                        <?php } else { ?>
+                            <?php echo $block->escapeHtml($block->getProductName()) ?>
+                        <?php } ?>
+                    </strong>
+                    <?php if ($_options = $block->getOptionList()) { ?>
+                        <dl class="item-options">
+                            <dt>Color</dt>
+                            <dd>
+                                <select>
+                                <?php 
+                                while($row_color = $result_color->fetch_assoc()) {
+                                    $color = $row_color['value'];
+                                    if($color == 49) {
+                                        $color = 'Black';
+                                    }
+                                    if($color == 50) {
+                                        $color = 'Blue';
+                                    }
+                                    if($color == 51) {
+                                        $color = 'Brown';
+                                    }
+                                    if($color == 52) {
+                                        $color = 'Gray';
+                                    }
+                                    if($color == 53) {
+                                        $color = 'Green';
+                                    }
+                                    if($color == 54) {
+                                        $color = 'Lavender';
+                                    }
+                                    if($color == 55) {
+                                        $color = 'Multi';
+                                    }
+                                    if($color == 56) {
+                                        $color = 'Orange';
+                                    }
+                                    if($color == 57) {
+                                        $color = 'Purple';
+                                    }
+                                    if($color == 58) {
+                                        $color = 'Red';
+                                    }
+                                    if($color == 59) {
+                                        $color = 'White';
+                                    }
+                                    if($color == 60) {
+                                        $color = 'Yellow';
+                                    }
+                                    ?>
+                                    <option><?php echo $color; ?></option>
+                                <?php
+                                }
+                                ?>
+                                </select>
+                            </dd>
+                            <dt>Size</dt>
+                            <dd>
+                                <select>
+                                <?php
+                                while($row_size = $result_size->fetch_assoc()) {
+                                    $size = $row_size['value'];
+                                    if($size == 172) $size = 28;
+                                    if($size == 173) $size = 29;
+                                    if($size == 174) $size = 30;
+                                    if($size == 175) $size = 31;
+                                    if($size == 176) $size = 32;
+                                    if($size == 177) $size = 33;
+                                    if($size == 178) $size = 34;
+                                    if($size == 179) $size = 36;
+                                    if($size == 180) $size = 38;
+                                    ?>
+                                    <option><?php echo $size; ?></option>
+                                <?php
+                                }
+                                ?>
+                                </select>
+                            </dd>
+                            <div style="display:none;"?>
+                                <?php foreach ($_options as $_option) { ?>
+                                    <?php $_formatedOptionValue = $block->getFormatedOptionValue($_option) ?>
+                                    <dt><?php echo $block->escapeHtml($_option['label']) ?></dt>
+                                    <dd>
+                                        <select>
+                                            <option selected>
+                                            <?php if (isset($_formatedOptionValue['full_view'])) { ?>
+                                                <?php /* @escapeNotVerified */ echo $_formatedOptionValue['full_view'] ?>
+                                            <?php } else { ?>
+                                                <?php /* @escapeNotVerified */ echo $_formatedOptionValue['value'] ?>
+                                            <?php } ?>
+                                            </option>
+                                        <select>
+                                    </dd>
+                            <?php } ?>
+                            </div>
+                        </dl>
+                    <?php } ?>
+                    <?php if ($messages = $block->getMessages()) { ?>
+                        <?php foreach ($messages as $message) { ?>
+                            <div class="cart item message <?php /* @escapeNotVerified */ echo $message['type'] ?>"><div><?php echo $block->escapeHtml($message['text']) ?></div></div>
+                        <?php } ?>
+                    <?php } ?>
+                    <?php $addInfoBlock = $block->getProductAdditionalInformationBlock(); ?>
+                    <?php if ($addInfoBlock) { ?>
+                        <?php echo $addInfoBlock->setItem($_item)->toHtml() ?>
+                    <?php } ?>
+                </div>
+                <div class="actions-toolbar">
+                    <?php /* @escapeNotVerified */ echo $block->getActions($_item) ?>
+                </div>
+            </td>
+            <?php if ($canApplyMsrp) {  ?>
+                <td class="col msrp" data-th="<?php echo $block->escapeHtml(__('Price')); ?>">
+                    <span class="pricing msrp">
+                        <span class="msrp notice">
+                            <?php /* @escapeNotVerified */ echo __('See price before order confirmation.'); ?>
+                        </span>
+                        <?php $helpLinkId = 'cart-msrp-help-' . $_item->getId(); ?>
+                        <a href="#" class="action help map" id="<?php /* @escapeNotVerified */ echo($helpLinkId); ?>" data-mage-init='{"addToCart":{"helpLinkId": "#<?php /* @escapeNotVerified */ echo $helpLinkId;?>","productName": "<?php /* @escapeNotVerified */ echo $product->getName(); ?>","showAddToCart": false}}'>
+                            <span><?php /* @escapeNotVerified */ echo __("What's this?"); ?></span>
+                        </a>
+                    </span>
+                </td>
+            <?php } else { ?>
+                <td style="display:none;" class="col price" data-th="<?php echo $block->escapeHtml(__('Price')); ?>">
+                    <?php echo $block->getUnitPriceHtml($_item); ?>
+                </td>
+            <?php } ?>
+            <td class="col qty" data-th="<?php echo $block->escapeHtml(__('Qty')); ?>">
+                <div class="field qty">
+                    <label class="label" for="cart-<?php /* @escapeNotVerified */ echo $_item->getId() ?>-qty">
+                        <span>
+                            <?php /* @escapeNotVerified */ echo __('Qty') ?>
+                        </span>
+                    </label>
+                    <div class="control qty">
+                        <?php 
+                        $qty = $block->getQty();
+                        if($qty == 1) {
+                            $next_1 = 2;
+                            $next_2 = 3;
+                            $next_3 = 4;
+                            $next_4 = 5;
+                        }
+                        elseif($qty == 2) {
+                            $next_1 = 1;
+                            $next_2 = 3;
+                            $next_3 = 4;
+                            $next_4 = 5;
+                        }
+                        elseif($qty == 3) {
+                            $next_1 = 1;
+                            $next_2 = 2;
+                            $next_3 = 4;
+                            $next_4 = 5;
+                        }
+                        elseif($qty == 4) {
+                            $next_1 = 1;
+                            $next_2 = 2;
+                            $next_3 = 3;
+                            $next_4 = 5;
+                        }
+                        else {
+                            $next_1 = 1;
+                            $next_2 = 2;
+                            $next_3 = 3;
+                            $next_4 = 4;
+                        }
+                        ?>
+                        <input type="hidden" class="default_price" name="default_price" value="<?php echo $default_price; ?>" />
+                        <select name="cart[<?php /* @escapeNotVerified */ echo $_item->getId() ?>][qty]"
+                            data-cart-item-id="<?php /* @escapeNotVerified */ echo $_item->getSku() ?>"
+                            value="<?php /* @escapeNotVerified */ echo $block->getQty() ?>"
+                            type="number" title="<?php echo $block->escapeHtml(__('Qty')); ?>"
+                            class="input-text qty" maxlength="12"
+                            data-validate="{required:true,'validate-greater-than-zero':true}"
+                            data-role="cart-item-qty">
+                            <option><?php echo $qty; ?></option>
+                            <option><?php echo $next_1; ?></option>
+                            <option><?php echo $next_2; ?></option>
+                            <option><?php echo $next_3; ?></option>
+                            <option><?php echo $next_4; ?></option>
+                        </select>
+                    </div>
+                </div>
+            </td>
+            <td class="col subtotal" data-th="<?php echo $block->escapeHtml(__('Price'));?>">
+                <?php if ($canApplyMsrp) { ?>
+                    <span class="cart msrp subtotal">--</span>
+                <?php } else { ?>
+                    <?php echo $block->getRowTotalHtml($_item); ?>
+                <?php } ?>
+            </td>
+        </tr>
+    </tbody>
+    <?php 
+    }
+    if($market == 'developerstore') {
+    ?>
+    <tbody style="" class="cart item <?php echo $market; ?>" >
+        <tr id="seller_<?php echo $seller; ?>" style="display:none">
+            <input type="hidden" class="seller_<?php echo $seller; ?>" name="seller" value="<?php echo $seller; ?>">
+            <input type="hidden" class="seller_7_qty" value="<?php echo $qty; ?>">
+            <input type="hidden" class="seller_7_product_price_test" value="<?php echo $seller_product_price; ?>">
+            <input type="hidden" class="seller_7_default_price" value="<?php echo $seller_product_price; ?>">
+            <input type="hidden" class="seller_7_product_price" value="<?php echo $seller_product_price; ?>">
+            <input type="hidden" class="seller_<?php echo $seller; ?>_shipping_price" name="price_shipping" value="<?php echo $price_shipping; ?>">
+            <input type="hidden" class="seller_<?php echo $seller; ?>_free_shipping_price" name="price_free_shipping" value="<?php echo $price_free_shipping; ?>"> 
+        </tr>
+        <tr class="item-info">  
+            <td data-th="<?php echo $block->escapeHtml(__('Item')); ?>" class="col item">
+                <?php if ($block->hasProductUrl()) { ?>   
+                    <?php
+                    if($market != '') {
+                        $message = 'Produse vândute și livrate de "' . $store . '"'; ?>
+                        <div class="info_message">
+                            <?php echo $message; ?>
+                        </div>
+                        <br>
+                    <?php
+                    }
+                    else {
+                        $message = '';
+                    }
+                    ?>   
+                    <a href="<?php /* @escapeNotVerified */ echo $block->getProductUrl() ?>"
+                        title="<?php echo $block->escapeHtml($block->getProductName()) ?>"
+                        tabindex="-1"
+                        class="product-item-photo">
+                <?php } else { ?>
+                    <span class="product-item-photo">
+                <?php } ?>
+                <?php echo $block->getImage($block->getProductForThumbnail(), 'cart_page_product_thumbnail')->toHtml(); ?>
+                <?php if ($block->hasProductUrl()) { ?>
+                    </a>
+                <?php } else { ?>
+                    </span>
+                <?php } ?>            
+                <div class="product-item-details">
+                    <strong class="product-item-name">
+                        <?php if ($block->hasProductUrl()) { ?>
+                            <a href="<?php /* @escapeNotVerified */ echo $block->getProductUrl() ?>"><?php echo $block->escapeHtml($block->getProductName()) ?></a>
+                        <?php } else { ?>
+                            <?php echo $block->escapeHtml($block->getProductName()) ?>
+                        <?php } ?>
+                    </strong>
+                    <?php if ($_options = $block->getOptionList()) { ?>
+                        <dl class="item-options">
+                            <dt>Color</dt>
+                            <dd>
+                                <select>
+                                <?php 
+                                while($row_color = $result_color->fetch_assoc()) {
+                                    $color = $row_color['value'];
+                                    if($color == 49) {
+                                        $color = 'Black';
+                                    }
+                                    if($color == 50) {
+                                        $color = 'Blue';
+                                    }
+                                    if($color == 51) {
+                                        $color = 'Brown';
+                                    }
+                                    if($color == 52) {
+                                        $color = 'Gray';
+                                    }
+                                    if($color == 53) {
+                                        $color = 'Green';
+                                    }
+                                    if($color == 54) {
+                                        $color = 'Lavender';
+                                    }
+                                    if($color == 55) {
+                                        $color = 'Multi';
+                                    }
+                                    if($color == 56) {
+                                        $color = 'Orange';
+                                    }
+                                    if($color == 57) {
+                                        $color = 'Purple';
+                                    }
+                                    if($color == 58) {
+                                        $color = 'Red';
+                                    }
+                                    if($color == 59) {
+                                        $color = 'White';
+                                    }
+                                    if($color == 60) {
+                                        $color = 'Yellow';
+                                    }
+                                    ?>
+                                    <option><?php echo $color; ?></option>
+                                <?php
+                                }
+                                ?>
+                                </select>
+                            </dd>
+                            <dt>Size</dt>
+                            <dd>
+                                <select>
+                                <?php
+                                while($row_size = $result_size->fetch_assoc()) {
+                                    $size = $row_size['value'];
+                                    if($size == 172) $size = 28;
+                                    if($size == 173) $size = 29;
+                                    if($size == 174) $size = 30;
+                                    if($size == 175) $size = 31;
+                                    if($size == 176) $size = 32;
+                                    if($size == 177) $size = 33;
+                                    if($size == 178) $size = 34;
+                                    if($size == 179) $size = 36;
+                                    if($size == 180) $size = 38;
+                                    ?>
+                                    <option><?php echo $size; ?></option>
+                                <?php
+                                }
+                                ?>
+                                </select>
+                            </dd>
+                            <div style="display:none;"?>
+                                <?php foreach ($_options as $_option) { ?>
+                                    <?php $_formatedOptionValue = $block->getFormatedOptionValue($_option) ?>
+                                    <dt><?php echo $block->escapeHtml($_option['label']) ?></dt>
+                                    <dd>
+                                        <select>
+                                            <option selected>
+                                            <?php if (isset($_formatedOptionValue['full_view'])) { ?>
+                                                <?php /* @escapeNotVerified */ echo $_formatedOptionValue['full_view'] ?>
+                                            <?php } else { ?>
+                                                <?php /* @escapeNotVerified */ echo $_formatedOptionValue['value'] ?>
+                                            <?php } ?>
+                                            </option>
+                                        <select>
+                                    </dd>
+                                <?php } ?>
+                            </div>
+                        </dl>
+                    <?php } ?>
+                    <?php if ($messages = $block->getMessages()) { ?>
+                        <?php foreach ($messages as $message) { ?>
+                            <div class="cart item message <?php /* @escapeNotVerified */ echo $message['type'] ?>"><div><?php echo $block->escapeHtml($message['text']) ?></div></div>
+                        <?php } ?>
+                    <?php } ?>
+                    <?php $addInfoBlock = $block->getProductAdditionalInformationBlock(); ?>
+                    <?php if ($addInfoBlock) { ?>
+                        <?php echo $addInfoBlock->setItem($_item)->toHtml() ?>
+                    <?php } ?>
+                </div>
+                <div class="actions-toolbar">
+                    <?php /* @escapeNotVerified */ echo $block->getActions($_item) ?>
+                </div>
+            </td>
+            <?php if ($canApplyMsrp) { ?>
+                <td class="col msrp" data-th="<?php echo $block->escapeHtml(__('Price')); ?>">
+                    <span class="pricing msrp">
+                        <span class="msrp notice">
+                            <?php /* @escapeNotVerified */ echo __('See price before order confirmation.'); ?>
+                        </span>
+                        <?php $helpLinkId = 'cart-msrp-help-' . $_item->getId(); ?>
+                        <a href="#" class="action help map" id="<?php /* @escapeNotVerified */ echo($helpLinkId); ?>" data-mage-init='{"addToCart":{"helpLinkId": "#<?php /* @escapeNotVerified */ echo $helpLinkId;?>","productName": "<?php /* @escapeNotVerified */ echo $product->getName(); ?>","showAddToCart": false}}'>
+                            <span>
+                                <?php /* @escapeNotVerified */ echo __("What's this?"); ?>
+                            </span>
+                        </a>
+                    </span>
+                </td>
+            <?php } else { ?>
+                <td style="display:none;" class="col price" data-th="<?php echo $block->escapeHtml(__('Price')); ?>">
+                    <?php echo $block->getUnitPriceHtml($_item); ?>
+                </td>
+            <?php } ?>
+            <td class="col qty" data-th="<?php echo $block->escapeHtml(__('Qty')); ?>">
+                <div class="field qty">
+                    <label class="label" for="cart-<?php /* @escapeNotVerified */ echo $_item->getId() ?>-qty">
+                        <span>
+                            <?php /* @escapeNotVerified */ echo __('Qty') ?>
+                        </span>
+                    </label>
+                    <div class="control qty">
+                        <?php
+                        $qty = $block->getQty();
+                        if($qty == 1) {
+                            $next_1 = 2;
+                            $next_2 = 3;
+                            $next_3 = 4;
+                            $next_4 = 5;
+                        }
+                        elseif($qty == 2) {
+                            $next_1 = 1;
+                            $next_2 = 3;
+                            $next_3 = 4;
+                            $next_4 = 5;
+                        }
+                        elseif($qty == 3) {
+                            $next_1 = 1;
+                            $next_2 = 2;
+                            $next_3 = 4;
+                            $next_4 = 5;
+                        }
+                        elseif($qty == 4) {
+                            $next_1 = 1;
+                            $next_2 = 2;
+                            $next_3 = 3;
+                            $next_4 = 5;
+                        }
+                        else {
+                            $next_1 = 1;
+                            $next_2 = 2;
+                            $next_3 = 3;
+                            $next_4 = 4;
+                        }
+                        ?>
+                        <input type="hidden" class="default_price" name="default_price" value="<?php echo $default_price; ?>" />
+                        <select name="cart[<?php /* @escapeNotVerified */ echo $_item->getId() ?>][qty]"
+                                data-cart-item-id="<?php /* @escapeNotVerified */ echo $_item->getSku() ?>"
+                                value="<?php /* @escapeNotVerified */ echo $block->getQty() ?>"
+                                type="number" title="<?php echo $block->escapeHtml(__('Qty')); ?>"
+                                class="input-text qty" maxlength="12"
+                                data-validate="{required:true,'validate-greater-than-zero':true}"
+                                data-role="cart-item-qty">
+                            <option><?php echo $qty; ?></option>
+                            <option><?php echo $next_1; ?></option>
+                            <option><?php echo $next_2; ?></option>
+                            <option><?php echo $next_3; ?></option>
+                            <option><?php echo $next_4; ?></option>
+                        </select>
+                    </div>
+                </div>
+            </td>
+            <td class="col subtotal" data-th="<?php echo $block->escapeHtml(__('Price'));?>">
+                <?php if ($canApplyMsrp) { ?>
+                    <span class="cart msrp subtotal">--</span>
+                <?php } else { ?>
+                    <?php echo $block->getRowTotalHtml($_item); ?>
+                <?php } ?>
+            </td>
+        </tr>
+    </tbody>
+    <?php 
+    }
+}
+else { 
+?>
+<tbody style="" class="cart item <?php echo $market; ?>">
+    <tr class="item-info">  
+        <td data-th="<?php echo $block->escapeHtml(__('Item')); ?>" class="col item">
+            <?php if ($block->hasProductUrl()) { ?>   
+                <?php
+                if($market != '') {
+                    $message = 'Produse vândute și livrate de "' . $store . '"'; ?>
+                    <div class="info_message">
+                        <?php echo $message; ?>
+                    </div>
+                    <br>
+                <?php
+                }
+                else {
+                    $message = '';
+                }
+                ?>   
+                <a href="<?php /* @escapeNotVerified */ echo $block->getProductUrl() ?>"
+                   title="<?php echo $block->escapeHtml($block->getProductName()) ?>"
+                   tabindex="-1"
+                   class="product-item-photo">
+            <?php } else { ?>
+                <span class="product-item-photo">
+            <?php } ?>
+            <?php echo $block->getImage($block->getProductForThumbnail(), 'cart_page_product_thumbnail')->toHtml(); ?>
+            <?php if ($block->hasProductUrl()) { ?>
+                </a>
+            <?php } else { ?>
+                </span>
+            <?php } ?>            
+            <div class="product-item-details">
+                <strong class="product-item-name">
+                    <?php if ($block->hasProductUrl()) { ?>
+                        <a href="<?php /* @escapeNotVerified */ echo $block->getProductUrl() ?>"><?php echo $block->escapeHtml($block->getProductName()) ?></a>
+                    <?php } else { ?>
+                        <?php echo $block->escapeHtml($block->getProductName()) ?>
+                    <?php } ?>
+                </strong>
+                <?php if ($_options = $block->getOptionList()) { ?>
+                    <dl class="item-options">
+                        <dt>Color</dt>
+                        <dd>
+                            <select>
+                            <?php 
+                            while($row_color = $result_color->fetch_assoc()) {
+                                $color = $row_color['value'];
+                                if($color == 49) {
+                                    $color = 'Black';
+                                }
+                                if($color == 50) {
+                                    $color = 'Blue';
+                                }
+                                if($color == 51) {
+                                    $color = 'Brown';
+                                }
+                                if($color == 52) {
+                                    $color = 'Gray';
+                                }
+                                if($color == 53) {
+                                    $color = 'Green';
+                                }
+                                if($color == 54) {
+                                    $color = 'Lavender';
+                                }
+                                if($color == 55) {
+                                    $color = 'Multi';
+                                }
+                                if($color == 56) {
+                                    $color = 'Orange';
+                                }
+                                if($color == 57) {
+                                    $color = 'Purple';
+                                }
+                                if($color == 58) {
+                                    $color = 'Red';
+                                }
+                                if($color == 59) {
+                                    $color = 'White';
+                                }
+                                if($color == 60) {
+                                    $color = 'Yellow';
+                                }
+                                ?>
+                                <option><?php echo $color; ?></option>
+                            <?php
+                            }
+                            ?>
+                            </select>
+                        </dd>
+                        <dt>Size</dt>
+                        <dd>
+                            <select>
+                            <?php
+                            while($row_size = $result_size->fetch_assoc()) {
+                                $size = $row_size['value'];
+                                if($size == 172) $size = 28;
+                                if($size == 173) $size = 29;
+                                if($size == 174) $size = 30;
+                                if($size == 175) $size = 31;
+                                if($size == 176) $size = 32;
+                                if($size == 177) $size = 33;
+                                if($size == 178) $size = 34;
+                                if($size == 179) $size = 36;
+                                if($size == 180) $size = 38;
+                                ?>
+                                <option><?php echo $size; ?></option>
+                            <?php
+                            }
+                            ?>
+                            </select>
+                        </dd>
+                        <div style="display:none;"?>
+                            <?php foreach ($_options as $_option) { ?>
+                                <?php $_formatedOptionValue = $block->getFormatedOptionValue($_option) ?>
+                                <dt><?php echo $block->escapeHtml($_option['label']) ?></dt>
+                                <dd>
+                                    <select>
+                                        <option selected>
+                                        <?php if (isset($_formatedOptionValue['full_view'])) { ?>
+                                            <?php /* @escapeNotVerified */ echo $_formatedOptionValue['full_view'] ?>
+                                        <?php } else { ?>
+                                            <?php /* @escapeNotVerified */ echo $_formatedOptionValue['value'] ?>
+                                        <?php } ?>
+                                        </option>
+                                    <select>
+                                </dd>
+                        <?php } ?>
+                        </div>
+                    </dl>
+                <?php } ?>
+                <?php if ($messages = $block->getMessages()) { ?>
+                    <?php foreach ($messages as $message) { ?>
+                        <div class="cart item message <?php /* @escapeNotVerified */ echo $message['type'] ?>"><div><?php echo $block->escapeHtml($message['text']) ?></div></div>
+                    <?php } ?>
+                <?php } ?>
+                <?php $addInfoBlock = $block->getProductAdditionalInformationBlock(); ?>
+                <?php if ($addInfoBlock) { ?>
+                    <?php echo $addInfoBlock->setItem($_item)->toHtml() ?>
+                <?php } ?>
+            </div>
+            <div class="actions-toolbar">
+                <?php /* @escapeNotVerified */ echo $block->getActions($_item) ?>
+            </div>
+        </td>
+        <?php if ($canApplyMsrp) {  ?>
+            <td class="col msrp" data-th="<?php echo $block->escapeHtml(__('Price')); ?>">
+                <span class="pricing msrp">
+                    <span class="msrp notice">
+                        <?php /* @escapeNotVerified */ echo __('See price before order confirmation.'); ?>
+                    </span>
+                    <?php $helpLinkId = 'cart-msrp-help-' . $_item->getId(); ?>
+                    <a href="#" class="action help map" id="<?php /* @escapeNotVerified */ echo($helpLinkId); ?>" data-mage-init='{"addToCart":{"helpLinkId": "#<?php /* @escapeNotVerified */ echo $helpLinkId;?>","productName": "<?php /* @escapeNotVerified */ echo $product->getName(); ?>","showAddToCart": false}}'>
+                        <span><?php /* @escapeNotVerified */ echo __("What's this?"); ?></span>
+                    </a>
+                </span>
+            </td>
+        <?php } else { ?>
+            <td style="display:none;" class="col price" data-th="<?php echo $block->escapeHtml(__('Price')); ?>">
+                <?php echo $block->getUnitPriceHtml($_item); ?>
+            </td>
+        <?php } ?>
+        <td class="col qty" data-th="<?php echo $block->escapeHtml(__('Qty')); ?>">
+            <div class="field qty">
+                <label class="label" for="cart-<?php /* @escapeNotVerified */ echo $_item->getId() ?>-qty">
+                    <span>
+                        <?php /* @escapeNotVerified */ echo __('Qty') ?>
+                    </span>
+                </label>
+                <div class="control qty">
+                    <?php 
+                    $qty = $block->getQty();
+                    if($qty == 1) {
+                        $next_1 = 2;
+                        $next_2 = 3;
+                        $next_3 = 4;
+                        $next_4 = 5;
+                    }
+                    elseif($qty == 2) {
+                        $next_1 = 1;
+                        $next_2 = 3;
+                        $next_3 = 4;
+                        $next_4 = 5;
+                    }
+                    elseif($qty == 3) {
+                        $next_1 = 1;
+                        $next_2 = 2;
+                        $next_3 = 4;
+                        $next_4 = 5;
+                    }
+                    elseif($qty == 4) {
+                        $next_1 = 1;
+                        $next_2 = 2;
+                        $next_3 = 3;
+                        $next_4 = 5;
+                    }
+                    else {
+                        $next_1 = 1;
+                        $next_2 = 2;
+                        $next_3 = 3;
+                        $next_4 = 4;
+                    }
+                    ?>
+                    <input type="hidden" class="default_price" name="default_price" value="<?php echo $default_price; ?>" />
+                    <select name="cart[<?php /* @escapeNotVerified */ echo $_item->getId() ?>][qty]"
+                           data-cart-item-id="<?php /* @escapeNotVerified */ echo $_item->getSku() ?>"
+                           value="<?php /* @escapeNotVerified */ echo $block->getQty() ?>"
+                           type="number" title="<?php echo $block->escapeHtml(__('Qty')); ?>"
+                           class="input-text qty" maxlength="12"
+                           data-validate="{required:true,'validate-greater-than-zero':true}"
+                           data-role="cart-item-qty">
+                        <option><?php echo $qty; ?></option>
+                        <option><?php echo $next_1; ?></option>
+                        <option><?php echo $next_2; ?></option>
+                        <option><?php echo $next_3; ?></option>
+                        <option><?php echo $next_4; ?></option>
+                    </select>
+                </div>
+            </div>
+        </td>
+        <td class="col subtotal" data-th="<?php echo $block->escapeHtml(__('Price'));?>">
+            <?php if ($canApplyMsrp) { ?>
+                <span class="cart msrp subtotal">--</span>
+            <?php } else { ?>
+                <?php echo $block->getRowTotalHtml($_item); ?>
+            <?php } ?>
+        </td>
+    </tr>
+</tbody>    
+<?php
+}
+?>
+<script>
+var i = 0;
+var j = 0;
+var parent = document.getElementById("shopping-cart-table");
+var store_1 = parent.getElementsByClassName("cart item MagazinulLuiIonut");
+if(store_1.length == 1) {
+    store_1[0].style.top = "45px";
+}
+if(store_1.length == 2) {
+    store_1[0].style.top = "45px";
+    store_1[1].style.top = "272px";  
+}
+if(store_1.length == 3) {
+    store_1[0].style.top = "45px";
+    store_1[1].style.top = "272px";  
+    store_1[2].style.top = "544px";
+}
+var store_2 = parent.getElementsByClassName("cart item developerstore");
+if(store_1.length == 1) {
+    store_2[0].style.top = "300px";
+}
+if(store_1.length == 2) {
+    store_2[0].style.top = "544px";
+    store_2[1].style.top = "816px";
+}
+if(store_1.length == 3) {
+    store_2[0].style.top = "544px";
+    store_2[1].style.top = "816px";
+    store_2[2].style.top = "1088px";
+}
+if(store_1.length == 4) {
+    store_2[0].style.top = "544px";
+    store_2[1].style.top = "816px";
+    store_2[2].style.top = "1088px";
+    store_2[3].style.top = "1360px";
+}
+var i = 0;
+var parent = document.getElementById("shopping-cart-table");
+var nodesSameClass = parent.getElementsByClassName("price");
+for (i=3; i < nodesSameClass.length; i+=3) {
+    nodesSameClass[i].setAttribute("id", "price"+i);
+}
+var product = document.getElementById("shopping-cart-table");
+var product_default_price = product.getElementsByClassName("default_price");
+for (i=0; i < product_default_price.length; i++) {
+    product_default_price[i].setAttribute("id", "default_price_"+i);
+}
+var main1 = document.getElementById("shopping-cart-table");
+var seller1 = main1.getElementsByClassName("seller_2_shipping_price");
+for (i=0; i < seller1.length; i++) {
+    seller1[i].setAttribute("id", "seller_2_shipping_price_"+i);
+}
+var main2 = document.getElementById("shopping-cart-table");
+var seller2 = main2.getElementsByClassName("seller_2_free_shipping_price");
+for (i=0; i < seller2.length; i++) {
+    seller2[i].setAttribute("id", "seller_2_free_shipping_price_"+i);
+}
+var main3 = document.getElementById("shopping-cart-table");
+var seller3 = main3.getElementsByClassName("seller_7_shipping_price");
+for (i=0; i < seller3.length; i++) {
+    seller3[i].setAttribute("id", "seller_7_shipping_price_"+i);
+}
+var main4 = document.getElementById("shopping-cart-table");
+var seller4 = main4.getElementsByClassName("seller_7_free_shipping_price");
+for (i=0; i < seller4.length; i++) {
+    seller4[i].setAttribute("id", "seller_7_free_shipping_price_"+i);
+}
+var main5 = document.getElementById("shopping-cart-table");
+var seller5 = main5.getElementsByClassName("seller_2_product_price");
+for (i=0; i < seller5.length; i++) {
+    seller5[i].setAttribute("id", "seller_2_product_price_"+i);
+}
+var main6 = document.getElementById("shopping-cart-table");
+var seller6 = main6.getElementsByClassName("seller_7_product_price");
+for (i=0; i < seller6.length; i++) {
+    seller6[i].setAttribute("id", "seller_7_product_price_"+i);
+}
+var main7 = document.getElementById("shopping-cart-table");
+var seller7 = main7.getElementsByClassName("seller_2_qty");
+for (i=0; i < seller7.length; i++) {
+    seller7[i].setAttribute("id", "seller_2_qty_"+i);
+}
+var main8 = document.getElementById("shopping-cart-table");
+var seller8 = main8.getElementsByClassName("seller_7_qty");
+for (i=0; i < seller8.length; i++) {
+    seller8[i].setAttribute("id", "seller_2_qty_"+i);
+}
+var main9 = document.getElementById("shopping-cart-table");
+var seller9 = main9.getElementsByClassName("seller_2_default_price");
+for (i=0; i < seller9.length; i++) {
+    seller9[i].setAttribute("id", "seller_2_default_price_"+i);
+}
+var main10 = document.getElementById("shopping-cart-table");
+var seller10 = main10.getElementsByClassName("seller_7_default_price");
+for (i=0; i < seller10.length; i++) {
+    seller10[i].setAttribute("id", "seller_7_default_price_"+i);
+}
+var main11 = document.getElementById("shopping-cart-table");
+var seller11 = main11.getElementsByClassName("seller_2_product_price_test");
+for (i=0; i < seller11.length; i++) {
+    seller11[i].setAttribute("id", "seller_2_product_price_test_"+i);
+}
+var main12 = document.getElementById("shopping-cart-table");
+var seller12 = main12.getElementsByClassName("seller_7_product_price_test");
+for (i=0; i < seller12.length; i++) {
+    seller12[i].setAttribute("id", "seller_7_product_price_test_"+i);
+}
+var total_seller_2 = 0;
+if(document.getElementById("seller_2_product_price_0")) {
+    str = document.getElementById("seller_2_product_price_0").value;
+    var price = str.match(/\d+(?:\,\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_2 = price;
+}
+if(document.getElementById("seller_2_product_price_1")) {
+    str = document.getElementById("seller_2_product_price_1").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_2 = total_seller_2 + price;
+}
+if(document.getElementById("seller_2_product_price_2")) {
+    str = document.getElementById("seller_2_product_price_2").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_2 = total_seller_2 + price;
+}
+if(document.getElementById("seller_2_product_price_3")) {
+    str = document.getElementById("seller_2_product_price_3").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_2 = total_seller_2 + price;
+}
+if(document.getElementById("seller_2_product_price_4")) {
+    str = document.getElementById("seller_2_product_price_4").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_2 = total_seller_2 + price;
+}
+if(document.getElementById("seller_2_product_price_5")) {
+    str = document.getElementById("seller_2_product_price_5").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_2 = total_seller_2 + price;
+}
+var seller_2_shipping_price = 0;
+var seller_2_free_shipping_price = 0;
+if(document.getElementById("seller_2_shipping_price_0")) {
+    seller_2_shipping_price = document.getElementById("seller_2_shipping_price_0").value;
+    seller_2_free_shipping_price = document.getElementById("seller_2_free_shipping_price_0").value;
+}
+total_seller_2 = total_seller_2.toFixed(2);
+if(total_seller_2 > seller_2_free_shipping_price) {
+    price_shipping = 0.00;
+}
+else {
+    price_shipping = seller_2_shipping_price;
+}
+var total_seller_7 = 0;
+if(document.getElementById("seller_7_product_price_0")) {
+    str = document.getElementById("seller_7_product_price_0").value;
+    var price = str.match(/\d+(?:\,\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_7 = price;
+}
+if(document.getElementById("seller_7_product_price_1")) {
+    str = document.getElementById("seller_7_product_price_1").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_7 = total_seller_7 + price;
+}
+if(document.getElementById("seller_7_product_price_2")) {
+    str = document.getElementById("seller_7_product_price_2").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_7 = total_seller_7 + price;
+}
+if(document.getElementById("seller_7_product_price_3")) {
+    str = document.getElementById("seller_7_product_price_3").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_7 = total_seller_7 + price;
+}
+if(document.getElementById("seller_7_product_price_4")) {
+    str = document.getElementById("seller_7_product_price_4").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_7 = total_seller_7 + price;
+}
+if(document.getElementById("seller_7_product_price_5")) {
+    str = document.getElementById("seller_7_product_price_5").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_7 = total_seller_7 + price;
+}
+var seller_7_shipping_price = 0;
+var seller_7_free_shipping_price = 0;
+if(document.getElementById("seller_7_shipping_price_0")) {
+    seller_7_shipping_price = document.getElementById("seller_7_shipping_price_0").value;
+    seller_7_free_shipping_price = document.getElementById("seller_7_free_shipping_price_0").value;
+}
+if(total_seller_7 > seller_7_free_shipping_price) {
+    price_shipping = price_shipping + 0.00;
+}
+else {
+    price_shipping = +price_shipping + +seller_7_shipping_price;
+}
+price_shipping_unform = price_shipping;
+price_shipping = price_shipping.toFixed(2) + ' RON';
+if(document.getElementById("price3")) {
+    var str = document.getElementById("price3").innerHTML;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    grand_total = price;
+}
+if(document.getElementById("price6")) {
+    var str = document.getElementById("price6").innerHTML;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    grand_total = grand_total + price; 
+}
+if(document.getElementById("price9")) {
+    var str = document.getElementById("price9").innerHTML;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    grand_total = grand_total + price; 
+}
+if(document.getElementById("price12")) {
+    var str = document.getElementById("price12").innerHTML;        
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    grand_total = grand_total + price; 
+}
+if(document.getElementById("price15")) {
+    var str = document.getElementById("price15").innerHTML;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    grand_total = grand_total + price;
+}
+if(document.getElementById("price18")) {
+    var str = document.getElementById("price18").innerHTML;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    grand_total = grand_total + price;
+}
+if(document.getElementById("price21")) {
+    var str = document.getElementById("price21").innerHTML;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    grand_total = grand_total + price;
+}
+if(document.getElementById("price24")) {
+    var str = document.getElementById("price24").innerHTML;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    grand_total = grand_total + price;
+}
+if(document.getElementById("price27")) {
+    var str = document.getElementById("price27").innerHTML;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    grand_total = grand_total + price;
+}
+if(document.getElementById("price30")) {
+    var str = document.getElementById("price30").innerHTML;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    grand_total = grand_total + price;
+}
+grand_total_price = grand_total;
+grand_total = grand_total.toFixed(2) + ' RON';
+var grand_total_value = document.getElementById("grand_total");
+grand_total_value.innerText = grand_total;
+if(document.getElementById("mini_cart_price")) {
+    document.getElementById("mini_cart_price").innerText = grand_total;
+    document.getElementById("mini_cart_total").value = grand_total;
+}
+document.getElementById("shipping_price").innerHTML = price_shipping;
+document.getElementById("shipping_price_seller_2").innerText = seller_2_shipping_price;
+document.getElementById("shipping_price_seller_7").innerText = seller_7_shipping_price;
+
+var total = grand_total_price + price_shipping_unform;
+total = total.toFixed(2) + ' RON';
+document.getElementById("total").innerText = total;
+
+var parent = document.getElementById("shopping-cart-table");
+var nodesSameClass = parent.getElementsByClassName("input-text qty");
+nodesSameClass[0].setAttribute("onchange", "get_price(3)");
+nodesSameClass[0].setAttribute("id", "3");
+nodesSameClass[1].setAttribute("onchange", "get_price(6)");
+nodesSameClass[1].setAttribute("id", "6");
+nodesSameClass[2].setAttribute("onchange", "get_price(9)");
+nodesSameClass[2].setAttribute("id", "9");
+nodesSameClass[3].setAttribute("onchange", "get_price(12)");
+nodesSameClass[3].setAttribute("id", "12");
+nodesSameClass[4].setAttribute("onchange", "get_price(15)");
+nodesSameClass[4].setAttribute("id", "15");
+nodesSameClass[5].setAttribute("onchange", "get_price(18)");
+nodesSameClass[5].setAttribute("id", "18");
+function get_price(k) {
+    var str = document.getElementById("price"+k).innerHTML;
+    var match = /\d+(,\d+)?/.exec(str);
+    var price;   
+
+    if(k == 3) df_prc = 0;
+    if(k == 6) df_prc = 1;
+    if(k == 9) df_prc = 2;
+    if(k == 12) df_prc = 3;
+    if(k == 15) df_prc = 4;  
+
+    var str_df = document.getElementById("default_price_"+df_prc).value;
+    var match_df = /\d+(,\d+)?/.exec(str_df);
+    product_default_price = Number(match_df[0].replace(',', '.'));
+
+    default_price = Number(match[0].replace(',', '.'));
+
+    var select = document.getElementById(k);
+    var qty = select.options[select.selectedIndex].value;
+    
+    if(qty == 1) price = product_default_price;
+    if(qty == 2) price = product_default_price * 2;
+    if(qty == 3) price = product_default_price * 3;
+    if(qty == 4) price = product_default_price * 4;
+    if(qty == 5) price = product_default_price * 5;
+
+    if(document.getElementById("seller_2_product_price_"+df_prc)) { 
+        if(qty == 1) {
+            var new_price = price;
+            new_price = new_price.toFixed(2);
+            document.getElementById("seller_2_product_price_"+df_prc).value = price;
+        }
+        if(qty == 2) {
+            var new_price = price;
+            new_price = new_price.toFixed(2);
+            document.getElementById("seller_2_product_price_"+df_prc).value = price;
+        }
+        if(qty == 3) {
+            var new_price = price;
+            new_price = new_price.toFixed(2);
+            document.getElementById("seller_2_product_price_"+df_prc).value = price;
+        }
+        if(qty == 4) {
+            var new_price = price;
+            new_price = new_price.toFixed(2);
+            document.getElementById("seller_2_product_price_"+df_prc).value = price;
+        }
+        if(qty == 5) {
+            var new_price = price;
+            new_price = new_price.toFixed(2);
+            document.getElementById("seller_2_product_price_"+df_prc).value = price;
+        }
+    }
+    if(document.getElementById("seller_7_product_price_0")) {
+        if(qty == 1) {
+            var new_price = product_default_price;
+            new_price = new_price.toFixed(2);
+            document.getElementById("seller_7_product_price_0").value = product_default_price;
+        }
+        if(qty == 2) {
+            var new_price = product_default_price * 2;
+            new_price = new_price.toFixed(2);
+            document.getElementById("seller_7_product_price_0").value = product_default_price * 2;
+        }
+        if(qty == 3) {
+            var new_price = price;
+            new_price = new_price.toFixed(2);
+            document.getElementById("seller_7_product_price_0").value = price;
+        }
+        if(qty == 4) {
+            var new_price = price;
+            new_price = new_price.toFixed(2);
+            document.getElementById("seller_7_product_price_0").value = price;
+        }
+        if(qty == 5) {
+            var new_price = price;
+            new_price = new_price.toFixed(2);
+            document.getElementById("seller_7_product_price_0").value = price;
+        }
+    }
+    document.getElementById("price"+k).innerHTML = price.toFixed(2) + ' RON';
+
+    var total_seller_2 = 0;
+    if(document.getElementById("seller_2_product_price_0")) {
+        str = document.getElementById("seller_2_product_price_0").value;
+        var price = str.match(/\d+(?:\,\d+)?/g);
+        price = price.toLocaleString('de-DE');
+        price = price.replace(/\./g, '');
+        price = price.replace(/,/g, '.');
+        price = Number(price);
+        total_seller_2 = price;
+    }
+    if(document.getElementById("seller_2_product_price_1")) {
+        str = document.getElementById("seller_2_product_price_1").value;
+        var price = str.match(/\d+(?:\.\d+)?/g);
+        price = price.toLocaleString('de-DE');
+        price = price.replace(/\./g, '');
+        price = price.replace(/,/g, '.');
+        price = Number(price);
+        total_seller_2 = total_seller_2 + price;
+    }
+    if(document.getElementById("seller_2_product_price_2")) {
+        str = document.getElementById("seller_2_product_price_2").value;
+        var price = str.match(/\d+(?:\.\d+)?/g);
+        price = price.toLocaleString('de-DE');
+        price = price.replace(/\./g, '');
+        price = price.replace(/,/g, '.');
+        price = Number(price);
+        total_seller_2 = total_seller_2 + price;
+    }
+    if(document.getElementById("seller_2_product_price_3")) {
+        str = document.getElementById("seller_2_product_price_3").value;
+        var price = str.match(/\d+(?:\.\d+)?/g);
+        price = price.toLocaleString('de-DE');
+        price = price.replace(/\./g, '');
+        price = price.replace(/,/g, '.');
+        price = Number(price);
+        total_seller_2 = total_seller_2 + price;
+    }
+    if(document.getElementById("seller_2_product_price_4")) {
+        str = document.getElementById("seller_2_product_price_4").value;
+        var price = str.match(/\d+(?:\.\d+)?/g);
+        price = price.toLocaleString('de-DE');
+        price = price.replace(/\./g, '');
+        price = price.replace(/,/g, '.');
+        price = Number(price);
+        total_seller_2 = total_seller_2 + price;
+    }
+    if(document.getElementById("seller_2_product_price_5")) {
+        str = document.getElementById("seller_2_product_price_5").value;
+        var price = str.match(/\d+(?:\.\d+)?/g);
+        price = price.toLocaleString('de-DE');
+        price = price.replace(/\./g, '');
+        price = price.replace(/,/g, '.');
+        price = Number(price);
+        total_seller_2 = total_seller_2 + price;
+    }
+    seller_2_shipping_price = document.getElementById("seller_2_shipping_price_0").value;
+    seller_2_free_shipping_price = document.getElementById("seller_2_free_shipping_price_0").value;
+
+    total_seller_2 = total_seller_2.toFixed(2);
+    if(total_seller_2 > seller_2_free_shipping_price) {
+        price_shipping = 0.00;
+    }
+    else {
+        price_shipping = seller_2_shipping_price;
+    }
+
+    var total_seller_7 = 0;
+    if(document.getElementById("seller_7_product_price_0")) {
+        str = document.getElementById("seller_7_product_price_0").value;
+        var price = str.match(/\d+(?:\,\d+)?/g);
+        price = price.toLocaleString('de-DE');
+        price = price.replace(/\./g, '');
+        price = price.replace(/,/g, '.');
+        price = Number(price);
+        total_seller_7 = price;
+    }
+    if(document.getElementById("seller_7_product_price_1")) {
+        str = document.getElementById("seller_7_product_price_1").value;
+        var price = str.match(/\d+(?:\.\d+)?/g);
+        price = price.toLocaleString('de-DE');
+        price = price.replace(/\./g, '');
+        price = price.replace(/,/g, '.');
+        price = Number(price);
+        total_seller_7 = total_seller_7 + price;
+    }
+    if(document.getElementById("seller_7_product_price_2")) {
+        str = document.getElementById("seller_7_product_price_2").value;
+        var price = str.match(/\d+(?:\.\d+)?/g);
+        price = price.toLocaleString('de-DE');
+        price = price.replace(/\./g, '');
+        price = price.replace(/,/g, '.');
+        price = Number(price);
+        total_seller_7 = total_seller_7 + price;
+    }
+    if(document.getElementById("seller_7_product_price_3")) {
+        str = document.getElementById("seller_7_product_price_3").value;
+        var price = str.match(/\d+(?:\.\d+)?/g);
+        price = price.toLocaleString('de-DE');
+        price = price.replace(/\./g, '');
+        price = price.replace(/,/g, '.');
+        price = Number(price);
+
+        total_seller_7 = total_seller_7 + price;
+    }
+    if(document.getElementById("seller_7_product_price_4")) {
+        str = document.getElementById("seller_7_product_price_4").value;
+        var price = str.match(/\d+(?:\.\d+)?/g);
+        price = price.toLocaleString('de-DE');
+        price = price.replace(/\./g, '');
+        price = price.replace(/,/g, '.');
+        price = Number(price);
+        total_seller_7 = total_seller_7 + price;
+    }
+    if(document.getElementById("seller_7_product_price_5")) {
+        str = document.getElementById("seller_7_product_price_5").value;
+        var price = str.match(/\d+(?:\.\d+)?/g);
+        price = price.toLocaleString('de-DE');
+        price = price.replace(/\./g, '');
+        price = price.replace(/,/g, '.');
+        price = Number(price);
+        total_seller_7 = total_seller_7 + price;
+    }
+    var seller_7_shipping_price = 0;
+    var seller_7_free_shipping_price = 0;
+    if(document.getElementById("seller_7_shipping_price_0")) {
+        seller_7_shipping_price = document.getElementById("seller_7_shipping_price_0").value;
+        seller_7_free_shipping_price = document.getElementById("seller_7_free_shipping_price_0").value;
+    }
+    if(total_seller_7 > seller_7_free_shipping_price) {
+        price_shipping = price_shipping + 0.00;
+    }
+    else {
+        price_shipping = +price_shipping + +seller_7_shipping_price;
+    }
+    price_shipping = Number(price_shipping);
+    price_shipping = price_shipping.toFixed(2);
+    price_shipping = price_shipping + " RON";
+
+    document.getElementById("shipping_price").innerHTML = price_shipping;   
+    if(document.getElementById("price3")) {
+        var str = document.getElementById("price3").innerHTML;
+        var match = /\d+(,\d+)?/.exec(str);
+        var price = Number(match[0].replace(',', '.'));
+        grand_total = price;
+    }
+    if(document.getElementById("price6")) {
+        var str = document.getElementById("price6").innerHTML;
+        var match = /\d+(,\d+)?/.exec(str);
+        var price = Number(match[0].replace(',', '.'));
+        grand_total = grand_total + price;
+    }
+    if(document.getElementById("price9")) {
+        var str = document.getElementById("price9").innerHTML;
+        var price = str.match(/\d+(?:\.\d+)?/g);
+        price = price.toLocaleString('de-DE');
+        price = price.replace(/\./g, '');
+        price = price.replace(/,/g, '.');
+        price = Number(price);
+        grand_total = grand_total + price;
+
+    }
+    if(document.getElementById("price12")) {
+        var str = document.getElementById("price12").innerHTML;
+        var match = /\d+(,\d+)?/.exec(str);
+        var price = Number(match[0].replace(',', '.'));
+        grand_total = grand_total + price;
+    }
+    if(document.getElementById("price15")) {
+        var str = document.getElementById("price15").innerHTML;
+        var match = /\d+(,\d+)?/.exec(str);
+        var price = Number(match[0].replace(',', '.'));
+        grand_total = grand_total + price;
+    }
+    if(document.getElementById("price18")) {
+        var str = document.getElementById("price18").innerHTML;
+        var match = /\d+(,\d+)?/.exec(str);
+        var price = Number(match[0].replace(',', '.'));
+        grand_total = grand_total + price;
+    }
+    if(document.getElementById("price21")) {
+        var str = document.getElementById("price21").innerHTML;
+        var match = /\d+(,\d+)?/.exec(str);
+        var price = Number(match[0].replace(',', '.'));
+        grand_total = grand_total + price;
+    }
+    if(document.getElementById("price24")) {
+        var str = document.getElementById("price24").innerHTML;
+        var match = /\d+(,\d+)?/.exec(str);
+        var price = Number(match[0].replace(',', '.'));
+        grand_total = grand_total + price;
+    }
+    if(document.getElementById("price27")) {
+        var str = document.getElementById("price27").innerHTML;
+        var match = /\d+(,\d+)?/.exec(str);
+        var price = Number(match[0].replace(',', '.'));
+        grand_total = grand_total + price;
+    }
+    if(document.getElementById("price30")) {
+        var str = document.getElementById("price30").innerHTML;
+        var match = /\d+(,\d+)?/.exec(str);
+        var price = Number(match[0].replace(',', '.'));
+        grand_total = grand_total + price;
+    }
+    document.getElementById("shipping_price_seller_2").innerText = seller_2_shipping_price;
+    document.getElementById("shipping_price_seller_7").innerText = seller_7_shipping_price;
+
+    grand_total_price = grand_total;
+    grand_total = grand_total.toFixed(2) + ' RON';
+    var grand_total_value = document.getElementById("grand_total");
+    grand_total_value.innerText = grand_total;
+
+    var ship = document.getElementById("shipping_price").innerHTML;
+    ship = ship.replace(" RON", "");
+    ship = ship.replace(/,/g, '.');
+
+    var total = +grand_total_price + +ship;
+    total = total.toFixed(2) + ' RON';
+    document.getElementById("total").innerText = total;   
+    update(total);
+
+    if(document.getElementById("mini_cart_price")) {
+        document.getElementById("mini_cart_price").innerText = grand_total;
+        document.getElementById("mini_cart_total").value = grand_total;
+        update(grand_total);
+    }
+}
+function remove(i) {
+    var id;
+
+    if(i == 0) id = 3;
+    if(i == 1) id = 6;
+    if(i == 2) id = 9;
+    if(i == 3) id = 12;
+    if(i == 4) id = 15;
+    if(i == 5) id = 18;
+    if(i == 6) id = 21;
+    if(i == 7) id = 24;
+    if(i == 8) id = 27;
+    if(i == 9) id = 30;
+ 
+    var str = document.getElementById("price"+id).innerHTML;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+
+    var total = document.getElementById("grand_total").innerText;
+    total = total.replace(" RON", "");
+
+    total = total - price;
+    
+    total = total.toFixed(2) + ' RON';
+    document.getElementById("total").innerText = total;
+
+    var grand_total_value = document.getElementById("grand_total");
+    grand_total_value.innerText = total;
+
+    document.getElementById("product_cart_item_"+i).remove();  
+
+var parent = document.getElementById("shopping-cart-table");
+var store_1 = parent.getElementsByClassName("cart item MagazinulLuiIonut");
+if(store_1.length == 1) {
+    store_1[0].style.top = "45px";
+}
+if(store_1.length == 2) {
+    store_1[0].style.top = "45px";
+    store_1[1].style.top = "272px";  
+}
+if(store_1.length == 3) {
+    store_1[0].style.top = "45px";
+    store_1[1].style.top = "272px";  
+    store_1[2].style.top = "544px";
+}
+
+var store_2 = parent.getElementsByClassName("cart item developerstore");
+if(store_1.length == 0) {
+    store_2[0].style.top = "45px";
+    if(store_2[1]) {
+        store_2[1].style.top = "272px";
+    }
+}
+if(store_1.length == 1) {
+    if(store_2[0]) {
+        store_2[0].style.top = "300px";
+    }
+    if(store_2[1]) {
+        store_2[1].style.top = "544px";
+    }
+}
+if(store_1.length == 2) {
+    store_2[0].style.top = "544px";
+    store_2[1].style.top = "816px";
+}
+if(store_1.length == 3) {
+    store_2[0].style.top = "544px";
+    store_2[1].style.top = "816px";
+    store_2[2].style.top = "1088px";
+}
+if(store_1.length == 4) {
+    store_2[0].style.top = "544px";
+    store_2[1].style.top = "816px";
+    store_2[2].style.top = "1088px";
+    store_2[3].style.top = "1360px";
+}
+var products_count = document.getElementById("shopping-cart-table").tBodies.length;
+var counter = document.getElementById("counter_number").innerHTML = products_count;
+var total_seller_2 = 0;
+if(document.getElementById("seller_2_product_price_0")) {
+    str = document.getElementById("seller_2_product_price_0").value;
+    var price = str.match(/\d+(?:\,\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_2 = price;
+}
+if(document.getElementById("seller_2_product_price_1")) {
+    str = document.getElementById("seller_2_product_price_1").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_2 = total_seller_2 + price;
+}
+if(document.getElementById("seller_2_product_price_2")) {
+    str = document.getElementById("seller_2_product_price_2").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_2 = total_seller_2 + price;
+}
+if(document.getElementById("seller_2_product_price_3")) {
+    str = document.getElementById("seller_2_product_price_3").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_2 = total_seller_2 + price;
+}
+if(document.getElementById("seller_2_product_price_4")) {
+    str = document.getElementById("seller_2_product_price_4").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_2 = total_seller_2 + price;
+}
+if(document.getElementById("seller_2_product_price_5")) {
+    str = document.getElementById("seller_2_product_price_5").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_2 = total_seller_2 + price;
+}
+var seller_2_shipping_price = 0;
+var seller_2_free_shipping_price = 0;
+if(document.getElementById("seller_2_shipping_price_0")) {
+    seller_2_shipping_price = document.getElementById("seller_2_shipping_price_0").value;
+    seller_2_free_shipping_price = document.getElementById("seller_2_free_shipping_price_0").value;
+}
+if(document.getElementById("seller_2_shipping_price_1")) {
+    seller_2_shipping_price = document.getElementById("seller_2_shipping_price_1").value;
+    seller_2_free_shipping_price = document.getElementById("seller_2_free_shipping_price_1").value;
+}
+total_seller_2 = total_seller_2.toFixed(2);
+if(total_seller_2 > seller_2_free_shipping_price) {
+    price_shipping = 0.00;
+}
+else {
+    price_shipping = seller_2_shipping_price;
+}
+var total_seller_7 = 0;
+if(document.getElementById("seller_7_product_price_0")) {
+    str = document.getElementById("seller_7_product_price_0").value;
+    var price = str.match(/\d+(?:\,\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_7 = price;
+}
+if(document.getElementById("seller_7_product_price_1")) {
+    str = document.getElementById("seller_7_product_price_1").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_7 = total_seller_7 + price;
+}
+if(document.getElementById("seller_7_product_price_2")) {
+    str = document.getElementById("seller_7_product_price_2").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_7 = total_seller_7 + price;
+}
+if(document.getElementById("seller_7_product_price_3")) {
+    str = document.getElementById("seller_7_product_price_3").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_7 = total_seller_7 + price;
+}
+if(document.getElementById("seller_7_product_price_4")) {
+    str = document.getElementById("seller_7_product_price_4").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_7 = total_seller_7 + price;
+}
+if(document.getElementById("seller_7_product_price_5")) {
+    str = document.getElementById("seller_7_product_price_5").value;
+    var price = str.match(/\d+(?:\.\d+)?/g);
+    price = price.toLocaleString('de-DE');
+    price = price.replace(/\./g, '');
+    price = price.replace(/,/g, '.');
+    price = Number(price);
+    total_seller_7 = total_seller_7 + price;
+}
+var seller_7_shipping_price = 0;
+var seller_7_free_shipping_price = 0;
+if(document.getElementById("seller_7_shipping_price_0")) {
+    seller_7_shipping_price = document.getElementById("seller_7_shipping_price_0").value;
+    seller_7_free_shipping_price = document.getElementById("seller_7_free_shipping_price_0").value;
+}
+if(total_seller_7 > seller_7_free_shipping_price) {
+    price_shipping = price_shipping + 0.00;
+}
+else {
+    price_shipping = +price_shipping + +seller_7_shipping_price;
+}
+price_shipping_unform = price_shipping;
+price_shipping_unform = price_shipping_unform.toFixed(2);
+price_shipping = price_shipping.toFixed(2) + ' RON';
+
+document.getElementById("shipping_price").innerHTML = price_shipping;
+
+var total_base = document.getElementById("total").innerHTML;
+total_base = total_base.replace(" RON", "");
+
+var grand_total_base = 0;
+grand_total_base = +total_base + +price_shipping_unform;
+grand_total_base = grand_total_base.toFixed(2) + ' RON';
+document.getElementById("total").innerHTML = grand_total_base;
+document.getElementById("shipping_price_seller_2").innerText = seller_2_shipping_price;
+document.getElementById("shipping_price_seller_7").innerText = seller_7_shipping_price;
+    if(document.getElementById("mini_cart_price")) {
+        document.getElementById("mini_cart_price").innerText = total;
+        document.getElementById("mini_cart_total").value = total;
+        update(total);
+    }
+}
+</script>

@@ -1,0 +1,38 @@
+<?php 
+$pageType = $block->getPageType();
+$count = 1;
+$_current_timer = time();
+$timer_head='';
+$head_color='';
+if ($pageType == 'product') {?>
+	<?php
+    $_product = $block->getProduct();?>
+	<?php $fromDate = $_product->getSpecialFromDate(); ?>
+	<?php 
+   
+    $isDisplayCountdown = $block->isPriceCountdown($_product);
+    if ($isDisplayCountdown) {
+        $toDate = $_product->getSpecialToDate() ? strtotime($_product->getSpecialToDate()) : '';
+        
+	  	$date = date('G:i:s', strtotime($_product->getSpecialToDate()));
+		if ($date == "0:00:00") {
+			$targetDate = date('m/d/Y \2\3\:\5\9\:\0\0', strtotime($_product->getSpecialToDate()));
+		}else{
+			$targetDate = date('m/d/Y G:i:s', strtotime($_product->getSpecialToDate()));
+		}
+		?>
+		<div class="deal-timmer">
+			<div class="item deal-time clearfix" id="custom-deal-<?php echo $_product->getId() ?>"></div>
+			<script type="text/javascript">
+				require(['jquery','themevast/datetime'],function () {
+					jQuery("#custom-deal-<?php echo $_product->getId() ?>").CustomDate({
+						targetDate:"<?php echo $targetDate; ?>",
+						displayFormat:"<span class='countdown-section'><span class='countdown-amount'>%%D%%</span><span class='countdown-period'><?php echo __('Days') ?></span></span><span class='countdown-section'><span class='countdown-amount'>%%H%%</span><span class='countdown-period'><?php echo __('Hours') ?></span></span><span class='countdown-section'><span class='countdown-amount'>%%M%%</span><span class='countdown-period'><?php echo __('Mins') ?></span></span><span class='countdown-section'><span class='countdown-amount'>%%S%%</span><span class='countdown-period'><?php echo __('Secs') ?></span></span>",
+					});
+				});
+			</script>
+		</div>
+	<?php
+    }
+}
+?>

@@ -1,0 +1,59 @@
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_Osc
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+
+<div id="payment" role="presentation" class="checkout-payment-method">
+
+    <div id="checkout-step-payment" class="shadow rounded p-3" data-role="content" role="tabpanel" aria-hidden="false"
+         data-bind="blockLoader: isLoading">
+        <div class="mb-3" data-role="title">
+            <i class="fal fa-2x pr-2 fa-credit-card"></i>
+            <span class="h5">Modalități de plată</span>
+        </div>
+        <form id="co-payment-form" class="form payments" novalidate="novalidate">
+            <input data-bind='attr: {value: getFormKey()}' type="hidden" name="form_key"/>
+            <div>
+                <!-- ko foreach: getRegion('beforeMethods') -->
+                <!-- ko template: getTemplate() --><!-- /ko -->
+                <!-- /ko -->
+                <div id="checkout-payment-method-load" class="opc-payment m-payments"
+                     data-bind="visible: isPaymentMethodsAvailable">
+                    <!-- ko foreach: getRegion('payment-methods-list') -->
+                    <!-- ko template: getTemplate() --><!-- /ko -->
+                    <!-- /ko -->
+                </div>
+                <div class="no-quotes-block" data-bind="visible: isPaymentMethodsAvailable() == false">
+                    <!-- ko i18n: 'No Payment method available.'--><!-- /ko -->
+                </div>
+                <!-- ko if: errorValidationMessage().length > 0 -->
+                <div class="message notice">
+                    <span><!-- ko i18n: errorValidationMessage()--><!-- /ko --></span>
+                </div>
+                <!-- /ko -->
+            </div>
+        </form>
+        <div class="osc-payment-after-methods">
+            <!-- ko foreach: getRegion('afterMethods') -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!-- /ko -->
+        </div>
+    </div>
+</div>

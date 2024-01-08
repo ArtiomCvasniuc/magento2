@@ -1,0 +1,57 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+/* @var \Magento\Wishlist\Block\Customer\Wishlist\Item\Column\Remove $block */
+$item = $block->getItem();
+$product = $item->getProduct();
+$productId = $product->getId();
+$itemId = $item->getId();
+
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get ('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer ();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+?>
+<a onclick="removeItem(<?php echo $itemId . ',' . $productId; ?>);" title="<?= $block->escapeHtmlAttr(__('Remove Item')) ?>" class="btn-remove action delete delete-wishlist">
+    <span><?= $block->escapeHtml(__('Remove item')) ?></span>
+</a>
+<script>
+function removeItem(i, k) {
+    var item_id = i;
+    var product_id = k;
+
+    jQuery.ajax({
+        type:"POST",
+        url: "/wishlistDelete.php",
+        data: "item_id="+item_id+"&product_id="+product_id,
+        success: '',
+    });
+
+    var current_count = document.getElementById("wish-list-buble").innerText;
+    if(current_count >= 1) {
+        var new_count = current_count - 1;
+        document.getElementById("wish-list-buble").innerText = new_count;
+    }
+
+    document.getElementById("item_"+item_id).remove();
+
+    if(document.getElementById("wish-list-buble").innerText == 0) {
+        document.getElementById("wishlist-empty").style.display = "block";
+    }
+}
+</script>

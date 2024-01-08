@@ -1,0 +1,147 @@
+<?php
+/**
+ * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+/**  @var $block \Magento\Checkout\Block\Cart\Grid */
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+?>
+<?php $mergedCells = ($this->helper('Magento\Tax\Helper\Data')->displayCartBothPrices() ? 2 : 1); ?>
+<?php echo $block->getChildHtml('form_before') ?>
+<form action="<?php /* @escapeNotVerified */ echo $block->getUrl('checkout/cart/updatePost') ?>" method="post" id="form-validate" data-mage-init='{"validation":{}}' class="form form-cart">
+    <?php echo $block->getBlockHtml('formkey'); ?>
+    <div class="cart table-wrapper<?php echo $mergedCells == 2 ? ' detailed' : ''; ?>">
+        <?php if ($block->getPagerHtml()) { ?>
+            <div class="cart-products-toolbar cart-products-toolbar-top toolbar" data-attribute="cart-products-toolbar-top"><?php echo $block->getPagerHtml(); ?></div>
+        <?php } ?>
+        <table id="shopping-cart-table" class="cart items data table"
+               data-mage-init='{"shoppingCart":{"emptyCartButton": "action.clear",
+               "updateCartActionContainer": "#update_cart_action_container"}}'>
+            <caption role="heading" aria-level="2" class="table-caption">
+                <?php /* @escapeNotVerified */ echo __('Shopping Cart Items') ?>
+            </caption>
+            <thead>
+                <tr>
+                    <th class="col item" scope="col"><span><?php /* @escapeNotVerified */ echo __('Item') ?></span></th>
+                    <th class="col price" scope="col"><span><?php /* @escapeNotVerified */ echo __('Price') ?></span></th>
+                    <th class="col qty" scope="col"><span><?php /* @escapeNotVerified */ echo __('Qty') ?></span></th>
+                    <th class="col subtotal" scope="col"><span><?php /* @escapeNotVerified */ echo __('Price') ?></span></th>
+                </tr>
+            </thead>
+            <?php 
+            foreach ($block->getItems() as $_item) { ?>
+                <?php echo $block->getItemHtml($_item); ?>
+            <?php } ?>
+        </table>
+        <?php if ($block->getPagerHtml()) { ?>
+            <div class="cart-products-toolbar cart-products-toolbar-bottom toolbar" data-attribute="cart-products-toolbar-bottom"><?php echo $block->getPagerHtml(); ?></div>
+        <?php } ?>
+    </div>
+    <div class="cart main actions" style="display:none;">
+        <?php if ($block->getContinueShoppingUrl()) { ?>
+            <a class="action continue"
+               href="<?php echo $block->escapeUrl($block->getContinueShoppingUrl()) ?>"
+               title="<?php echo $block->escapeHtml(__('Continue Shopping')); ?>">
+                <span><?php /* @escapeNotVerified */ echo __('Continue Shopping') ?></span>
+            </a>
+        <?php } ?>
+        <button type="submit" name="update_cart_action" data-cart-empty="" value="empty_cart"
+                title="<?php echo $block->escapeHtml(__('Clear Shopping Cart')); ?>"
+                class="action clear" id="empty_cart_button">
+            <span>
+                <?php /* @escapeNotVerified */ echo __('Clear Shopping Cart'); ?>
+            </span>
+        </button>
+        <button type="submit" name="update_cart_action" data-cart-item-update=""
+                value="update_qty" title="<?php echo $block->escapeHtml(__('Update Shopping Cart')); ?>"
+                class="action update">
+            <span>
+                <?php /* @escapeNotVerified */ echo __('Update Shopping Cart'); ?>
+            </span>
+        </button>
+        <input type="hidden" value="" id="update_cart_action_container" data-cart-item-update=""/>
+    </div>
+</form>
+<?php echo $block->getChildHtml('checkout.cart.order.actions') ?>
+<?php echo $block->getChildHtml('shopping.cart.table.after'); ?>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script>
+var rows_count = document.getElementById("shopping-cart-table").rows.length;
+rows_count = rows_count - 1;
+var customer_id = '<?php echo $customerId; ?>';
+var grand_total = document.getElementById("grand_total").innerText;
+var shipping_price = document.getElementById("shipping_price").innerText;
+var total = document.getElementById("total").innerText;
+var shipping_seller_2 = document.getElementById("shipping_price_seller_2").innerHTML;
+var shipping_seller_7 = document.getElementById("shipping_price_seller_7").innerHTML;
+var shipping_not_selected = document.getElementById("shipping_not_selected").innerHTML;
+var e = document.getElementById("customer_address");
+var address = e.options[e.selectedIndex].text;
+$.ajax({
+    type: "POST",
+    url: "/insert_price.php",
+    data: "customer_id="+customer_id+"&total_products="+grand_total+"&shipping_price="+shipping_price+"&total="+total+"&address="+address+"&shipping_seller_2="+shipping_seller_2+"&shipping_seller_7="+shipping_seller_7+"&shipping_not_selected="+shipping_not_selected,
+});
+function update(total) {    
+    var grand_total = document.getElementById("grand_total").innerHTML;
+    var shipping_price = document.getElementById("shipping_price").innerHTML;
+    var total = document.getElementById("total").innerHTML; 
+    var e = document.getElementById("customer_address");
+    var address = e.options[e.selectedIndex].text;
+    var shipping_seller_2 = document.getElementById("shipping_price_seller_2").innerHTML;
+    var shipping_seller_7 = document.getElementById("shipping_price_seller_7").innerHTML;
+    var shipping_not_selected = document.getElementById("shipping_not_selected").innerHTML;
+    $.ajax({
+        type: "POST",
+        url: "/insert_price.php",
+        data: "customer_id="+customer_id+"&total_products="+grand_total+"&shipping_price="+shipping_price+"&total="+total+"&address="+address+"&shipping_seller_2="+shipping_seller_2+"&shipping_seller_7="+shipping_seller_7+"&shipping_not_selected="+shipping_not_selected,
+    }); 
+}
+if(document.getElementById("3")) {
+    var select = document.getElementById("3");
+    var qty = select.options[select.selectedIndex].value;
+    var total_qty = qty;
+}
+if(document.getElementById("6")) {
+    var select = document.getElementById("6");
+    var qty = select.options[select.selectedIndex].value;
+    total_qty = +total_qty + +qty;
+}
+if(document.getElementById("9")) {
+    var select = document.getElementById("9");
+    var qty = select.options[select.selectedIndex].value;
+    total_qty = +total_qty + +qty;
+}
+if(document.getElementById("12")) {
+    var select = document.getElementById("12");
+    var qty = select.options[select.selectedIndex].value;
+    total_qty = +total_qty + +qty;
+}
+if(document.getElementById("15")) {
+    var select = document.getElementById("15");
+    var qty = select.options[select.selectedIndex].value;
+    total_qty = +total_qty + +qty;
+}
+if(document.getElementById("18")) {
+    var select = document.getElementById("18");
+    var qty = select.options[select.selectedIndex].value;
+    total_qty = +total_qty + +qty;
+}
+document.getElementById("counter_number").innerHTML = total_qty;
+</script>

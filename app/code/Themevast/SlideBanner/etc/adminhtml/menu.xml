@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Themevast_SlideBanner::slidebanner_slidebanner" title="SlideBanner" module="Themevast_SlideBanner" sortOrder="0" parent="Themevast_Themevast::themevast" resource="Themevast_SlideBanner::slidebanner_slidebanner"/>
+        <add id="Themevast_SlideBanner::slidebanner_slider" title="Manage Slider" module="Themevast_SlideBanner" sortOrder="0" parent="Themevast_SlideBanner::slidebanner_slidebanner" action="slidebanner/slider" resource="Themevast_SlideBanner::manage_slider"/>
+        <add id="Themevast_SlideBanner::slidebanner_slide" title="Manage Slider Items" module="Themevast_SlideBanner" sortOrder="30" parent="Themevast_SlideBanner::slidebanner_slidebanner" action="slidebanner/slide" resource="Themevast_SlideBanner::manage_slide"/>
+    </menu>
+</config>

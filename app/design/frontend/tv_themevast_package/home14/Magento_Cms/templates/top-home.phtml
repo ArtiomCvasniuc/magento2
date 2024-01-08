@@ -1,0 +1,21 @@
+<div class="top-content-home">
+	<div class="container">
+		<div class="home-content">
+			<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('home14_top_banner')->toHtml();?>
+			<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('home14_policies')->toHtml();?>
+			<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('home14_tabs')->toHtml();?>
+		</div>
+	</div>
+	<div class="home14_banner_content">
+		<div class="background">
+			<div class="container">
+				<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('home14_banner_content')->toHtml();?>
+			</div>
+		</div>
+	</div>
+	<div class="container">
+		<?php echo $block->getLayout()->createBlock('Themevast\Blog\Block\Sidebar\Recent')->setTemplate('Themevast_Blog::sidebar/slider.phtml')->toHtml();?>
+		<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('testimonial-instalgram')->toHtml();?>
+	</div>
+	<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('home5_instagram')->toHtml();?>
+</div>

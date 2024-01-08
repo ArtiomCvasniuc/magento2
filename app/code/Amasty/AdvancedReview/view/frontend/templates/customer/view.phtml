@@ -1,0 +1,26 @@
+<?php
+/**
+ * @author Amasty Team
+ * @copyright Copyright (c) 2020 Amasty (https://www.amasty.com)
+ * @package Amasty_AdvancedReview
+ */
+?>
+<?php
+/** @var \Amasty\AdvancedReview\Block\Customer\Review\View $block */
+
+$answer = $block->getReviewAnswerHtml();
+?>
+<?php if($answer) { ?>
+    <div class="customer-review">
+        <div class="amreview-admin-answer review-details">
+            <div class="title">
+                <strong>
+                    <?= $block->escapeHtml(__('Response from Store')) ?>
+                </strong>
+            </div>
+            <div class="amreview-text">
+                <?= /* @noEscape */ nl2br($block->escapeHtml($answer)); ?>
+            </div>
+        </div>
+    </div>
+<?php } ?>

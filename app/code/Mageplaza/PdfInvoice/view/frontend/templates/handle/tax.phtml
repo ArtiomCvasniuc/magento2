@@ -1,0 +1,81 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category   Mageplaza
+ * @package    Mageplaza_PdfInvoice
+ * @copyright   Copyright (c) Mageplaza (http://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+// @codingStandardsIgnoreFile
+
+?>
+<?php
+$_order = $block->getOrder();
+$_source = $block->getSource();
+$_fullInfo = $this->helper('Magento\Tax\Helper\Data')->getCalculatedTaxes($_source);
+global $taxIter;
+$taxIter++;
+?>
+
+<?php if ($_fullInfo && $block->displayFullSummary()): ?>
+    <?php foreach ($_fullInfo as $info): ?>
+        <?php
+        $percent = $info['percent'];
+        $amount = $info['tax_amount'];
+        $baseAmount = $info['base_tax_amount'];
+        $title = $info['title'];
+        ?>
+        <div class="totals tax details details-<?php /* @noEscape */
+        echo $taxIter ?> <?= /** @noEscape */ ($block->getIsPlaneMode()) ? ' plane' : '' ?>">
+            <div class="mp-str" <?php /* @noEscape */
+            echo $block->getLabelProperties() ?>>
+                <?= /** @noEscape */ $block->escapeHtml($title) ?>
+                <?php if (!is_null($percent)): ?>
+                    (<?= /** @noEscape */ (float)$percent ?>%)
+                <?php endif ?>
+            </div>
+            <div class="mp-right" <?php /* @noEscape */
+            echo $block->getValueProperties() ?> rowspan="1">
+                <?php /* @noEscape */
+                echo $_order->formatPrice($amount) ?>
+            </div>
+        </div>
+    <?php endforeach ?>
+<?php endif ?>
+
+<?php if ($block->displayFullSummary() && $_fullInfo && !$block->getIsPlaneMode()): ?>
+<div class="totals-tax-summary">
+    <?php elseif ($block->displayFullSummary() && $_fullInfo && $block->getIsPlaneMode()): ?>
+    <div class="totals-tax-summary plane">
+        <?php else: ?>
+        <div class="totals-tax">
+            <?php endif ?>
+            <div class="mp-str" <?php /* @noEscape */
+            echo $block->getLabelProperties() ?> scope="row">
+                <?php if ($block->displayFullSummary()): ?>
+                    <div class="detailed"><?php /* @noEscape */
+                        echo __('Tax') ?></div>
+                <?php else: ?>
+                    <?php /* @noEscape */
+                    echo __('Tax') ?>
+                <?php endif ?>
+            </div>
+            <div class="mp-right" <?php /* @noEscape */
+            echo $block->getValueProperties() ?> data-th="<?= /** @noEscape */ $block->escapeHtml(__('Tax')) ?>">
+                <?php /* @noEscape */
+                echo $_order->formatPrice($_source->getTaxAmount()) ?>
+            </div>
+        </div>

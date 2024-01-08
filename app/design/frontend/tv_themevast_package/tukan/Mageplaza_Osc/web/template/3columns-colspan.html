@@ -1,0 +1,78 @@
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_Osc
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+
+<!-- ko foreach: getRegion('estimation') -->
+<!-- ko template: getTemplate() --><!-- /ko -->
+<!--/ko-->
+
+<!-- ko foreach: getRegion('authentication') -->
+<!-- ko template: getTemplate() --><!-- /ko -->
+<!--/ko-->
+
+<!-- ko foreach: getRegion('messages') -->
+<!-- ko template: getTemplate() --><!-- /ko -->
+<!--/ko-->
+
+<div class="row gy-3 gy-lg-0" id="checkoutSteps">
+    <div class="col-md-6 col-lg-4">
+        <div class="row">
+            <!-- ko ifnot: window.checkoutConfig.oscConfig.isUsedMaterialDesign -->
+            <div class="col-12" data-bind="scope: 'checkout.steps.shipping-step.shippingAddress'">
+                <!-- ko template: getAddressTemplate() --><!-- /ko -->
+            </div>
+            <div data-bind="scope: 'checkout.steps.shipping-step.billingAddress'">
+                <!-- ko template: getAddressTemplate() --><!-- /ko -->
+            </div>
+            <!--/ko-->
+            <!-- ko if: window.checkoutConfig.oscConfig.isUsedMaterialDesign -->
+            <div class=" col-mp mp-12 hoverable">
+                <div class="row-mp">
+                    <div class="col-mp mp-12" data-bind="scope: 'checkout.steps.shipping-step.shippingAddress'">
+                        <!-- ko template: getAddressTemplate() --><!-- /ko -->
+                    </div>
+                    <div class="col-mp mp-12" data-bind="scope: 'checkout.steps.shipping-step.billingAddress'">
+                        <!-- ko template: getAddressTemplate() --><!-- /ko -->
+                    </div>
+                </div>
+            </div>
+            <!--/ko-->
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-8">
+        <div class="row gy-3 gy-lg-0">
+            <div class="col-lg-6">
+                <div class="row gy-3 flex-column">
+                    <div class="col-12" data-bind="scope: 'checkout.steps.shipping-step'">
+                        <!-- ko template: getTemplate() --><!-- /ko -->
+                    </div>
+                    <div class="col-12"
+                         data-bind="scope: 'checkout.steps.billing-step', css: {'mp-12': window.checkoutConfig.quoteData.is_virtual, 'mp-6': !window.checkoutConfig.quoteData.is_virtual}">
+                        <!-- ko template: getTemplate() --><!-- /ko -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6" data-bind="scope: 'checkout.sidebar'">
+                <!-- ko template: getTemplate() --><!-- /ko -->
+            </div>
+        </div>
+    </div>
+</div>

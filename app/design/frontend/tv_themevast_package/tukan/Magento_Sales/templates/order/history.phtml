@@ -1,0 +1,307 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+if (file_exists("conf/conf.php"))
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+/** @var \Magento\Sales\Block\Order\History $block */
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+
+$query = "SELECT mgkf_sales_order_grid.entity_id, mgkf_sales_order.increment_id, date(mgkf_sales_order.created_at) as date, mgkf_sales_order_grid.shipping_name, mgkf_sales_order_grid.billing_name, mgkf_sales_order.grand_total, mgkf_sales_order_grid.order_currency_code, mgkf_sales_order.status ";
+$query .= "FROM mgkf_sales_order, mgkf_sales_order_grid ";
+$query .= "WHERE mgkf_sales_order.increment_id = mgkf_sales_order_grid.increment_id ";
+$query .= "AND mgkf_sales_order.customer_id = '" . $customerId . "' ";
+$query .= "ORDER BY mgkf_sales_order.created_at DESC";
+$result = $conn->query($query);
+$row_count = $result->num_rows;
+?>
+<?php $_orders = $block->getOrders(); ?>
+<?= $block->getChildHtml('info') ?>
+<?php if ($row_count > 0) { ?>
+    <h3 class="font-weight-bold mt-3"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('order_history')->toHtml(); ?></h3>
+    <div>
+        <div id="show_error_msg" style="display:none;">
+            <h4><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('download_impossible')->toHtml(); ?></h4>
+        </div>
+        <table class="d-md-table table table-bordered table-hover table-responsive table-striped" id="my-orders-table">
+            <thead class="thead-dark">
+                <tr>
+                    <th><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('order_nr')->toHtml(); ?></th>
+                    <th><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('order_date')->toHtml(); ?></th>
+                    <th><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('ship_to')->toHtml(); ?></th>
+                    <th><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('total')->toHtml(); ?></th>
+                    <th><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('vendor')->toHtml(); ?></th>
+                    <th><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('status')->toHtml(); ?></th>
+                    <th><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('action')->toHtml(); ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $i = 1;
+                while ($row = $result->fetch_assoc()) {
+                    $id = $row['entity_id'];
+                    $order_id = $row['increment_id'];
+                    $date = $row['date'];
+                    $date = date("d.m.y", strtotime($date));
+                    $status = ucfirst($row['status']);
+                    $address = $row['shipping_name'];
+                    $total = number_format((float)$row['grand_total'], 2, ',', '');
+                    $currency = ucfirst(strtolower($row['order_currency_code']));
+                    $viewOrderUrl = "sales/order/view/order_id/";
+                    $reorder = "/sales/order/reorder/order_id/$id/";
+                    $reorderUrl = "sales/order/reorder/order_id/";
+
+                    $query_seller_id = "SELECT seller_id ";
+                    $query_seller_id .= "FROM mgkf_marketplace_sellerorder ";
+                    $query_seller_id .= "WHERE increment_id = '".$order_id."'";
+                    $result_seller_id = $conn->query($query_seller_id);
+                    $row_seller_id = $result_seller_id->fetch_assoc();
+                    $sellerId = $row_seller_id['seller_id'];
+
+                    if($sellerId != '') {
+                        $query_seller_info = "SELECT store_url, store_name ";
+                        $query_seller_info .= "FROM mgkf_marketplace_seller ";
+                        $query_seller_info .= "WHERE customer_id = '".$sellerId."'";
+                        $result_seller_info = $conn->query($query_seller_info);
+                        $row_seller_info = $result_seller_info->fetch_assoc();
+                        $storeUrl = $row_seller_info['store_url'];
+                        $storeName = $row_seller_info['store_name'];
+
+                        if ($status == 'Processing') {
+                            $status = $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('completed')->toHtml();
+
+                            $query_shipping_info = "SELECT awb_number, courier ";
+                            $query_shipping_info .= "FROM mgkf_sales_order ";
+                            $query_shipping_info .= "WHERE increment_id = '".$order_id."' ";
+                            $query_shipping_info .= "AND status = 'processing'";
+                            $result_shipping_info = $conn->query($query_shipping_info);
+                        }
+                        if ($status != 'Returned') {
+                            if ($status == 'Pending') $status = $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('waiting_for_confirmation')->toHtml();
+                            if ($status == 'Shipped') $status = $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('status_shipped')->toHtml();
+                            if ($status == 'Confirmed') $status = $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('confirmed')->toHtml();
+                            if ($status == 'Complete') $status = $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('status_completed')->toHtml();
+                            if ($status == 'Canceled') $status = $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('status_canceled')->toHtml();
+                            if ($status == 'Not_picked') $status = $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('not_picked')->toHtml();
+                        ?>
+                            <tr>
+                                <td><?= $order_id; ?></td>
+                                <td><?= $date; ?></td>
+                                <td><?= $address; ?></td>
+                                <td><?= $total . ' ' . $currency; ?></td>
+                                <td>
+                                    <a href="/ro/<?php echo $storeUrl; ?>" title="<?php echo $storeName; ?>">
+                                        <?= $storeName; ?>
+                                    </a>
+                                </td>
+                                <td>
+                                    <?php 
+                                    echo $status;
+                                    if($status == 'Finalizată' || $status == 'Completed')
+                                    if($result_shipping_info->num_rows > 0) {
+                                        echo '<br>';
+                                        $row_shipping_info = $result_shipping_info->fetch_assoc();
+                                        $awbNumber = $row_shipping_info['awb_number'];
+                                        $courier = $row_shipping_info['courier'];
+                                        echo '<span class="badge bg-primary mx-1">AWB: ' . $awbNumber . '</span><br>';
+                                        echo '<span class="badge bg-primary mx-1">Curier: ' . $courier . '</span>';
+                                    }
+                                    ?>
+                                </td>
+                                <td>
+                                    <button onclick="show_order(<?php echo $i; ?>);" class="btn btn-sm" title="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('order_view')->toHtml(); ?>">
+                                        <span><i class="fal fa-eye" aria-hidden="true"></i></span>
+                                    </button>
+                                    <form class="d-inline" method="post" action="/salesHistoryReorder.php">
+                                        <input type="hidden" name="order_id" value="<?php echo $order_id; ?>" />
+                                        <button class="btn btn-sm" title="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('order_reorder')->toHtml(); ?>">
+                                            <i class="fal fa-refresh" type="submit"></i>
+                                        </button>
+                                    </form>
+                                    <?php
+                                    if ($status == $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('status_completed')->toHtml()) {
+                                        echo '<a title="'. $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('order_invoice')->toHtml() .'" class="btn btn-sm text-body" href="/pdfinvoice/order/print/order_id/' . $id . '"><i class="fal fa-file-pdf-o" aria-hidden="true"></i></a>';
+                                    } else {
+                                        echo '<a title="'. $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('order_invoice')->toHtml() .'" class="btn btn-sm text-body" href="#" onclick="download_impossible();" id="download_false"><i class="fal fa-file-pdf-o" aria-hidden="true"></i></a>';
+                                    }
+                                    ?>
+                                </td>
+                            </tr>
+                            <tr id="row-<?php echo $i; ?>" style="display:none;background-color:#96cdf5;">
+                                <?php 
+                                $query_order = "SELECT product_id, product_name, product_sku, product_qty, product_price, customer_id, order_currency_code, seller_product_total as total, shipping_amount ";
+                                $query_order .= "FROM mgkf_marketplace_sellerorderitems, mgkf_marketplace_sellerorder ";
+                                $query_order .= "WHERE mgkf_marketplace_sellerorderitems.order_id = mgkf_marketplace_sellerorder.order_id ";
+                                $query_order .= "AND mgkf_marketplace_sellerorderitems.order_id = '".$id."'";
+                                $result_order = $conn->query($query_order);
+                                $row_order = $result_order->fetch_assoc();
+                                $productId = $row_order['product_id'];
+                                $productName = $row_order['product_name'];
+                                $productSku = $row_order['product_sku'];
+                                $productQty = $row_order['product_qty'];
+                                $productPrice = number_format($row_order['product_price'], 2);
+                                $productCustomerId = $row_order['customer_id'];
+                                $productCurrency = $row_order['order_currency_code'];
+                                $total = number_format($row_order['total'], 2);
+                                $shippingPrice = number_format($row_order['shipping_amount'], 2);
+
+                                $query_seller = "SELECT value as seller_id ";
+                                $query_seller .= "FROM mgkf_catalog_product_entity_int ";
+                                $query_seller .= "WHERE attribute_id = 158 ";
+                                $query_seller .= "AND entity_id = '".$productId."'";
+                                $result_seller = $conn->query($query_seller);
+                                $row_seller = $result_seller->fetch_assoc();
+                                $sellerId = $row_seller['seller_id'];
+
+                                $query_seller = "SELECT seller_id ";
+                                $query_seller .= "FROM mgkf_marketplace_sellerorder ";
+                                $query_seller .= "WHERE increment_id = '".$order_id."'";
+                                $result_seller = $conn->query($query_seller);
+                                $row_seller = $result_seller->fetch_assoc();
+                                $sellerId = $row_seller['seller_id'];
+                                ?>
+                                <td>
+                                    <label class="control-label">Denumire produs</label>
+                                    <br>
+                                    <?php echo $productName; ?>
+                                </td>
+                                <td>
+                                    <label class="control-label"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('sku')->toHtml(); ?></label>
+                                    <br>
+                                    <?php echo $productSku; ?>
+                                </td>
+                                <td>
+                                    <label class="control-label"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('qty')->toHtml(); ?></label>
+                                    <br>
+                                    <?php echo $productQty; ?>
+                                </td>
+                                <td>
+                                    <label class="control-label"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('total')->toHtml(); ?></label>
+                                    <br>
+                                    <?php echo $total . ' ' . $productCurrency; ?>
+                                </td>
+                                <?php
+                                $query_return = "SELECT return_condition ";
+                                $query_return .= "FROM mgkf_marketplace_seller_return_condition ";
+                                $query_return .= "WHERE seller_id = '".$sellerId."'";
+                                $result_return = $conn->query($query_return);
+                                if($status == 'Finalizată' || $status == 'Completed') {
+                                ?>
+                                    <td>
+                                        <button type="button" onclick="show_place_return_block(<?php echo $i; ?>);" class="btn btn-primary">
+                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('place_return')->toHtml(); ?>
+                                        </button>
+                                        <div style="display:none;" id="place-return-block-<?php echo $i; ?>">
+                                            <form action="/salesHistoryReorder.php"  method="post"  id="order_item_action_<?php echo $id; ?>" enctype="multipart/form-data">
+                                                <input type="hidden" name="product_id" value="<?php echo $productId; ?>" />
+                                                <input type="hidden" name="seller_id" value="<?php echo $sellerId; ?>" />
+                                                <label>
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('reason')->toHtml();?>
+                                                </label>
+                                                <textarea name="reason" class="input-text required-entry"></textarea>
+                                                <input type="hidden" name="order_id" value="<?php echo $id; ?>" />
+                                                <label>
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('what_we_do_with_product')->toHtml();?>
+                                                </label>
+                                                <br>
+                                                <select name="choose_action">
+                                                    <option selected><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('choose')->toHtml();?></option>
+                                                    <option value="money_back"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('get_my_money_back')->toHtml();?></option>
+                                                    <option value="product_back"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('get_the_same_product')->toHtml();?></option>
+                                                </select>
+                                                <br><br>
+                                                <label>
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('conditions')->toHtml();?>
+                                                </label>
+                                                <br>
+                                                <div class="conditions">
+                                                    <?php 
+                                                    while($row_return = $result_return->fetch_assoc()) {
+                                                        $condition = $row_return['return_condition'];
+                                                        echo $condition . '<br>';
+                                                    }
+                                                    ?>
+                                                </div>
+                                                <br>
+                                                <input type="checkbox" name="confirm_condition" value="confirm" required>
+                                                <label style="margin-right:10px;"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('confirm_conditions')->toHtml();?></label>
+                                                <br><br>
+                                                <input type="submit" class="btn btn-primary" name="submit" value="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('submit')->toHtml();?>" /> 
+                                                <input onclick="hide_place_return_block(<?php echo $i; ?>)" type="button" class="btn btn-primary" name="cancel" value="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('cancel')->toHtml();?>" />
+                                            </form>
+                                        </div>
+                                    </td>
+                                <?php 
+                                }
+                                ?>
+                                <td class="col-1">
+                                    <i class="fal fa-times-circle" aria-hidden="true" onclick="hide_order(<?php echo $i; ?>);"></i>
+                                </td>
+                            </tr>
+                            <tr id="row2-<?php echo $i; ?>" style="display:none;background-color: #96cdf5;">
+                                <td>
+                                    <label class="control-label"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('products_price')->toHtml(); ?></label>
+                                    <br>
+                                    <?php echo $productPrice . ' ' . $productCurrency; ?>
+                                </td>
+                                <td>
+                                    <label class="control-label"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('shipping_price')->toHtml(); ?></label>
+                                    <br>
+                                    <?php echo $shippingPrice . ' ' . $productCurrency; ?>
+                                </td>
+                                <td>
+                                    <label class="control-label"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('total')->toHtml(); ?></label>
+                                    <br>
+                                    <?php echo $total . ' ' . $productCurrency; ?>
+                                </td>
+                            </tr>
+                        <?php
+                        }
+                    }
+                    $i++;
+                }
+                ?>
+            </tbody>
+        </table>
+    </div>
+<?php } ?>
+<script>
+function download_impossible() {
+    document.getElementById("show_error_msg").style.display = "block";
+
+    setTimeout(function() {
+        document.getElementById("show_error_msg").style.display = "none";
+    }, 3000);
+}
+function show_order(k) {
+    document.getElementById("row-"+k).style.display = "table-row";
+    document.getElementById("row2-"+k).style.display = "table-row";
+}
+function hide_order(k) {
+    document.getElementById("row-"+k).style.display = "none";
+    document.getElementById("row2-"+k).style.display = "none";
+}
+function show_place_return_block(k) {
+    document.getElementById("place-return-block-"+k).style.display = "block";
+}
+function hide_place_return_block(k) {
+    document.getElementById("place-return-block-"+k).style.display = "none";
+}
+</script>

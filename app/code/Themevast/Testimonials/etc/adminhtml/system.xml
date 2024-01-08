@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Config/etc/system_file.xsd">
+    <system>
+        <section id="testimonials_setting" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Testimonials Setting</label>
+            <tab>themevast</tab>
+			<resource>Themevast_Themevast::testimonials_setting</resource>
+            <group id="group_testimonial_general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Options</label>
+				 <field id="config_enable" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Testimonial</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="config_toplink" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Testimonial Link in Toplink</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="config_enable">1</field>
+                    </depends>
+                </field>
+				 <field id="config_footerlink" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Testimonial Link in Footer</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="config_enable">1</field>
+                    </depends>
+                </field>
+                <field id="config_paging" translate="label" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Testimonial Paging</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="config_enable">1</field>
+                    </depends>
+                </field>
+                <field id="config_per_page" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Testimonial Per Page </label>
+                    <comment><![CDATA[Comma-separated (,)]]></comment>
+                    <depends>
+                        <field id="config_enable">1</field>
+                    </depends>
+                </field>
+                <field id="config_amount_word" translate="label" type="text" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Maximum Number of Word Per Testimonial</label>
+                    <validate>validate-digits</validate>
+                    <depends>
+                        <field id="config_enable">1</field>
+                    </depends>
+                </field>
+				<field id="title_page" translate="label" type="text" sortOrder="27" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Title Page : </label>
+                    <depends>
+                        <field id="config_enable">1</field>
+                    </depends>
+                </field>
+				<field id="img_width" translate="label" type="text" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Resize Image Width : </label>
+                    <depends>
+                        <field id="config_enable">1</field>
+                    </depends>
+                </field>
+				<field id="img_height" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Resize Image Height : </label>
+                    <depends>
+                        <field id="config_enable">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="group_testimonial_configuration" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Testimonial Configuration</label>
+                <field id="config_allow_customer_submit" translate="label" type="select" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Allow Customer to Submit Testimorial</label>
+                   <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="config_allow_guest_submit" translate="label" type="select" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Allow Guest to Submit Testimorial</label>
+                   <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+				    <depends>
+                        <field id="config_allow_customer_submit">1</field>
+                    </depends>
+                </field>
+                <field id="config_thank_you_message" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Thank You Message</label>
+                    <comment>Message displayed after testimonial submission</comment>
+                </field>
+                <field id="config_approve" translate="label" type="select" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Auto Approve Testimonial</label>
+                   <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+			 <group id="slide_testimonial_configuration" translate="label" type="text" sortOrder="46" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Testimonial Slider</label>
+				<field id="auto" translate="label comment" type="select" sortOrder="30"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Auto slide:</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="speed" translate="label comment" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Slideshow Speed:</label>
+                    <comment>Timer Title</comment>
+                </field>
+				<field id="itemsDefault" translate="label comment" type="text" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Items Default:</label>
+                </field>
+				<field id="tv_column1" translate="label" type="text" sortOrder="121" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>For devices have screen width from 1200px up to greater: </label>
+                </field>
+				<field id="tv_column2" translate="label" type="text" sortOrder="122" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>For devices have screen width from 992px up to 1199px: </label>
+                </field>
+				<field id="tv_column3" translate="label" type="text" sortOrder="123" showInDefault="1" showInWebsite="1" showInStore="1">
+                   <label>For devices have screen width from 768px up to 991px: </label>
+                </field>
+				<field id="tv_column4" translate="label" type="text" sortOrder="124" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>For devices have screen width from 480px up to 767px: </label>
+                </field>
+				<field id="tv_column5" translate="label" type="text" sortOrder="125" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>For devices have screen width less than or equal 479px: </label>
+                </field>
+				<field id="row_show" translate="label comment" type="text" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Number Rows Show:</label>
+                </field>
+				<field id="qty" translate="label comment" type="text" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Qty of Product:</label>
+                </field>
+				<field id="next_back" translate="label comment" type="select" sortOrder="150"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Next/Back control:</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="nav_ctrl" translate="label comment" type="select" sortOrder="160"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show navigation control:</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="show_rat" translate="label comment" type="select" sortOrder="170"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Rating:</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="show_testimonial" translate="label comment" type="select" sortOrder="180"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Testimonial:</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="show_timer" translate="label comment" type="select" sortOrder="190"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Create Timer:</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="show_job" translate="label comment" type="select" sortOrder="200"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Job:</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+		 	</group>
+        </section>
+    </system>
+</config>

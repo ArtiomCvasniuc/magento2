@@ -1,0 +1,137 @@
+<?php
+$helperImage = $this->helper('Themevast\Testimonials\Helper\Image');
+$helperData = $this->helper('Themevast\Testimonials\Helper\Data');
+$helperTheme = $this->helper('Themevast\Themevast\Helper\Data');
+if(!$helperData->isEnabled()) return false;
+$default = $block->getConfigSlider('itemsDefault')? $block->getConfigSlider('itemsDefault'):5;
+$speed = $block->getConfigSlider('speed') ? $block->getConfigSlider('speed'):1500;
+$show_next_back =$block->getConfigSlider('next_back');
+$show_navigation_control = $block->getConfigSlider('nav_ctrl');
+$auto = $block->getConfigSlider('auto');
+$tv_column1 = $block->getConfigSlider('tv_column1') ? $block->getConfigSlider('tv_column1'):4;
+$tv_column2 = $block->getConfigSlider('tv_column2') ? $block->getConfigSlider('tv_column2'):3;
+$tv_column3 = $block->getConfigSlider('tv_column3') ? $block->getConfigSlider('tv_column3'):2;
+$tv_column4 = $block->getConfigSlider('tv_column4') ? $block->getConfigSlider('tv_column4'):1;
+$tv_column5 = $block->getConfigSlider('tv_column5') ? $block->getConfigSlider('tv_column5'):1;
+$_testimonialsCollection = $block->getTestimonials();
+$sliderId = 'testimonials-'.$block->getIdentify();
+$lengWord = 230;
+$title = $block->getTitle();
+$rows =$block->getConfigSlider('row_show') ? $block->getConfigSlider('row_show'):1;
+$show_rat = $block->getConfigSlider('show_rat') ? $block->getConfigSlider('show_rat'):1;
+$show_job = $block->getConfigSlider('show_job') ? $block->getConfigSlider('show_job'):0;
+$show_timer = $block->getConfigSlider('show_timer') ? $block->getConfigSlider('show_timer'):0;
+$show_testimonial = $block->getConfigSlider('show_testimonial') ? $block->getConfigSlider('show_testimonial'):1;
+$img_width = $helperData->getImgRizeWidth();
+$img_height = $helperData->getImgRizeHeight();
+$allRating = $block->getAllRating();
+?>
+<?php if ($_testimonialsCollection->count()) { ?>
+<div id="<?php echo $sliderId?>">
+	<div class="testimonials_slider testimonial-preload">
+		<div class="title-heading title-product-heading">
+			<h2>
+				<?php echo __($title) ?>
+				<span class="b-title_separator"><span>
+				</span></span>
+			</h2>
+		</div>
+		<div class="owl-carousel">
+			<div class="testimonialF_loading"></div>
+			<?php $i=0; 
+				foreach ($_testimonialsCollection as $_testimonial) { ?>
+				<?php if($i %$rows == 0) echo "<div class='item testimonial-item'>"; ?>
+					<div class="list-item">
+						<div class="item-inner">
+							<div class="testimonial-avatar clearfix">
+								<?php if($_testimonial->getAvatar()) { ?>
+									<?php  $link = $helperImage->resize($_testimonial->getAvatar(),$img_width,$img_height);?>
+										<img alt="<?php echo $_testimonial->getName(); ?>" src="<?php echo $link ?>" title="<?php echo $block->escapeHtml($_testimonial->getName()) ?>"/>
+									<?php } else { ?>
+										<img alt="<?php echo $_testimonial->getName(); ?>" src="<?php echo $this->getViewFileUrl('Themevast_Testimonials::images/default-avatar.jpg') ?>" title="<?php echo $block->escapeHtml($_testimonial->getName()) ?>"/>
+								<?php } ?>
+								<div class="job-name">
+									<?php if($show_job) { ?>
+										<div class="testimonial-name"><?php echo  $_testimonial->getName(); ?></div>
+									<?php } ?>
+									<?php if($show_job) { ?>
+										<div class="testimonial-job"><?php echo  $_testimonial->getJob(); ?></div>
+									<?php } ?>
+								</div>	
+							</div>
+							<?php if($show_testimonial) { ?>
+								<div class="testimonial-content">
+									<div class="testimonial-description">
+										<?php if($description=$_testimonial->getTestimonial()){
+												echo $helperTheme->changeString($description, $lengWord, $finishtext = '',true);
+										}?>
+									</div>											
+								</div>
+							<?php } ?>						
+						</div>
+						<?php $i++;?>
+					</div>
+				<?php if($i %$rows == 0) echo "</div>"; ?>     
+			<?php } ?>
+			<?php if($i %$rows != 0) echo "</div>"; ?>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	require([
+		'jquery',
+		'mage/mage',
+		'themevast/owl'
+	], function ($) {
+		'use strict';
+	jQuery(document).ready(function ($) {
+				(function (element) {
+						var $element = $(element),
+						$sliderTestimonials = $('.owl-carousel', $element);
+						setTimeout(function () {
+								$element.removeClass('testimonial-preload');
+								jQuery('.testimonialF_loading').remove();
+								runTestimonialSlider();
+
+							}, 300);
+				function runTestimonialSlider() {
+				 $sliderTestimonials.owlCarousel({
+						autoplay :<?php echo $auto==1 ? 'true':'false' ?>,
+						items:1,
+						smartSpeed : <?php echo $speed ?>,
+						dotsSpeed : <?php echo $speed ?>,
+						rewindSpeed : <?php echo $speed ?>,
+						nav : <?php echo $show_next_back==1 ? 'true' : 'false';?>,
+						autoplayHoverPause : true,
+						dots :<?php echo $show_navigation_control==1 ? 'true':'false' ;  ?>,
+						scrollPerPage:true,
+						responsive: {
+						0: {
+							items:1,
+						},
+						480: {
+							items:1,
+						},
+						768: {
+							items:1,
+						},
+						991: {
+							items:1,
+						},						
+						1200: {
+							items:1,
+						}
+					 }
+				});
+			}
+		})('#<?php echo $sliderId; ?>');
+	});
+});
+</script>
+<?php } else { ?>
+	<div class="empty">
+		<span>
+			<?php echo __('Testimonial records not available.'); ?>
+		</span>
+	</div>
+<?php } ?>

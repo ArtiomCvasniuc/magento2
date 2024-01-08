@@ -1,0 +1,59 @@
+<?php
+/**
+ * @author Amasty Team
+ * @copyright Copyright (c) 2020 Amasty (https://www.amasty.com)
+ * @package Amasty_AdvancedReview
+ */
+
+/** @var \Amasty\AdvancedReview\Block\Summary $block */
+
+$rating = $block->getRatingSummary();
+$count = $block->getReviewsCount();
+?>
+<div class="amreview-summary-info">
+    <p class="amreview-summary">
+        <?= $block->escapeHtml($block->getRatingSummaryValue()) ?>
+    </p>
+    <div class="amreview-rating-wrapper">
+        <div class="amstars-rating-container"
+            <?php $stars = $block->getRatingSummaryValue(); ?> title="<?= $block->escapeHtml($stars > 1 ? __('%1 stars', $stars) : __('%1 star', $stars)) ?>">
+            <p class="amstars-stars" style="width:<?= /* @noEscape */ $rating ? $rating: 0; ?>%">
+                <span class="hidden">
+                    <?= $block->escapeHtml($rating); ?>%
+                </span>
+            </p>
+        </div>
+        <p class="amreview-count">
+            <?= /* @noEscape */ $count; ?><?= $block->escapeHtml(__('reviews')); ?>
+        </p>
+    </div>
+</div>
+<?php if($count) { ?>
+    <div class="amreview-summary-details">
+        <?php foreach ($block->getDetailedSummary() as $key => $detail) { ?>
+            <div class="amreview-label">
+                <p class="amreview-stars">
+                    <?= $block->escapeHtml($key) ?>
+                </p>
+                <div class="amreview-bar">
+                    <div class="amreview-bar -active"
+                         style="width:<?= /* @noEscape */ $count ? round($detail / $count * 100) : 0 ?>%">
+                    </div>
+                </div>
+                <p class="amreview-text">
+                    <?= /* @noEscape */ $count ? round($detail / $count * 100) : 0 ?>% (<?= /* @noEscape */ $detail ?>)
+                </p>
+            </div>
+        <?php } ?>
+    </div>
+<?php } ?>
+<?php if ($block->shouldShowRecommended()) { ?>
+    <p class="amreview-percent-block" data-amreview-js="percent">
+        <span class="amreview-value">
+            <?= $block->escapeHtml($block->getRecomendedPercent()); ?>%
+        </span>
+        <span class="amreview-desc">
+            <?= $block->escapeHtml(__('of customers recommend this product')); ?>
+        </span>
+    </p>
+<?php } ?>

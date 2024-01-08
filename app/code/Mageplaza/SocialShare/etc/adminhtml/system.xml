@@ -1,0 +1,264 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_SocialShare
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="mpsocialshare" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Social Share</label>
+            <tab>mageplaza</tab>
+            <resource>Mageplaza_SocialShare::configuration</resource>
+            <group id="general" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Configuration</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Select <strong>Yes</strong> to enable this module]]></comment>
+                </field>
+                <field id="icon_color" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Icon Color</label>
+                    <source_model>Mageplaza\SocialShare\Model\System\Config\Source\IconColor</source_model>
+                    <comment>Only apply for default icon</comment>
+                </field>
+                <field id="custom_icon_color" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <validate>jscolor {hash:true,refine:false}</validate>
+                    <depends>
+                        <field id="icon_color">Custom</field>
+                    </depends>
+                </field>
+                <field id="button_color" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Button Color</label>
+                    <source_model>Mageplaza\SocialShare\Model\System\Config\Source\ButtonColor</source_model>
+                    <comment>Only apply for default icon</comment>
+                </field>
+                <field id="custom_button_color" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <validate>jscolor {hash:true,refine:false}</validate>
+                    <depends>
+                        <field id="button_color">Custom</field>
+                    </depends>
+                </field>
+                <field id="background_color" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Background Color</label>
+                    <source_model>Mageplaza\SocialShare\Model\System\Config\Source\BackgroundColor</source_model>
+                </field>
+                <field id="custom_background_color" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <validate>jscolor {hash:true,refine:false}</validate>
+                    <depends>
+                        <field id="background_color">Custom</field>
+                    </depends>
+                </field>
+                <field id="border_radius" translate="label comment" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Border Radius</label>
+                    <comment>The unit is %, ranging from 0% to 50%.</comment>
+                    <validate>required-entry validate-digits validate-digits-range digits-range-0-50</validate>
+                </field>
+                <field id="share_counter" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Enable Share Counter</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="thank_you" translate="label comment" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Enable Thank You Popup</label>
+                    <comment>Display after customers' sharing action.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <group id="facebook" translate="label" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Facebook</label>
+                    <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Enable</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="image" translate="label comment" type="image" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Image</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
+                        <upload_dir config="system/filesystem/media" scope_info="1">mageplaza/socialshare/facebook</upload_dir>
+                        <base_url type="media" scope_info="1">mageplaza/socialshare/facebook</base_url>
+                        <comment>If empty, the default icon will be used.</comment>
+                    </field>
+                </group>
+                <group id="twitter" translate="label" type="text" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Twitter</label>
+                    <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Enable</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="image" translate="label comment" type="image" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Image</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
+                        <upload_dir config="system/filesystem/media" scope_info="1">mageplaza/socialshare/twitter</upload_dir>
+                        <base_url type="media" scope_info="1">mageplaza/socialshare/twitter</base_url>
+                        <comment>If empty, the default icon will be used.</comment>
+                    </field>
+                </group>
+                <group id="google_plus" translate="label" type="text" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Google+</label>
+                    <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Enable</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="image" translate="label comment" type="image" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Image</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
+                        <upload_dir config="system/filesystem/media" scope_info="1">mageplaza/socialshare/google_plus</upload_dir>
+                        <base_url type="media" scope_info="1">mageplaza/socialshare/google</base_url>
+                        <comment>If empty, the default icon will be used.</comment>
+                    </field>
+                </group>
+                <group id="pinterest" translate="label" type="text" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Pinterest</label>
+                    <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Enable</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="image" translate="label comment" type="image" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Image</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
+                        <upload_dir config="system/filesystem/media" scope_info="1">mageplaza/socialshare/pinterest</upload_dir>
+                        <base_url type="media" scope_info="1">mageplaza/socialshare/pinterest</base_url>
+                        <comment>If empty, the default icon will be used.</comment>
+                    </field>
+                </group>
+                <group id="linkedin" translate="label" type="text" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>LinkedIn</label>
+                    <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Enable</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="image" translate="label comment" type="image" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Image</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
+                        <upload_dir config="system/filesystem/media" scope_info="1">mageplaza/socialshare/linkedin</upload_dir>
+                        <base_url type="media" scope_info="1">mageplaza/socialshare/linkedIn</base_url>
+                        <comment>If empty, the default icon will be used.</comment>
+                    </field>
+                </group>
+                <group id="tumblr" translate="label" type="text" sortOrder="160" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Tumblr</label>
+                    <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Enable</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="image" translate="label comment" type="image" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Image</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
+                        <upload_dir config="system/filesystem/media" scope_info="1">mageplaza/socialshare/tumblr</upload_dir>
+                        <base_url type="media" scope_info="1">mageplaza/socialshare/tumblr</base_url>
+                        <comment>If empty, the default icon will be used.</comment>
+                    </field>
+                </group>
+                <group id="add_more_share" translate="label" type="text" sortOrder="170" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Add More Share</label>
+                    <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Enable</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="display_menu" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Display Menu Type</label>
+                        <source_model>Mageplaza\SocialShare\Model\System\Config\Source\DisplayMenu</source_model>
+                    </field>
+                    <field id="full_menu" translate="label" type="select" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Display Full Menu</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <depends>
+                            <field id="display_menu">click</field>
+                        </depends>
+                    </field>
+                    <field id="number_service" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Number of Services</label>
+                        <validate>required-entry validate-digits validate-digits-range digits-range-1-400</validate>
+                        <depends>
+                            <field id="full_menu">0</field>
+                        </depends>
+                    </field>
+                </group>
+            </group>
+            <group id="float" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Floating Configuration</label>
+                <field id="apply_for" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Apply For</label>
+                    <source_model>Mageplaza\SocialShare\Model\System\Config\Source\FloatApplyFor</source_model>
+                </field>
+                <field id="select_page" translate="label" type="multiselect" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <source_model>Mageplaza\SocialShare\Model\System\Config\Source\FloatSelectPages</source_model>
+                    <label>Apply for Select Page</label>
+                    <depends>
+                        <field id="apply_for">select_pages</field>
+                    </depends>
+                </field>
+                <field id="cms_page" translate="label" type="multiselect" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <source_model>Mageplaza\SocialShare\Model\System\Config\Source\FloatCmsPages</source_model>
+                    <label>Apply for CMS Page</label>
+                    <depends>
+                        <field id="apply_for">select_pages</field>
+                    </depends>
+                </field>
+                <field id="style" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Style</label>
+                    <source_model>Mageplaza\SocialShare\Model\System\Config\Source\Style</source_model>
+                </field>
+                <field id="position" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Position</label>
+                    <source_model>Mageplaza\SocialShare\Model\System\Config\Source\FloatPosition</source_model>
+                </field>
+                <field id="margin_top" translate="label comment" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Margin Top</label>
+                    <comment>Specify the top margin of sharing button block. Default is 150px.</comment>
+                    <validate>required-entry validate-digits validate-digits-range digits-range-0-1000</validate>
+                    <depends>
+                        <field id="style">vertical</field>
+                    </depends>
+                </field>
+                <field id="margin_bottom" translate="label comment" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Margin Bottom</label>
+                    <comment>Specify the bottom margin of sharing button block. Default is 0px.</comment>
+                    <validate>required-entry validate-digits validate-digits-range digits-range-0-1000</validate>
+                    <depends>
+                        <field id="style">horizontal</field>
+                    </depends>
+                </field>
+                <field id="button_size" translate="label comment" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Button Size</label>
+                    <source_model>Mageplaza\SocialShare\Model\System\Config\Source\ButtonSize</source_model>
+                    <comment>32x32 px button size is recommended.</comment>
+                </field>
+            </group>
+            <group id="inline" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Inline Configuration</label>
+                <field id="apply_for" translate="label" type="multiselect" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Apply For</label>
+                    <source_model>Mageplaza\SocialShare\Model\System\Config\Source\InlineApplyFor</source_model>
+                </field>
+                <field id="position" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Position</label>
+                    <source_model>Mageplaza\SocialShare\Model\System\Config\Source\InlinePosition</source_model>
+                </field>
+                <field id="show_under_cart" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Show Under Add To Cart on Product Detail Page</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="button_size" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Button Size</label>
+                    <source_model>Mageplaza\SocialShare\Model\System\Config\Source\ButtonSize</source_model>
+                    <comment>32x32 px button size is recommended.</comment>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

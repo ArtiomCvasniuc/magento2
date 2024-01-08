@@ -1,0 +1,125 @@
+<?php
+
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+if (file_exists("conf/conf.php"))
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+?>
+<?php /** @var $block \Magento\Sales\Block\Order\Info */ ?>
+<?php
+$_order = $block->getOrder();
+$url = $_SERVER['REQUEST_URI'];
+$orderId = (int) filter_var($url, FILTER_SANITIZE_NUMBER_INT);
+
+if ($orderId != '') {
+    $query = "SELECT shipping_name, shipping_address, shipping_information, billing_name, billing_address, payment_method ";
+    $query .= "FROM mgkf_sales_order_grid ";
+    $query .= "WHERE customer_id = '" . $customerId . "' ";
+    $query .= "AND entity_id = '" . $orderId . "'";
+    $result = $conn->query($query);
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $shippingName = $row['shipping_name'];
+        $shippingAddress = $row['shipping_address'];
+        $address = explode(" ", $shippingAddress);
+        unset($address[3]);
+        unset($address[4]);
+        unset($address[5]);
+        unset($address[6]);
+        $address = implode(" ", $address);
+        $query_phone = "SELECT telephone ";
+        $query_phone .= "FROM mgkf_customer_address_entity ";
+        $query_phone .= "WHERE parent_id = '" . $customerId . "' ";
+        $query_phone .= "AND street LIKE '%$address%'";
+        $result_phone = $conn->query($query_phone);
+        $row_phone = $result_phone->fetch_assoc();
+        $phoneNumber = $row_phone['telephone'];
+        $shippingAddressFormatted = str_replace(",", "<br>", $shippingAddress);
+        $shippingDescription = $row['shipping_information'];
+        $billingName = $row['billing_name'];
+        $billingAddress = $row['billing_address'];
+        $billingAddressFormatted = str_replace(",", "<br>", $billingAddress);
+        $paymentMethod = $row['payment_method'];
+        if ($paymentMethod == 'banktransfer') $paymentMethod = $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('bank_transfer_payment')->toHtml();
+        if ($paymentMethod == 'cashondelivery') $paymentMethod = $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('cash_on_delivery_payment')->toHtml();
+?>
+        <div class="block block-order-details-view d-none">
+            <div class="block-title">
+                <strong><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('order_information')->toHtml(); ?></strong>
+            </div>
+            <div class="block-content">
+                <?php if (!$_order->getIsVirtual()) { ?>
+                    <div class="box box-order-shipping-address">
+                        <strong class="box-title">
+                            <span><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('shipping_address')->toHtml(); ?></span>
+                        </strong>
+                        <div class="box-content">
+                            <?php
+                            '<p>' . $shippingName . '</p>';
+                            '<p>' . $shippingName . '</p>';
+                            '<p>' . $phoneNumber . '</p>';
+                            ?>
+                        </div>
+                    </div>
+                    <div class="box box-order-shipping-method">
+                        <strong class="box-title">
+                            <span><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('shipping_method')->toHtml(); ?></span>
+                        </strong>
+                        <div class="box-content">
+                            <?php if ($_order->getShippingDescription()) { ?>
+                                <?= $block->escapeHtml($_order->getShippingDescription()) ?>
+                            <?php
+                            } else { ?>
+                                <?= /* @escapeNotVerified */ __('No shipping information available') ?>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } ?>
+                <div class="box box-order-billing-address">
+                    <strong class="box-title">
+                        <span><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('billing_address')->toHtml(); ?></span>
+                    </strong>
+                    <div class="box-content">
+                        <?php
+                        '<p>' . $billingName . '</p>';
+                        '<p>' . $billingAddressFormatted . '</p>';
+                        '<p>' . $phoneNumber . '</p>';
+                        ?>
+                    </div>
+                </div>
+                <div class="box box-order-billing-method">
+                    <strong class="box-title">
+                        <span><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('payment_method')->toHtml(); ?></span>
+                    </strong>
+                    <div class="box-content">
+                        <?php echo $paymentMethod; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+<?php
+    }
+}
+?>

@@ -1,0 +1,123 @@
+<?php $testimonialFormData = $block->getFormData();
+$helperData = $this->helper('Themevast\Testimonials\Helper\Data');
+if($helperData->isAllowCustomerSubmit())
+{
+	if($helperData->isAllowGuestSubmit())
+	{
+		$urlSubmit = $this->getUrl('testimonials/index/post');
+		$showSubmit = true;
+	}
+	else{
+		if($this->checklogin())
+		{
+			$urlSubmit = $this->getUrl('testimonials/index/post');
+			$showSubmit = true;
+		}
+		else{
+			$urlSubmit = $this->getUrl('customer/account/login');
+			$showSubmit = false;
+		}
+	}
+}else{
+	$showSubmit = false;
+}
+
+ ?>
+<?php if($helperData->isEnabled()&&$showSubmit):?>
+<div class="testimonial-information">
+<form class="contact" action="<?php echo $urlSubmit; ?>" id="testimonial-form" method="post" enctype="multipart/form-data" data-hasrequired="<?php echo __('* Required Fields') ?>" data-mage-init='{"validation":{}}'>
+    <fieldset class="fieldset">
+        <legend class="legend"><span><?php echo __('Information') ?></span></legend><br />
+		<input name="stores[]" id="store_id" type="hidden" value="<?php echo $this->getStoreId();?>"  />
+        <div class="field required testimonial-name">
+            <label class="label" for="name"><span><?php  echo __('Name') ?></span></label>
+            <div class="control">
+                <input name="name" id="name" title="<?php  echo __('Name') ?>" value="<?php echo $testimonialFormData['name']; ?>" class="input-text" type="text" data-validate="{required:true}"/>
+            </div>
+        </div>
+        <div class="field required testimonial-email">
+            <label class="label" for="email"><span><?php  echo __('Email') ?></span></label>
+            <div class="control">
+                <input name="email" id="email" title="<?php  echo __('Email') ?>" value="<?php echo $testimonialFormData['email']; ?>" class="input-text" type="email" data-validate="{required:true, 'validate-email':true}"/>
+            </div>
+        </div>
+
+        <div class="field testimonial-website">
+            <label for="website" class="label">
+                <span><?php  echo __('Your Website') ?></span>
+            </label>
+
+            <div class="control">
+                <input type="text" id="website"  name="website" class="input-text" value="<?php echo $testimonialFormData['website']; ?>">
+            </div>
+        </div>
+
+        <div class="field testimonial-company">
+            <label for="company" class="label">
+                <span><?php  echo __('Your Company') ?></span>
+            </label>
+            <div class="control">
+                <input type="text" id="company"  name="company" class="input-text" value="<?php echo $testimonialFormData['company']; ?>">
+            </div>
+        </div>
+        <div class="field testimonial-job">
+            <label for="job" class="label">
+                <span><?php  echo __('Job') ?></span>
+            </label>
+
+            <div class="control">
+                <input type="text" id="job"  name="job" class="input-text" value="<?php echo $testimonialFormData['job']; ?>">
+            </div>
+        </div>
+        <div class="field testimonial-address">
+            <label for="address" class="label">
+                <span><?php  echo __('Your Address') ?></span>
+            </label>
+            <div class="control">
+                <input type="text" id="address" name="address" class="input-text" value="<?php echo $testimonialFormData['address']; ?>">
+            </div>
+        </div>
+        <div class="field testimonial-rating">
+            <label for="rating" class="label">
+                <span><?php  echo __('Rating') ?></span>
+            </label>
+            <div class="control">
+				<select name="rating" id="rating">
+				
+					<?php foreach($block->getAllRating() as $value=>$label ):?>
+						<option value="<?php echo $value?>" <?php if($value==$testimonialFormData['rating']) echo 'selected'?>><?php echo __($label)?></option>
+					<?php endforeach;?>
+				</select>
+            </div>
+        </div>
+        <div class="field testimonial-avatar">
+            <label for="avatar" class="label">
+                <span><?php echo __('Your Image') ?></span>
+            </label>
+
+            <div class="control">
+                <input type="file" id="avatar" name="avatar">
+            </div>
+        </div>
+
+        <div class="field required testimonial-testimonial">
+            <label for="testimonial" class="label"><span><?php echo __('Testimonial') ?></span></label>
+            <div class="control">
+                <textarea name="testimonial" id="testimonial" title="<?php echo __('Testimonial') ?>" class="input-text required-entry"></textarea>
+            </div>
+        </div>
+        <div class="testimonial-captcha">
+            <?php echo $block->getChildHtml('form.testimonial.new'); ?>
+        </div>
+    </fieldset>
+    <div class="actions-toolbar">
+        <div class="primary">
+            <input type="hidden" name="testimonial-submit" id="testimonial-submit" value="" />
+            <button type="submit" title="<?php  echo __('Submit') ?>" class="action submit primary">
+                <span><?php  echo __('Submit') ?></span>
+            </button>
+        </div>
+    </div>
+</form>
+</div>
+<?php endif;?>

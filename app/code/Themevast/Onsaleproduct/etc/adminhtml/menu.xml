@@ -1,0 +1,6 @@
+﻿<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Backend/etc/menu.xsd">
+    <menu>
+    	<add id="Themevast_Onsaleproduct::themevast_onsaleproduct" title="Onsale Products" module="Themevast_Onsaleproduct" sortOrder="0" parent="Themevast_Themevast::themevast_setting" resource="Themevast_Onsaleproduct::themevast_onsaleproduct" action="adminhtml/system_config/edit/section/onsaleproduct" />
+    </menu>
+</config>

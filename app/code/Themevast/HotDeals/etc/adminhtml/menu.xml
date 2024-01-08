@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Backend/etc/menu.xsd">
+    <menu>
+    	<add id="Themevast_HotDeals::themevast_hotdeals" title="Hot Deals" module="Themevast_HotDeals" sortOrder="0" parent="Themevast_Themevast::themevast_setting" resource="Themevast_HotDeals::themevast_hotdeals" action="adminhtml/system_config/edit/section/hotdeals" />
+    </menu>
+</config>

@@ -1,0 +1,105 @@
+<?php
+/**
+ * Copyright © 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+/** @var $block \Magento\Checkout\Block\Cart\Sidebar */
+
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId ();
+    $status = $helper->sellerStatus( $customerId);
+}
+$reviewSellerId = $this->getRequest()->getParam('seller_id');
+
+$url = $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
+
+if (file_exists("conf/conf.php")) 
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+$query = "SELECT cart_subtotal FROM mgkf_cart_price "; 
+$query .= "WHERE customer_id = '$customerId' "; 
+$query .= "AND id IN (SELECT MAX(id) FROM mgkf_cart_price)";
+$result = $conn->query($query);
+$row = $result->fetch_assoc();
+$price = $row['cart_subtotal'];
+?>
+<?php if(!($customerGroupId==$sellerGroupId && $status==1)) { ?>
+    <div data-block="minicart" class="minicart-wrapper m-0 d-none">
+        <a class="action showcart underline-none" href="<?php /* @escapeNotVerified */ echo $block->getShoppingCartUrl(); ?>" data-bind="scope: 'minicart_content'">
+            <i class="fal fa-shopping-cart pr-0 pr-2 pr-md-3"></i>
+            <?php if(strpos($url, '/checkout/cart') !== false) { ?>
+                <span class="counter qty empty" data-bind="css: { empty: !!getCartParam('summary_count') == false }, blockLoader: isLoading">
+                    <!-- ko if: getCartParam('summary_count') -->
+                        <span id="counter_number" class="counter-number"><!-- ko text: getCartParam('summary_count') --><!-- /ko --></span>
+                    <!-- /ko -->
+                    <!-- ko ifnot: getCartParam('summary_count') -->
+                        <!-- <span class="counter-empty">0</span> -->
+                    <!-- /ko -->
+                </span>
+                <style>
+                span.counter.qty.empty {
+                    background: #e1b43d !important;
+                }
+                </style>
+            <?php } else { ?>
+                <span class="counter qty empty" data-bind="css: { empty: !!getCartParam('summary_count') == false }, blockLoader: isLoading">
+                    <!-- ko if: getCartParam('summary_count') -->
+                        <span class="counter-number"><!-- ko text: getCartParam('summary_count') --><!-- /ko --></span>
+                    <!-- /ko -->
+                    <!-- ko ifnot: getCartParam('summary_count') -->
+                        <span class="counter-empty">0</span>
+                    <!-- /ko -->
+                </span>
+            <?php } ?>
+            <?php if(strpos($url, '/checkout/cart') !== false) { ?>
+                <span class="totals">
+                    <input type="hidden" name="mini_cart_total" id="mini_cart_total" value="" />
+                    <span class="price" id="mini_cart_price"></span>
+                </span>
+            <?php
+            }
+            elseif(strpos($url, '/checkout/cart') !== false) { ?>
+                <span class="totals d-none d-md-block">
+                    <input type="hidden" name="mini_cart_total" id="mini_cart_total" value="" />
+                    <span class="price" id="mini_cart_price_final">
+                        <?php echo $price; ?>                    
+                    </span>
+                </span>
+            <?php
+            }
+            else { ?>
+                <span class="totals d-none d-md-block" data-bind="html: getCartParam('subtotal')"></span>
+            <?php
+            }
+            ?>
+        </a>
+        <script>
+        window.checkout = <?php /* @escapeNotVerified */ echo \Zend_Json::encode($block->getConfig()); ?>;
+        </script>
+        <script type="text/x-magento-init">
+        {
+            "[data-block='minicart']": {
+                "Magento_Ui/js/core/app": <?php /* @escapeNotVerified */ echo $block->getJsLayout();?>
+            },
+            "*": {
+                "Magento_Ui/js/block-loader": "<?php /* @escapeNotVerified */ echo $block->getViewFileUrl('images/loader-1.gif'); ?>"
+            }
+        }
+        </script>
+    </div>
+<?php } ?>

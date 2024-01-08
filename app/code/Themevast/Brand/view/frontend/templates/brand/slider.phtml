@@ -1,0 +1,97 @@
+<?php
+	$helperBrand = $this->helper('Themevast\Brand\Helper\Image');
+	$enable = $this->getConfig('enable_frontend');
+	$auto = $this->getConfig('auto');
+	$speed = $this->getConfig('speed');
+	$default = $this->getConfig('default');
+	$desktop = $this->getConfig('desktop');
+	$desktop_small = $this->getConfig('desktop_small');
+	$tablet = $this->getConfig('tablet');
+	$mobile = $this->getConfig('mobile');
+	$pagination = $this->getConfig('pagination');
+	$show_next_back = $this->getConfig('show_next_back');
+	//$show_navigation_control = $this->getConfig('show_navigation_control');
+	$img_width = $this->getConfig('img_width');
+	$img_height = $this->getConfig('img_height');
+	$rows=$this->getConfig('rows');
+	if($block->getTitle()){
+		$title = $block->getTitle();
+	}else{
+		$title = $this->getConfig('title');
+	}
+	if($show_next_back)
+		$show_next_back = 'true';
+	else
+		$show_next_back = 'false';
+	$show_navigation_control = $this->getConfig('show_navigation_control');
+	if($show_navigation_control)
+		$show_navigation_control = 'true';
+	else
+		$show_navigation_control = 'false';
+	$_brandCollection = $block->getBrand();
+?>
+<?php if ($_brandCollection->count() && $enable) { ?>
+<section class="widget box-section brandslider">
+		<div class="title-brand-heading">
+			<h2><?php echo __($title) ?></h2>
+		</div>
+		<div class="owl-container">
+			<div class="block-content">
+				<div class="row">
+				<div class="owl">
+					<?php $i=0; foreach ($_brandCollection as $_brand) { ?>
+						<?php if($i %$rows == 0) echo "<div class='item brand-item'>"; ?>
+							<div class="product-item">
+								<div class="item-inner">
+									<div class="brand-image">
+										<a href="<?php echo $_brand->getLink() ?>">
+											<?php  $link = $helperBrand->resize($_brand->getImage(),$img_width,$img_height);?>
+											<img alt="<?php echo $_brand->getTitle(); ?>" src="<?php echo $link ?>" title="<?php echo $block->escapeHtml($_brand->getTitle()) ?>"/>
+										</a>
+									</div>
+									<div class="brand-content">
+											 <h3 class="brand-title"><a href="<?php echo $_brand->getPostUrl() ?>"><?php echo $block->escapeHtml($_brand->getTitle()) ?></a></h3>
+											<div class="brand-description">
+												<?php if($description=$_brand->getDescription()){
+													 echo $block->getContentText($description);
+												}?>
+											</div>		
+									</div>
+								</div>
+								<?php $i++;?>
+							</div>
+						<?php if($i %$rows == 0) echo "</div>"; ?>     
+					<?php } ?>
+					<?php if($i %$rows != 0) echo "</div>"; ?>     
+				</div>
+				</div>
+			</div>
+		</div>
+</section>
+
+<script type="text/javascript">
+	require([
+		'jquery',
+		'mage/mage',
+		'themevast/owl'
+	], function ($) {
+		'use strict';
+
+		jQuery(".brandslider .owl").owlCarousel({
+			items : <?php echo $default; ?>,
+			itemsDesktop : [1199,<?php echo $desktop; ?>],
+			itemsDesktopSmall : [980,<?php echo $desktop_small; ?>],
+			itemsTablet: [768,<?php echo $tablet; ?>],
+			itemsMobile : [479,<?php echo $mobile; ?>],
+			slideSpeed : <?php echo $pagination; ?>,
+			paginationSpeed : <?php echo $pagination; ?>,
+			rewindSpeed : <?php echo $pagination; ?>,
+			addClassActive: true,
+			navigation : <?php echo $show_next_back; ?>,
+			stopOnHover : true,
+			pagination : <?php echo $show_navigation_control; ?>,
+			scrollPerPage:true,
+		});
+	});
+</script>
+<?php } ?>

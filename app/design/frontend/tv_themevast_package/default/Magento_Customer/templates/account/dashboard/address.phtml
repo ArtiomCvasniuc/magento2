@@ -1,0 +1,551 @@
+<?php
+
+/**
+ * Copyright © 2016 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+/** @var \Magento\Customer\Block\Account\Dashboard\Address $block */
+
+if (file_exists("conf/conf.php"))
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customer = $customerSession->getCustomer();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customer->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+?>
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="shadow p-3 rounded">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="font-weight-bold m-0">
+                    <?php /* @escapeNotVerified */ echo __('Adresele Mele') ?>
+                </h4>
+                <a onclick="add_address();" class="btn btn-sm btn-dark text-white">
+                    <?= __('Add Address') ?>
+                </a>
+            </div>
+            <hr class="my-2">
+            <div id="add_address" style="display:none;" class="mb-2">
+                <form method="post" action="">
+                        <div class="form-group mb-2">
+                            <label class="mb-1"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('firstname')->toHtml(); ?></label>
+                            <input type="hidden" name="customer_id" value="<?php echo $customerId; ?>" />
+                            <input type="text" class="form-control rounded shadow-none" name="firstname" required />
+                        </div>
+                        <div class="form-group mb-2">
+                            <label class="mb-1"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('lastname')->toHtml(); ?></label>
+                            <input type="text" class="form-control rounded shadow-none" name="lastname" required />
+                        </div>
+                        <div class="form-group mb-2">
+                            <label class="mb-1"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('address')->toHtml(); ?></label>
+                            <input type="text" class="form-control rounded shadow-none" name="address" id="autocomplete" required />
+                        </div>
+                        <div class="form-group mb-2">
+                            <label class="mb-1"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('city')->toHtml(); ?></label>
+                            <input type="text" class="form-control rounded shadow-none" name="city" required />
+                        </div>
+                        <div class="form-group mb-2">
+                            <label class="mb-1"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('state')->toHtml(); ?></label>
+                            <input type="text" class="form-control rounded shadow-none" name="region" required />
+                        </div>
+                        <div class="form-group mb-2">
+                            <?php
+                            include('countries.php');
+                            ?>
+                            <label class="mb-1" for="country"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('country')->toHtml(); ?></label>
+                            <select class="form-control costume-select" id="country" name="country[]" required>
+                                <?php
+                                for ($i = 0; $i < count($country_array); $i++) {
+                                    echo "<option value='$iso_codes[$i]'>$country_array[$i]</option>";
+                                } ?>
+                            </select>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label class="mb-1">ZIP</label>
+                            <input type="text" class="form-control rounded shadow-none" name="zip" required />
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="mb-1">Telefon</label>
+                            <input type="text" class="form-control rounded shadow-none" name="telephone" required />
+                        </div>
+                        <button type="submit" name="add-address" class="btn-primary btn btn-block">Save</button>
+                </form>
+            </div>
+            <?php
+            $query = "SELECT * FROM mgkf_customer_address_entity ";
+            $query .= "WHERE parent_id = $customerId";
+            $result = $conn->query($query);
+            ?>
+            <div class="row">
+                <div class="col-12">
+                    <div class="col-md-12 p-0">
+                        <?php
+                        $i = 1;
+                        while ($row = $result->fetch_assoc()) {
+                            $id = $row['entity_id'];
+                            $firstname = $row['firstname'];
+                            $lastname = $row['lastname'];
+                            $street = $row['street'];
+                            $city = $row['city'];
+                            $region = $row['region'];
+                            $zip = $row['postcode'];
+                            $country = $row['country_id'];
+                            $telefon = $row['telephone'];
+
+                            if ($country == "AF") $country = "Afghanistan";
+                            if ($country == "AL") $country = "Albania";
+                            if ($country == "DZ") $country = "Algeria";
+                            if ($country == "AS") $country = "American Samoa";
+                            if ($country == "AD") $country = "Andorra";
+                            if ($country == "AO") $country = "Angola";
+                            if ($country == "AI") $country = "Anguilla";
+                            if ($country == "AG") $country = "Antigua and Barbuda";
+                            if ($country == "AR") $country = "Argentina";
+                            if ($country == "AM") $country = "Armenia";
+                            if ($country == "AW") $country = "Aruba";
+                            if ($country == "AU") $country = "Australia";
+                            if ($country == "AT") $country = "Austria";
+                            if ($country == "AZ") $country = "Azerbaijan";
+                            if ($country == "BS") $country = "Bahamas";
+                            if ($country == "BH") $country = "Bahrain";
+                            if ($country == "BD") $country = "Bangladesh";
+                            if ($country == "BB") $country = "Barbados";
+                            if ($country == "BY") $country = "Belarus";
+                            if ($country == "BE") $country = "Belgium";
+                            if ($country == "BZ") $country = "Belize";
+                            if ($country == "BJ") $country = "Benin";
+                            if ($country == "BM") $country = "Bermuda";
+                            if ($country == "BT") $country = "Bhutan";
+                            if ($country == "BO") $country = "Bolivia";
+                            if ($country == "BA") $country = "Bosnia and Herzegovina";
+                            if ($country == "BW") $country = "Botswana";
+                            if ($country == "BV") $country = "Bouvet Island";
+                            if ($country == "BR") $country = "Brazil";
+                            if ($country == "BN") $country = "Brunei";
+                            if ($country == "BG") $country = "Bulgaria";
+                            if ($country == "BF") $country = "Burkina Faso";
+                            if ($country == "BI") $country = "Burundi";
+                            if ($country == "KH") $country = "Cambodia";
+                            if ($country == "CM") $country = "Cameroon";
+                            if ($country == "CA") $country = "Canada";
+                            if ($country == "CV") $country = "Cape Verde";
+                            if ($country == "KY") $country = "Cayman Islands";
+                            if ($country == "CF") $country = "Central African Republic";
+                            if ($country == "TD") $country = "Chad";
+                            if ($country == "CL") $country = "Chile";
+                            if ($country == "CN") $country = "China";
+                            if ($country == "CO") $country = "Colombia";
+                            if ($country == "KM") $country = "Comoros";
+                            if ($country == "CR") $country = "Costa Rica";
+                            if ($country == "CI") $country = "Côte d’Ivoire";
+                            if ($country == "HR") $country = "Croatia";
+                            if ($country == "CU") $country = "Cuba";
+                            if ($country == "CY") $country = "Cyprus";
+                            if ($country == "CZ") $country = "Czech Republic";
+                            if ($country == "DK") $country = "Denmark";
+                            if ($country == "DJ") $country = "Djibouti";
+                            if ($country == "DM") $country = "Dominica";
+                            if ($country == "DO") $country = "Dominican Republic";
+                            if ($country == "EC") $country = "Ecuador";
+                            if ($country == "EG") $country = "Egypt";
+                            if ($country == "SV") $country = "El Salvador";
+                            if ($country == "GQ") $country = "Equatorial Guinea";
+                            if ($country == "EE") $country = "Estonia";
+                            if ($country == "ET") $country = "Ethiopia";
+                            if ($country == "FO") $country = "Faroe Islands";
+                            if ($country == "FJ") $country = "Fiji";
+                            if ($country == "FI") $country = "Finland";
+                            if ($country == "FR") $country = "France";
+                            if ($country == "GA") $country = "Gabon";
+                            if ($country == "GM") $country = "Gambia";
+                            if ($country == "GE") $country = "Georgia";
+                            if ($country == "DE") $country = "Germany";
+                            if ($country == "GH") $country = "Ghana";
+                            if ($country == "GI") $country = "Gibraltar";
+                            if ($country == "GR") $country = "Greece";
+                            if ($country == "GP") $country = "Guadeloupe";
+                            if ($country == "GT") $country = "Guatemala";
+                            if ($country == "GN") $country = "Guinea";
+                            if ($country == "GW") $country = "Guinea-Bissau";
+                            if ($country == "HN") $country = "Honduras";
+                            if ($country == "HK") $country = "Hong Kong SAR China";
+                            if ($country == "HU") $country = "Hungary";
+                            if ($country == "IS") $country = "Iceland";
+                            if ($country == "IN") $country = "India";
+                            if ($country == "ID") $country = "Indonesia";
+                            if ($country == "IR") $country = "Iran";
+                            if ($country == "IQ") $country = "Iraq";
+                            if ($country == "IE") $country = "Ireland";
+                            if ($country == "IL") $country = "Israel";
+                            if ($country == "IT") $country = "Italy";
+                            if ($country == "JM") $country = "Jamaica";
+                            if ($country == "JP") $country = "Japan";
+                            if ($country == "JO") $country = "Jordan";
+                            if ($country == "KZ") $country = "Kazakhstan";
+                            if ($country == "KE") $country = "Kenya";
+                            if ($country == "KW") $country = "Kuwait";
+                            if ($country == "KG") $country = "Kyrgyzstan";
+                            if ($country == "LA") $country = "Laos";
+                            if ($country == "LV") $country = "Latvia";
+                            if ($country == "LB") $country = "Lebanon";
+                            if ($country == "LS") $country = "Lesotho";
+                            if ($country == "LR") $country = "Liberia";
+                            if ($country == "LY") $country = "Libya";
+                            if ($country == "LI") $country = "Liechtenstein";
+                            if ($country == "LT") $country = "Lithuania";
+                            if ($country == "LU") $country = "Luxembourg";
+                            if ($country == "MK") $country = "Macedonia";
+                            if ($country == "MG") $country = "Madagascar";
+                            if ($country == "MW") $country = "Malawi";
+                            if ($country == "MY") $country = "Malaysia";
+                            if ($country == "MV") $country = "Maldives";
+                            if ($country == "ML") $country = "Mali";
+                            if ($country == "MT") $country = "Malta";
+                            if ($country == "MH") $country = "Marshall Islands";
+                            if ($country == "MQ") $country = "Martinique";
+                            if ($country == "MR") $country = "Mauritania";
+                            if ($country == "MX") $country = "Mexico";
+                            if ($country == "MD") $country = "Moldova";
+                            if ($country == "MC") $country = "Monaco";
+                            if ($country == "MN") $country = "Mongolia";
+                            if ($country == "ME") $country = "Montenegro";
+                            if ($country == "MA") $country = "Morocco";
+                            if ($country == "MZ") $country = "Mozambique";
+                            if ($country == "NA") $country = "Namibia";
+                            if ($country == "NP") $country = "Nepal";
+                            if ($country == "NL") $country = "Netherlands";
+                            if ($country == "NC") $country = "New Caledonia";
+                            if ($country == "NZ") $country = "New Zealand";
+                            if ($country == "NI") $country = "Nicaragua";
+                            if ($country == "NE") $country = "Niger";
+                            if ($country == "NG") $country = "Nigeria";
+                            if ($country == "KP") $country = "North Korea";
+                            if ($country == "NO") $country = "Norway";
+                            if ($country == "OM") $country = "Oman";
+                            if ($country == "PK") $country = "Pakistan";
+                            if ($country == "PS") $country = "Palestinian Territories";
+                            if ($country == "PA") $country = "Panama";
+                            if ($country == "PG") $country = "Papua New Guinea";
+                            if ($country == "PY") $country = "Paraguay";
+                            if ($country == "PE") $country = "Peru";
+                            if ($country == "PH") $country = "Philippines";
+                            if ($country == "PL") $country = "Poland";
+                            if ($country == "PT") $country = "Portugal";
+                            if ($country == "QA") $country = "Qatar";
+                            if ($country == "RO") $country = "Romania";
+                            if ($country == "RU") $country = "Russia";
+                            if ($country == "RW") $country = "Rwanda";
+                            if ($country == "MF") $country = "Saint Martin";
+                            if ($country == "WS") $country = "Samoa";
+                            if ($country == "SM") $country = "San Marino";
+                            if ($country == "SA") $country = "Saudi Arabia";
+                            if ($country == "SN") $country = "Senegal";
+                            if ($country == "RS") $country = "Serbia";
+                            if ($country == "SC") $country = "Seychelles";
+                            if ($country == "SL") $country = "Sierra Leone";
+                            if ($country == "SG") $country = "Singapore";
+                            if ($country == "SK") $country = "Slovakia";
+                            if ($country == "SI") $country = "Slovenia";
+                            if ($country == "SB") $country = "Solomon Islands";
+                            if ($country == "SO") $country = "Somalia";
+                            if ($country == "ZA") $country = "South Africa";
+                            if ($country == "GS") $country = "South Georgia and the South Sandwich Islands";
+                            if ($country == "KR") $country = "South Korea";
+                            if ($country == "ES") $country = "Spain";
+                            if ($country == "LK") $country = "Sri Lanka";
+                            if ($country == "SD") $country = "Sudan";
+                            if ($country == "SR") $country = "Suriname";
+                            if ($country == "SZ") $country = "Swaziland";
+                            if ($country == "SE") $country = "Sweden";
+                            if ($country == "CH") $country = "Switzerland";
+                            if ($country == "SY") $country = "Syria";
+                            if ($country == "TW") $country = "Taiwan";
+                            if ($country == "TJ") $country = "Tajikistan";
+                            if ($country == "TZ") $country = "Tanzania";
+                            if ($country == "TH") $country = "Thailand";
+                            if ($country == "TG") $country = "Togo";
+                            if ($country == "TT") $country = "Trinidad and Tobago";
+                            if ($country == "TN") $country = "Tunisia";
+                            if ($country == "TR") $country = "Turkey";
+                            if ($country == "TM") $country = "Turkmenistan";
+                            if ($country == "UG") $country = "Uganda";
+                            if ($country == "UA") $country = "Ukraine";
+                            if ($country == "AE") $country = "United Arab Emirates";
+                            if ($country == "GB") $country = "United Kingdom";
+                            if ($country == "US") $country = "United States";
+                            if ($country == "UY") $country = "Uruguay";
+                            if ($country == "VA") $country = "Vatican City";
+                            if ($country == "VE") $country = "Venezuela";
+                            if ($country == "VN") $country = "Vietnam";
+                            if ($country == "YE") $country = "Yemen";
+                            if ($country == "ZM") $country = "Zambia";
+                            if ($country == "ZW") $country = "Zimbabwe";
+
+                            echo  '<p class="font-weight-bold m-0">Adresa: ' . '<span class="font-weight-normal">' . $street . $city . ', ' . $region . ', ' . $zip . ', ' . $country . '</span>' . '</p>';
+                            echo  '<p class="font-weight-bold m-0">Persoana de Contact: ' . '<span class="font-weight-normal">' . $firstname . ' ' . $lastname . '</span>' . '</p>';
+                            echo '<p class="font-weight-bold m-0">Telefon: ' . '<span class="font-weight-normal">' . $telefon . '</span>'  . '</p>';
+                        ?>
+                            <a class="btn btn-dark text-white btn-sm my-2" onclick="edit_address(<?php echo $i; ?>)">
+                                <?php echo __('Edit Address') ?>
+                            </a>
+                            <div id="edit_address_<?php echo $i; ?>" style="display:none;">
+                                <form method="post" action="">
+                                        <div class="form-group mb-2">
+                                            <label class="mb-1">Persoana de Contact</label>
+                                            <input type="hidden" name="id" value="<?php echo $id; ?>" />
+                                            <input type="hidden" name="firstname" value="<?php echo $firstname; ?>" />
+                                            <input type="hidden" name="lastname" value="<?php echo $lastname; ?>" />
+                                            <input name="reprezentant" class="form-control rounded shadow-none" type="text" value="<?php echo $firstname . ' ' . $lastname; ?>" />
+                                        </div>
+                                        <div class="form-group mb-2">
+                                            <label class="mb-1"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('address')->toHtml(); ?></label>
+                                            <?php
+                                            if ($street != '') { ?>
+                                                <input name="address" type="text" class="form-control rounded shadow-none" value="<?php echo $street; ?>" />
+                                            <?php
+                                            } else { ?>
+                                                <input name="address" type="text" class="form-control rounded shadow-none" id="autocomplete" />
+                                            <?php
+                                            }
+                                            ?>
+                                        </div>
+                                        <div class="form-group mb-2">
+                                            <label class="mb-1">Telefon</label>
+                                            <input name="telephone" type="text" class="form-control rounded shadow-none" value="<?php echo $telefon; ?>" />
+                                        </div>
+                                        <div class="form-group mb-2">
+                                            <label class="mb-1"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('city')->toHtml(); ?></label>
+                                            <input class="form-control shadow-none rounded" name="city" type="text" value="<?php echo $city; ?>" />
+                                        </div>
+                                        <div class="form-group mb-2">
+                                            <label class="mb-1"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('state')->toHtml(); ?></label>
+                                            <input class="form-control shadow-none rounded" name="region" type="text" value="<?php echo $region; ?>" />
+                                        </div>
+                                        <div class="form-group mb-2">
+                                            <label class="mb-1">ZIP</label>
+                                            <input class="form-control shadow-none rounded" name="zip" type="text" value="<?php echo $zip; ?>" />
+                                        </div>
+                                        <div class="form-group mb-3">
+                                            <label class="mb-1"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('country_id')->toHtml(); ?></label>
+                                            <input class="form-control shadow-none rounded" name="country" type="text" value="<?php echo $country; ?>" />
+                                        </div>
+                                        <div class="align-items-center d-flex justify-content-between mb-3">
+                                            <button type="submit" name="delete" class="btn btn-danger btn-sm mr-1 w-50">Delete</button>
+                                            <button type="submit" name="submit" class="btn btn-warning btn-sm text-white ml-1 w-50">Save</button>
+                                        </div>
+                                </form>
+                            </div>
+                        <?php
+                            $i++;
+                        }
+                        ?>
+                    </div>
+                    <?php
+                    $query = "SELECT * FROM mgkf_customer_address_entity ";
+                    $query .= "WHERE parent_id = $customerId";
+                    $result = $conn->query($query);
+                    while ($row = $result->fetch_assoc()) {
+                        $firstname = $row['firstname'];
+                        $lastname = $row['lastname'];
+                        $street = $row['street'];
+                        $city = $row['city'];
+                        $region = $row['region'];
+                        $zip = $row['postcode'];
+                        $country = $row['country_id'];
+                    }
+                    ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 col-lg-4">
+        <div class="shadow p-3 rounded">
+            <div class="block-title">
+                <h4 class="font-weight-bold m-0"><?php echo __('Date Companie') ?></h4>
+                <hr class="my-2">
+                <?php
+                $customer = $block->getCustomer();
+                $customerAddress = $block->getPrimaryBillingAddress();
+
+                if ($customer && $customerAddress) {
+                    $addressId = $customerAddress->getId();
+
+                    $firstname = $customer->getFirstname();
+                    $lastname = $customer->getLastname();
+                    $company = $customerAddress->getCompany();
+                    $country = $customerAddress->getCountryId();
+                    $region = $customerAddress->getRegion();
+                    $city = $customerAddress->getCity();
+                    $address = $customerAddress->getStreet()[0];
+                    $postcode = $customerAddress->getPostcode();
+                    $telephone = $customerAddress->getTelephone();
+                    if ($customerAddress->getCustomAttribute('tax_number')) {
+                        $tax_number = $customerAddress->getCustomAttribute('tax_number')->getValue();
+                    } else {
+                        $tax_number = "";
+                    }
+                    if ($customerAddress->getCustomAttribute('company_registration_number')) {
+                        $company_registration_number = $customerAddress->getCustomAttribute('company_registration_number')->getValue();
+                    } else {
+                        $company_registration_number = "";
+                    }
+                    if ($customerAddress->getCustomAttribute('company_bank_name')) {
+                        $company_bank_name = $customerAddress->getCustomAttribute('company_bank_name')->getValue();
+                    } else {
+                        $company_bank_name = "";
+                    }
+                    if ($customerAddress->getCustomAttribute('company_bank_account')) {
+                        $company_bank_account = $customerAddress->getCustomAttribute('company_bank_account')->getValue();
+                    } else {
+                        $company_bank_account = "";
+                    }
+
+                    if ($company != '') { ?>
+                        <p class="m-0"><b><?= 'Nume: ' ?></b><?= $company; ?></p>
+                        <p class="m-0"><b><?= $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('country_id')->toHtml(); ?>:</b> <?= $country; ?></p>
+                        <p class="m-0"><b><?= $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('city')->toHtml(); ?>:</b> <?= $city; ?></p>
+                        <p class="m-0"><b><?= $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('address')->toHtml(); ?>:</b> <?= $address; ?></p>
+                        <p class="m-0"><b><?= __('CUI: ') ?></b><?= $tax_number; ?>
+                            <p class="m-0"><b><?= __('Registration Number: ') ?></b><?= $company_registration_number ?>
+                                <p class="m-0"><b><?= __('Bank') ?>: </b><?= $company_bank_name; ?>
+                                    <p class="m-0"><b>Account: </b><?= $company_bank_account; ?></p>
+                                    <p class="m-0"><b>Reprezentant: </b><?= $firstname . ' ' . $lastname; ?></p>
+                                <?php } else { ?>
+                                    <p class="m-0"><b><?= 'Nume: ' ?></b><?= $company; ?></p>
+                                    <p class="m-0"><b><?= $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('country_id')->toHtml(); ?>:</b> <?= $country; ?></p>
+                                    <p class="m-0"><b><?= $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('city')->toHtml(); ?>:</b> <?= $city; ?></p>
+                                    <p class="m-0"><b><?= $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('address')->toHtml(); ?>:</b> <?= $address; ?></p>
+                                    <p class="m-0"><b><?= 'CUI: ' ?></b><?= $tax_number; ?>
+                                        <p class="m-0"><b><?= 'Registration Number: ' ?></b><?= $company_registration_number; ?>
+                                            <p class="m-0"><b><?= __('Bank') ?>: </b><?= $company_bank_name; ?>
+                                                <p class="m-0"><b>Account: </b><?= $company_bank_account; ?></p>
+                                                <p class="m-0"><b>Reprezentant: </b><?= $firstname . ' ' . $lastname; ?></p>
+                                            <?php } ?>
+                                            <a class="btn btn-dark btn-sm text-white px-4 mt-2" onclick="collapse();"><span><?= $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('edit')->toHtml(); ?></span></a>
+                                            <div id="collapsed" class="mt-2" style="display:none;">
+                                                <form method="post" action="<?= $block->escapeUrl($block->getAddressPostUrl($addressId)) ?>">
+                                                        <div class="form-group mb-2">
+                                                            <label class="mb-1"><?= $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('company_name')->toHtml(); ?></label>
+                                                            <input type="hidden" name="customer_id" value="<?= $customerId; ?>" />
+                                                            <input type="hidden" name="region" value="" />
+                                                            <input class="form-control rounded shadow-none" name="company" type="text" value="<?= $company; ?>" />
+                                                        </div>
+                                                        <div class="form-group mb-2">
+                                                            <label class="mb-1"><?= $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('country_id')->toHtml(); ?></label>
+                                                            <input class="form-control rounded shadow-none" name="country" type="text" value="<?= $country; ?>" />
+                                                        </div>
+                                                        <div class="form-group mb-2">
+                                                            <label class="mb-1"><?= $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('city')->toHtml(); ?></label>
+                                                            <input class="form-control rounded shadow-none" name="city" type="text" value="<?= $city; ?>" />
+                                                        </div>
+                                                        <div class="form-group mb-2">
+                                                            <label class="mb-1"><?= $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('address')->toHtml(); ?></label>
+                                                            <?php
+                                                            if ($address != '') { ?>
+                                                                <input class="form-control rounded shadow-none" name="street[]" type="text" value="<?= $address; ?>" />
+                                                            <?php
+                                                            } else { ?>
+                                                                <input class="form-control rounded shadow-none" name="street[]" type="text" id="autocomplete" />
+                                                            <?php
+                                                            }
+                                                            ?>
+                                                        </div>
+                                                        <div class="form-group mb-2">
+                                                            <label class="mb-1">CUI</label>
+                                                            <input class="form-control rounded shadow-none" name="tax_number" type="text" value="<?= $tax_number; ?>" />
+                                                        </div>
+                                                        <div class="form-group mb-2">
+                                                            <label class="mb-1">Registration Number</label>
+                                                            <input class="form-control rounded shadow-none" name="company_registration_number" type="text" value="<?= $company_registration_number; ?>" />
+                                                        </div>
+                                                        <div class="form-group mb-2">
+                                                            <label class="mb-1"><?= $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('telephone')->toHtml(); ?></label>
+                                                            <input class="form-control rounded shadow-none" name="telephone" type="text" value="<?= $telephone; ?>" />
+                                                        </div>
+                                                        <div class="form-group mb-2">
+                                                            <label class="mb-1"><?= $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('postcode')->toHtml(); ?></label>
+                                                            <input class="form-control rounded shadow-none" name="postcode" type="text" value="<?= $postcode; ?>" />
+                                                        </div>
+                                                        <div class="form-group mb-2">
+                                                            <label class="mb-1"><?= $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('country')->toHtml(); ?></label>
+                                                            <input class="form-control rounded shadow-none" name="country_id" type="text" value="<?= $country; ?>" />
+                                                        </div>
+                                                        <div class="form-group mb-2">
+                                                            <label class="mb-1"><?= 'Bank' ?></label>
+                                                            <input class="form-control rounded shadow-none" name="company_bank_name" type="text" value="<?= $company_bank_name; ?>" />
+                                                        </div>
+                                                        <div class="form-group mb-2">
+                                                            <label class="mb-1"><?= 'Bank Account'; ?></label>
+                                                            <input class="form-control rounded shadow-none" name="company_bank_account" type="text" value="<?= $company_bank_account; ?>" />
+                                                        </div>
+                                                        <div class="form-group mb-3">
+                                                            <label class="mb-1"><?= __('Reprezentant'); ?></label>
+                                                            <input type="hidden" name="firstname" value="<?= $firstname; ?>" />
+                                                            <input type="hidden" name="lastname" value="<?= $lastname; ?>" />
+                                                            <input class="form-control rounded shadow-none" name="reprezentant" type="text" value="<?= $firstname . ' ' . $lastname; ?>" />
+                                                        </div>
+                                                            <button type="submit" name="submit" class="btn btn-primary btn-block">Save</button>
+                                                </form>
+                                            </div>
+                                        <?php } ?>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyBW4vLsNZoKFMFMPUR4C0ZuKtaaDDEajos&libraries=places"></script>
+<script>
+    function add_address() {
+        document.getElementById("add_address").classList.toggle('d-block');
+    }
+
+    function edit_address(address) {
+        document.getElementById("edit_address_" + address).classList.toggle('d-block');
+    }
+
+    function collapse() {
+            document.getElementById("collapsed").classList.toggle('d-block');
+    }
+
+    var placeSearch, autocomplete;
+    function initialize() {
+        // Create the autocomplete object, restricting the search
+        // to geographical location types.
+        autocomplete = new google.maps.places.Autocomplete(
+            /** @type {HTMLInputElement} */
+            (document.getElementById('autocomplete')), {
+                types: ['geocode']
+            });
+
+        google.maps.event.addDomListener(document.getElementById('autocomplete'), 'focus', geolocate);
+    }
+
+    function geolocate() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                var geolocation = new google.maps.LatLng(
+                    position.coords.latitude, position.coords.longitude);
+                var circle = new google.maps.Circle({
+                    center: geolocation,
+                    radius: position.coords.accuracy
+                });
+                autocomplete.setBounds(circle.getBounds());
+            });
+        }
+    }
+    initialize();
+</script>

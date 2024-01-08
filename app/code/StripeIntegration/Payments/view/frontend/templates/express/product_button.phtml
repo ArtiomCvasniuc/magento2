@@ -1,0 +1,10 @@
+<?php if ($block->isEnabled("product_button")) { ?>
+    <div id="payment-request-button" class="payment-request-button action tocart d-none">&nbsp;</div>
+    <script>
+        require(['domReady!', 'StripeIntegration_Payments/js/stripe_payments_express'], function(domReady, stripeExpress) {
+            stripeExpress.initStripeExpress('#payment-request-button', '<?php echo $block->getPublishableKey(); ?>', 'product:<?php echo $block->getProductId(); ?>', <?php echo \Zend_Json::encode($block->getButtonConfig()); ?>, function (paymentRequestButton, paymentRequest, params, prButton) {
+                stripeExpress.initProductWidget(paymentRequestButton, paymentRequest, params, prButton);
+            });
+        });
+    </script>
+<?php } ?>

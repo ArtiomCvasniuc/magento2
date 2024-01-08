@@ -1,0 +1,80 @@
+<?php
+/**
+ * Copyright © 2016 Themevast. All rights reserved.
+ */
+
+?>
+<?php
+/**
+ * Top menu for store
+ *
+ * @see \Themevast\CustomMenu\Block\Topmenu
+ */
+?>
+<?php
+    $_helper = $this->helper('Themevast\CustomMenu\Helper\Data');
+    $_config = $_helper->getConfig('custommenu');
+    $columnsLimit = 0;
+    if($_config['general']['enable']) {
+?>
+<?php $_menu = $block->getCustomTopMenuResponsive(); ?>
+
+<nav class="top-menu-responsive" role="navigation">
+    <ul class="menu-item">
+        <?php echo $_menu; ?>
+    </ul>
+</nav>
+
+<?php
+    } else {
+?>
+<?php $_menu = $block->getHtml('level-top', 'submenu', $columnsLimit); ?>
+
+<nav class="top-menu-responsive" role="navigation">
+    <div class="left-menu-title"><h2><?php echo __('Categories') ?></h2></div>
+    <ul class="menu-items">
+        <?php /* @escapeNotVerified */ echo $_menu; ?>
+    </ul>
+</nav>
+
+<?php
+    }
+?>
+
+<script>
+    require([
+    'jquery',
+    'mage/mage'
+    ], function ($) {
+    'use strict';
+$('.top-menu-responsive').find('ul li.parent').each(function(){
+    $(this).find(' > a').append('<em class="child-arrow fa fa-angle-right"></em>');
+    $(this).find('.child-arrow').on("click",function(e){
+        e.preventDefault();
+        if ($(this).parent().parent('li.parent').hasClass('active')) {
+
+            $(this).parent().parent('li.parent').removeClass('active');
+            $(this).parent().parent().find('li').removeClass('active');
+            $(this).parent().parent().find('ul').slideUp();
+
+            $(this).parent().parent('li').siblings().removeClass('active');
+            $(this).parent().parent('li').siblings().find($('li.parent')).removeClass('active');
+            $(this).parent().parent().siblings().find($('ul')).slideUp();
+        }
+        else{
+            $(this).parent().parent('li.parent').addClass('active');
+            $(this).parent().parent().find('> ul').slideDown();
+
+            $(this).parent().parent('li').siblings().removeClass('active');
+            $(this).parent().parent('li').siblings().find($('li.parent')).removeClass('active');
+            $(this).parent().parent().siblings().find($('ul')).slideUp();
+        }
+        return false;
+    });
+});
+    $('.top-menu-responsive .switcher .switcher-trigger').click(function(){
+        $(this).next('.switcher-dropdown').slideToggle();
+    });
+
+    });
+</script>

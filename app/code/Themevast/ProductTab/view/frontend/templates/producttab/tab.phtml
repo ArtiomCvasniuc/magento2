@@ -1,0 +1,179 @@
+<?php 
+use Magento\Framework\App\Action\Action;
+	$enable = $block->getConfigSys('enabled');
+	if($enable < 1) return ; 
+	$items = $block->getConfig('items');
+	$speed = $block->getConfig('speed');
+	$qty = $block->getConfig('qty');
+	$title = $block->getTitle();
+	$showCart = $block->getConfig('addtocart');
+	$showWishlist = $block->getConfig('wishlist');
+	$showCompare = $block->getConfig('compare');
+	$show_navigation = $block->getConfig('navigation');
+	$show_pagination = $block->getConfig('pagination');
+	$auto = $block->getConfig('auto');
+	$imageBlock =  $block->getLayout()->createBlock('Magento\Catalog\Block\Product\Image');
+	$image = 'new_products_content_widget_grid';
+	$type = 'widget-new-grid';
+	$templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::DEFAULT_VIEW;
+	$rows = $block->getConfig('row');
+	$id          = 'producttab_'.$block->getConfig('identify');
+	$producttabIds = $block->getProducttabIds();
+	$producttabIds = explode(',', $producttabIds);
+	$config = $this->getData();
+	$config['tab_indentifier'] = $id;
+	$config_tab = json_encode($config);
+	$config_tab = strtr(rtrim(base64_encode($config_tab), '='), '+/', '-_');
+	$nb_column1 = $this->getConfig('nb_column1', 5);
+	$nb_column2 = $this->getConfig('nb_column2', 4);
+	$nb_column3 = $this->getConfig('nb_column3', 3);
+	$nb_column4 = $this->getConfig('nb_column4', 2);
+	$nb_column5 = $this->getConfig('nb_column5', 2);
+?>
+<div id="<?php echo $id ?>" class="producttab first <?php echo $this->getConfig('customClass') ?> ">
+	<div class="protabs_title">
+			<?php echo $title ?>
+	</div>
+	<div class="protabs_wrapper">
+		<div class="protabs_container" data-ajaxurl="<?php echo $block->getUrl('producttab/index/index');?>" 
+									   data-producttab_id = <?php echo $id ?> >
+				<div class="protabs_row">
+					<span class="protab_isactive" style="display:none;"></span>
+						<ul class="protabs cf">
+							<?php $k = 0; foreach ($producttabIds as $tab_id) { 
+								$tabName = $block->getNameTab($tab_id);
+								if($tabName) {
+							?>
+									<li class="protab <?php echo $block->isTabActionF($tab_id) ? 'protab_active protab_loaded' : ''; ?>" data-protab-id="<?php echo $tab_id; ?>" data-active-content=".protab-items-<?php echo $tab_id; ?>">
+										<span class="protab_title">
+											<?php echo __($tabName); ?>
+										</span>
+									</li>
+							<?php } $k++; }?>
+						</ul>
+				</div>
+		</div>
+		<div class="protab_items_container show-slider">
+			<div class="protabFirst_loading"></div>
+			<?php $j=0 ; foreach($producttabIds as $tab_id) { ?>
+				<div class="protab_items protab-items-<?php echo $tab_id; ?> <?php echo $block->isTabActionF($tab_id) ? ' protab_items_active protab_items_loaded protab_item_preload' : ''; ?>">
+					<div class="products-grid protab_items_inner">
+						<?php if($block->isTabActionF($tab_id)){
+							$data = $config;
+							$_productCollection = $block->getProductCollection($tab_id);
+							$_collectionSizeT = $_productCollection->count();
+							$data['productCollection'] = $_productCollection;
+						?>
+							<?php echo $block->getProductHtml($data);?>
+						<?php }else{?>
+							<div class="protab_loading"></div>
+						<?php }?>
+					</div>
+			   </div>
+			<?php $j++;} ?>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+require(['jquery','mage/mage','themevast/owl'], function () {
+	jQuery(document).ready(function ($) {
+		;
+		(function (element) {
+			var $element = $(element),
+				$protab = $('.protab', $element),
+				$protabs = $('.protabs', $element),
+				ajax_url = $protabs.parents('.protabs_container').attr('data-ajaxurl'),
+				producttabRandomId = $protabs.parents('.protabs_container').attr('data-productab_id'),
+				$protab_items = $('.protab_items', $element),
+				$protab_items_inner = $('.protab_items_inner', $protab_items),
+				$protab_items_active = $('.protab_items_active', $element),
+				$protab_isactive = $('.protab_isactive', $element);
+				$protab.on('click', function () {
+					var $this = $(this);
+					if ($this.hasClass('protab_active')) return false;
+					$protab.removeClass('protab_active');
+					$this.addClass('protab_active');
+					var protab_active = $this.attr('data-active-content');
+					var _protab_active = $(protab_active, $element);
+					$protab_items.removeClass('protab_items_active');
+					_protab_active.addClass('protab_items_active');
+					$protab_isactive.html($protab.filter('.protab_active').children('.protab_title').html());
+					var $protab_loading = $('.protab_loading', _protab_active);
+					var loaded = _protab_active.hasClass('protab_items_loaded');
+
+					if (!loaded && !_protab_active.hasClass('protab_process')) {
+						_protab_active.addClass('protab_process');
+						var protab_id = $this.attr('data-protab-id');
+						$protab_loading.show();
+						$.ajax({
+							type: 'POST',
+							url: ajax_url,
+							dataType: 'json',
+							data: {
+								is_ajax_protab: 1,
+								protabId: protab_id,
+								protabconfig: '<?php echo $config_tab; ?>',
+							},
+							success: function (data) {
+								if (data.protab_ajax_data != '') {
+									$('.protab_items_inner', _protab_active).html(data.protab_ajax_data);
+									_protab_active.addClass('protab_items_loaded').removeClass('protab_process');
+									$protab_loading.remove();
+										ProTabSlider($('.protab_items_inner', _protab_active));
+								}
+							},	
+						});
+
+					} else {
+						var owl = $('.protab_items_inner', _protab_active);
+						owl = owl.data('owlCarousel');
+						if (typeof owl === 'undefined') {
+						} else {
+							owl.onResize();
+						}
+					}
+				});
+
+			if ($('.protab_items_inner', $element).parent().hasClass('protab_items_active')) {
+				var protab_active = $('.protab.protab_active', $element).attr('data-active-content');
+				var _protab_active = $(protab_active, $element);
+				setTimeout(function () {
+					$('.protabFirst_loading', $element).remove();
+					_protab_active.removeClass('protab_item_preload');
+					ProTabSlider($('.protab_items_inner', _protab_active));
+					//SliderBestCat($('.protab_items_inner', _protab_active));
+				}, 500);
+				
+			}
+			function ProTabSlider($protab_items_inner) {
+				$owl_tab_slider = $('.protab_owl',$protab_items_inner);
+				$owl_tab_slider.owlCarousel({
+					items : 5,
+					autoPlay : <?php if($auto) echo 'true'; else echo 'false'; ?>,
+					slideSpeed : <?php if($speed) echo $speed; else echo '500'; ?>,
+					navigation : <?php if($show_navigation) echo 'true'; else echo 'false'; ?>,
+					stopOnHover : true,
+					pagination : <?php if($show_pagination) echo 'true'; else echo 'false'; ?>,
+					responsive: {
+						0: {
+							items:<?php echo $nb_column5;?>
+						},
+						480: {
+							items:<?php echo $nb_column4;?>
+						},
+						768: {
+							items:<?php echo $nb_column3;?>
+						},
+						991: {
+							items:<?php echo $nb_column2;?>
+						},						
+						1200: {
+							items:<?php echo $nb_column1;?>
+						}
+					}
+				});
+			}
+		})('#<?php echo $id; ?>');
+	});
+});
+</script>

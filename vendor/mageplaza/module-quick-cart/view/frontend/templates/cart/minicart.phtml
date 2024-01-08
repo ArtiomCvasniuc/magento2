@@ -1,0 +1,75 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_QuickCart
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+/** @var \Magento\Checkout\Block\Cart\Sidebar $block */
+?>
+
+<div class="minicart-wrapper">
+    <div class="mpquickcart-icon-wrapper">
+        <a class="action showcart" data-bind="scope: 'minicart_content'"
+            <?php if (!$block->getIsNeedToDisplaySideBar()) : ?>
+                href="<?= $block->escapeUrl($block->getShoppingCartUrl()) ?>"
+            <?php endif ?>>
+            <span class="text"><?= $block->escapeHtml(__('My Cart')) ?></span>
+            <span class="counter qty empty"
+                  data-bind="css: { empty: !!getCartParam('summary_count') == false }, blockLoader: isLoading">
+                <span class="counter-number"><!-- ko text: getCartParam('summary_count') --><!-- /ko --></span>
+                <span class="counter-label">
+                <!-- ko if: getCartParam('summary_count') -->
+                    <!-- ko text: getCartParam('summary_count') --><!-- /ko -->
+                    <!-- ko i18n: 'items' --><!-- /ko -->
+                <!-- /ko -->
+                </span>
+            </span>
+        </a>
+    </div>
+    <?php if ($block->getIsNeedToDisplaySideBar()) : ?>
+        <div id="minicart-content-wrapper" data-bind="scope: 'minicart_content'">
+            <div class="minicart-wrapper" data-block="minicart" data-bind="afterRender: setModalElement">
+                <div class="block block-minicart">
+                    <!-- ko template: getTemplate() --><!-- /ko -->
+                </div>
+            </div>
+        </div>
+        <?= $block->getChildHtml('minicart.addons') ?>
+    <?php else : ?>
+        <script type="text/javascript">
+            require(['jquery'], function ($) {
+                $('a.action.showcart').click(function() {
+                    $(document.body).trigger('processStart');
+                });
+            });
+        </script>
+    <?php endif ?>
+    <script>
+        window.checkout = <?= /* @noEscape */ $block->getSerializedConfig() ?>;
+    </script>
+    <script type="text/x-magento-init">
+    {
+        "[data-block='minicart']": {
+            "Magento_Ui/js/core/app": <?= /* @noEscape */ $block->getJsLayout() ?>
+        },
+        "*": {
+            "Magento_Ui/js/block-loader": "<?= /* @noEscape */ $block->getViewFileUrl('images/loader-1.gif') ?>"
+        }
+    }
+    </script>
+</div>

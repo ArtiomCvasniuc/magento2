@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_SpecialPromotions
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="adminhtml.block.promo.quote.grid">
+            <block class="Magento\Backend\Block\Widget\Grid\Massaction" name="adminhtml.promo.grid.grid.massaction" as="grid.massaction">
+                <arguments>
+                    <argument name="massaction_id_field" xsi:type="string">rule_id</argument>
+                    <argument name="form_field_name" xsi:type="string">rule_ids</argument>
+                    <argument name="use_select_all" xsi:type="string">1</argument>
+                    <argument name="options" xsi:type="array">
+                        <item name="delete" xsi:type="array">
+                            <item name="label" xsi:type="string" translate="true">Delete</item>
+                            <item name="url" xsi:type="string">*/*/massDelete</item>
+                            <item name="confirm" xsi:type="string" translate="true">Are you sure?</item>
+                        </item>
+                        <item name="active" xsi:type="array">
+                            <item name="label" xsi:type="string" translate="true">Activate</item>
+                            <item name="url" xsi:type="string">*/*/massActive</item>
+                            <item name="confirm" xsi:type="string" translate="true">Are you sure?</item>
+                        </item>
+                        <item name="inactive" xsi:type="array">
+                            <item name="label" xsi:type="string" translate="true">Inactivate</item>
+                            <item name="url" xsi:type="string">*/*/massInactive</item>
+                            <item name="confirm" xsi:type="string" translate="true">Are you sure?</item>
+                        </item>
+                    </argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+        <referenceBlock name="adminhtml.promo.quote.grid.columnSet">
+            <block class="Magento\Backend\Block\Widget\Grid\Column" name="adminhtml.promo.quote.grid.columnSet.type" as="type">
+                <arguments>
+                    <argument name="header" xsi:type="string" translate="true">Discount Type</argument>
+                    <argument name="index" xsi:type="string">simple_action</argument>
+                    <argument name="type" xsi:type="string">options</argument>
+                    <argument name="options" xsi:type="options" model="Mageplaza\SpecialPromotions\Model\Config\Source\RuleType"/>
+                </arguments>
+            </block>
+            <block class="Magento\Backend\Block\Widget\Grid\Column" name="adminhtml.promo.quote.grid.columnSet.discount" as="discount">
+                <arguments>
+                    <argument name="header" xsi:type="string" translate="true">Discount Amount</argument>
+                    <argument name="index" xsi:type="string">discount_amount</argument>
+                    <argument name="type" xsi:type="string">number</argument>
+                </arguments>
+            </block>
+            <block class="Magento\Backend\Block\Widget\Grid\Column" name="adminhtml.promo.quote.grid.columnSet.itemAction" as="item_action">
+                <arguments>
+                    <argument name="header" xsi:type="string" translate="true">Additional Item Action</argument>
+                    <argument name="index" xsi:type="string">item_action</argument>
+                    <argument name="type" xsi:type="string">options</argument>
+                    <argument name="options" xsi:type="options" model="Mageplaza\SpecialPromotions\Model\Config\Source\ItemAction"/>
+                </arguments>
+            </block>
+            <block class="Magento\Backend\Block\Widget\Grid\Column" name="adminhtml.promo.quote.grid.columnSet.action" as="action">
+                <arguments>
+                    <argument name="header" xsi:type="string" translate="true">Action</argument>
+                    <argument name="filter" xsi:type="string">0</argument>
+                    <argument name="sortable" xsi:type="string">0</argument>
+                    <argument name="renderer" xsi:type="string">Mageplaza\SpecialPromotions\Block\Adminhtml\Grid\Renderer\Action</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+    </body>
+</page>

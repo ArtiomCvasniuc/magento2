@@ -1,0 +1,478 @@
+<?php
+/**
+ * Apptha
+ * NOTICE OF LICENSE
+ * This source file is subject to the EULA
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://www.apptha.com/LICENSE.txt
+ * ==============================================================
+ * MAGENTO EDITION USAGE NOTICE
+ * ==============================================================
+ * This package designed for Magento COMMUNITY edition
+ * Apptha does not guarantee correct work of this extension
+ * on any other Magento edition except Magento COMMUNITY edition.
+ * Apptha does not provide extension support in case of
+ * incorrect edition usage.
+ * ==============================================================
+ *
+ * @category Apptha
+ * @package Apptha_Marketplace
+ * @version 1.2
+ * @author Apptha Team <developers@contus.in>
+ * @copyright Copyright (c) 2017 Apptha. (http://www.apptha.com)
+ * @license http://www.apptha.com/LICENSE.txt
+ */
+
+if (file_exists("conf/conf.php"))
+  @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer ();
+if ($customerSession->isLoggedIn()) {
+  $customerId = $customerSession->getId();
+  $customerGroupId = $customerDatas->getGroupId();
+  $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+  $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+  $sellerGroupId = $sellerGroupData->getId();
+  $status = $helper->sellerStatus($customerId);
+}
+$OrderItemCollection = $block->getCollection();
+$currencyCode = $block->getCurrencyCode();
+$currencySymbol = $block->getCurrencySymbol($currencyCode);
+foreach ($OrderItemCollection as $item) {
+  $sellerId = $item->getSellerId();
+  $orderId = $item->getOrderId();
+  $customerId = $item->getCustomerId();
+  $sellerOrder[] = $block->getTodayOrder($orderId, $sellerId, $customerId, $flag = '1');
+  $lastWeekOrder[] = $block->getLastWeekIncome($orderId, $sellerId, $customerId, $flag = '2');
+  $lastMonthOrder[] = $block->getLastMonthIncome($orderId, $sellerId, $customerId, $flag = '3');
+  $lastYearOrder[] = $block->getLastYearIncome($orderId, $sellerId, $customerId, $flag = '4');
+}
+$count = (!isset($sellerOrder) || is_null($sellerOrder)) ? '0' : count(array_filter($sellerOrder));
+
+$date = date("Y-m-d");
+
+$query_sum_today_amount = "SELECT sum(seller_product_total) as total, count(id) as count ";
+$query_sum_today_amount .= "FROM mgkf_marketplace_sellerorder ";
+$query_sum_today_amount .= "WHERE seller_id = '".$sellerId."' ";
+$query_sum_today_amount .= "AND created_at LIKE '%".$date."%'";
+$result_sum_today_amount = $conn->query($query_sum_today_amount);
+$row_sum_today_amount = $result_sum_today_amount->fetch_assoc();
+$totalSumTodayAmount = number_format($row_sum_today_amount['total'], 2, '.', '');
+$countTodayOrders = $row_sum_today_amount['count'];
+
+$dateWeek = date("Y-m-d", strtotime("-7 days"));
+$dateMonth = date("Y-m-d", strtotime("-1 month"));
+$dateYear = date("Y-m-d", strtotime("-1 year"));
+
+$query_week_income = "SELECT sum(seller_product_total) as total ";
+$query_week_income .= "FROM mgkf_marketplace_sellerorder ";
+$query_week_income .= "WHERE seller_id = '".$sellerId."' ";
+$query_week_income .= "AND created_at >= '".$dateWeek."'";
+$result_week_income = $conn->query($query_week_income);
+$row_week_income = $result_week_income->fetch_assoc();
+$lastWeekIncome = number_format($row_week_income['total'], 2, '.', '');
+
+$query_month_income = "SELECT sum(seller_product_total) as total ";
+$query_month_income .= "FROM mgkf_marketplace_sellerorder ";
+$query_month_income .= "WHERE seller_id = '".$sellerId."' ";
+$query_month_income .= "AND created_at >= '".$dateMonth."'";
+$result_month_income = $conn->query($query_month_income);
+$row_month_income = $result_month_income->fetch_assoc();
+$lastMonthIncome = number_format($row_month_income['total'], 2, '.', '');
+
+$query_year_income = "SELECT sum(seller_product_total) as total ";
+$query_year_income .= "FROM mgkf_marketplace_sellerorder ";
+$query_year_income .= "WHERE seller_id = '".$sellerId."' ";
+$query_year_income .= "AND created_at >= '".$dateYear."'";
+$result_year_income = $conn->query($query_year_income);
+$row_year_income = $result_year_income->fetch_assoc();
+$lastYearIncome = number_format($row_year_income['total'], 2, '.', '');
+
+if(isset($_POST['currency'])) {
+  $countries = $_POST['country'];
+  $country = "'".implode(', ', $countries)."'";
+  $currency = $_POST['currency'];
+  $symbol = $_POST['symbol'];
+
+  $query = "INSERT INTO mgkf_marketplace_currency (country, currency, symbol) ";
+  $query .= "VALUES ('".$country."', '".$currency."', '".$symbol."')";
+  $result = $conn->query($query);
+}
+if(isset($_POST['delete_currency_id'])) {
+  $id = $_POST['delete_currency_id'];
+
+  $query = "DELETE FROM mgkf_marketplace_currency ";
+  $query .= "WHERE id = $id";
+  $result = $conn->query($query);
+}
+if(isset($_POST['edit_currency_id'])) {
+  $country = $_POST['country'];
+  $currency = $_POST['currency'];
+  $symbol = $_POST['symbol'];
+  $id = $_POST['edit_currency_id'];
+
+  $query = "UPDATE mgkf_marketplace_currency ";
+  $query .= "SET country = '".$country."', ";
+  $query .= "currency = '".$currency."', ";
+  $query .= "symbol = '".$symbol."' ";
+  $query .= "WHERE id = $id";
+  $result = $conn->query($query);
+}
+
+if ($customerId == 10 || $customerId == 11) {
+
+  $brand_name = $_POST['brand_name'];
+  if(isset($_POST['confirm'])) {
+    $query_1 = "UPDATE mgkf_marketplace_brand_requests ";
+    $query_1 .= "SET status = 1 ";
+    $query_1 .= "WHERE brand_name = '".$brand_name."'";
+    $result_1 = $conn->query($query_1);
+
+    $query_2 = "UPDATE mgkf_marketplace_seller_products ";
+    $query_2 .= "SET status = 'Enabled' ";
+    $query_2 .= "WHERE brand = '".$brand_name."'";
+    $result_2 = $conn->query($query_2);
+  }
+  if(isset($_POST['disprove'])) {
+    $query = "DELETE FROM mgkf_marketplace_brand_requests ";
+    $query .= "WHERE brand_name = '".$brand_name."'";
+    $result = $conn->query($query);
+  }
+  ?>
+  <h3>Marketplace Settings</h3>
+  <?php
+  $query_brand_requests = "SELECT status FROM mgkf_marketplace_brand_requests ";
+  $query_brand_requests .= "WHERE status = 0";
+  $result_query_requests = $conn->query($query_brand_requests);
+  $row_cnt = mysqli_num_rows($result_query_requests);
+  ?>
+  <div class="col-md-12">
+    <div class="col-md-4">
+      <button onclick="show_tva()" type="button" class="btn btn-primary" name="set_tva" id="set_tva">Manage VAT Commission</button>
+    </div>
+    <div class="col-md-4">
+      <button onclick="manage_currencies()" type="button" class="btn btn-primary" name="currency" id="currency">Marketplace Currencies</button>
+    </div>
+    <div class="col-md-4">
+      <button onclick="brand_requests()" type="button" class="btn btn-primary" name="brand_requests" id="brand_requests">Brand Requests &nbsp;&nbsp;&nbsp;
+        <?php if($row_cnt != 0) { ?>
+          <div class="requests_counter">
+            <span class="nr">
+              <?php echo $row_cnt; ?>
+            </span>
+          </div>
+        <?php
+        }
+        else { ?>
+          <div class="requests_counter">
+            <span class="nr">
+              <?php echo '0'; ?>
+            </span>
+          </div>
+        <?php } ?>
+      </button>
+    </div>
+  </div>
+  <br><br>
+  <?php
+  $query_brands = "SELECT DISTINCT(customer_firstname), customer_lastname, seller_id, brand_name, status ";
+  $query_brands .= "FROM mgkf_marketplace_brand_requests, mgkf_quote ";
+  $query_brands .= "WHERE seller_id = customer_id ";
+  $query_brands .= "AND status = 0";
+  $result_brands = $conn->query($query_brands);
+
+  $query_brands_confirmed = "SELECT DISTINCT(customer_firstname), customer_lastname, seller_id, brand_name, status ";
+  $query_brands_confirmed .= "FROM mgkf_marketplace_brand_requests, mgkf_quote ";
+  $query_brands_confirmed .= "WHERE seller_id = customer_id ";
+  $query_brands_confirmed .= "AND status = 1";
+  $result_brands_confirmed = $conn->query($query_brands_confirmed);
+  ?>
+  <div class="col-md-12">
+    <div id="brands_list" style="display:none;">
+      <br><br>
+      <h4>Requests from Vendors</h4>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th><b>#</b></th>
+            <th><b>Brand Name</b></th>
+            <th><b>Vendor's Firstname</b></th>
+            <th><b>Vendor's Lastname</b></th>
+            <th><b>Action</b></th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php
+          $i = 1;
+          while ($row_brands = $result_brands->fetch_assoc()){ ?>
+              <tr>
+                <td><?php echo $i; ?></td>
+                <td><?php echo $row_brands['brand_name']; ?></td>
+                <td><?php echo $row_brands['customer_firstname'];?></td>
+                <td><?php echo $row_brands['customer_lastname'];?></td>
+              <td>
+              <form action="" method="post">
+                <input type="hidden" name="brand_name" value="<?php echo $row_brands['brand_name']; ?>" />
+                <button type="submit" name="confirm" class="btn btn-success">Confirm</button>
+                <button type="submit" name="disprove" class="btn btn-danger">Disprove</button>
+              </form>
+          <?php
+            $i++;
+          }
+          ?>
+        </tbody>
+      </table>
+      <br><br>
+      <h4>Confirmed Brands</h4>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th><b>#</b></th>
+            <th><b>Brand Name</b></th>
+            <th><b>Vendor's Firstname</b></th>
+            <th><b>Vendor's Lastname</b></th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php
+          $i = 1;
+          while ($row_brands_confirmed = $result_brands_confirmed->fetch_assoc()){ ?>
+              <tr>
+                <td><?php echo $i; ?></td>
+                <td><?php echo $row_brands_confirmed['brand_name']; ?></td>
+                <td><?php echo $row_brands_confirmed['customer_firstname'];?></td>
+                <td><?php echo $row_brands_confirmed['customer_lastname'];?></td>
+              <td>
+          <?php $i++; } ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-md-12">
+    <div id="tva" style="display:none;">
+      <form method="POST" action="/test.php">
+        <div class="form-group">
+          <label for="tva">Set TVA</label>
+          <input name="tva" type="number" class="form-control" id="tva" placeholder="Enter TVA">
+        </div>
+        <div class="form-group">
+          <label for="country">Choose country</label>
+          <select name="owner">
+            <option name="choose">Choose a country</option>
+            <?php
+            $sql = mysqli_query($conn, "SELECT DISTINCT(`country_id`) FROM `mgkf_customer_address_entity` ");
+            while ($row = $sql->fetch_assoc()){
+            echo "<option value=\"owner1\">" . $row['country_id'] . "</option>";
+            }
+            ?>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" name="update" id="update">Submit</button>
+      </form>
+    </div>
+    <div id="currencies" style="display:none;">
+      <button onclick="list_currencies()" type="button" class="btn btn-default" name="list_currencies" id="list_currencies">List Currencies</button>
+      <button onclick="add_currency()" type="button" class="btn btn-default" name="add_currency" id="add_currency">Add Currency</button>
+    </div>
+    <div id="list" style="display:none;">
+      <br>
+      <?php
+      $query = "SELECT * FROM mgkf_marketplace_currency";
+      $result = $conn->query($query);
+      ?>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Countries</th>
+            <th>Currency ISO Code</th>
+            <td>Symbol</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php
+          $i=1;
+          while ($row = $result->fetch_assoc()){ ?>
+            <tr>
+              <td><?php echo $i; ?></td>
+              <td><?php echo $row['country']; ?></td>
+              <td><?php echo $row['currency']; ?></td>
+              <td><?php echo $row['symbol']; ?></td>
+              <td>
+                <form action="" method="post">
+                    <a data-toggle="collapse" href="#collapse<?php echo $i; ?>"><i class="fa fa-edit" aria-hidden="true"></i></a>
+                    <input type="hidden" name="delete_currency_id" value="<?php echo $row['id']; ?>">
+                    <button class="btn delete"><i class="fa fa-trash"></i></button>
+                </form>
+              </td>
+            </tr>
+            <div class="collapse" id="collapse<?php echo $i; ?>">
+              <form action="" method="post">
+                <div class="col-md-6">
+                  Country:<input type="text" value="<?php echo $row['country']; ?>" id="country" name="country">
+                  Currency:<input type="text" value="<?php echo $row['currency']; ?>" id="currency" name="currency">
+                  Symbol:<input type="text" value="<?php echo $row['symbol']; ?>" id="symbol" name="symbol">
+                  <input type="hidden" name="edit_currency_id" value="<?php echo $row['id']; ?>">
+                  <br />
+                  <button type="submit" class="btn btn-primary save">Save</button>
+                </div>
+              </form>
+            </div>
+          <?php
+          $i++; }
+          ?>
+        </tbody>
+      </table>
+    </div>
+    <div id="add" style="display:none;">
+      <br><br>
+      <form action="" method="post">
+      <?php
+        include ('/countries.php');
+      ?>
+        <div class="form-group">
+          <label for="country">Choose Country</label>
+          <select multiple class="form-control" id="country" name="country[]" required>
+            <?php
+              for ($i = 0; $i < count($country_array); $i++) {
+                echo "<option value='$country_array[$i]'>$country_array[$i]</option>"; } ?>
+          </select>
+          ?>
+          <div class="alert alert-info alert-dismissible">
+            <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('hold_ctrl_click')->toHtml();?>
+          </div>
+        </div>
+        <div class="form-row col-md-12">
+          <div class="form-group col-md-6">
+            <label for="currency">Currency</label>
+            <input type="text" class="form-control" id="currency" name="currency" placeholder="Enter Currency" required>
+          </div>
+          <div class="form-group col-md-6">
+            <label for="symbol">Currency Symbol</label>
+            <input type="text" class="form-control" id="symbol" name="symbol" placeholder="Enter Currency Symbol" required>
+          </div>
+        </div>
+        <div class="form-row col-md-12">
+          <button type="submit" class="btn btn-primary save">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+<?php
+}
+else { ?>
+    <h3 class="font-weight-bold mt-3">
+      <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('your_income')->toHtml();?>
+    </h3>
+  </div>
+    <div class="gx-lg-3 g-0 row">
+    <div class="col-lg-12 col-xl-5 px-2">
+      <div class="g-3 row">
+        <div class="col-6">
+          <div class="shadow rounded p-4 p-xl-5 h-100 d-flex flex-column align-items-center justify-content-center text-center">
+            <h4 class="font-weight-bold">
+              <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('today_sales')->toHtml();?>
+            </h4>
+            <p class="h5">
+              <?php echo is_null($totalSumTodayAmount) ? '0' : $totalSumTodayAmount . ' ' . $currencySymbol; ?>
+            </p>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="shadow rounded p-4 p-xl-5 h-100 d-flex flex-column align-items-center justify-content-center text-center">
+            <h4 class="font-weight-bold">
+              <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('today_orders')->toHtml();?>
+            </h4>
+            <p class="h5">
+              <?php echo $countTodayOrders; ?>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+     <div class="col-lg-12 col-xl-7 px-2">
+       <div class="gx-lg-3 gy-3 gy-xl-0 mt-0 row">
+             <div class="col-12 col-md-4 text-center">
+               <div class="shadow rounded p-4 p-xl-5 h-100 d-flex flex-column align-items-center justify-content-center">
+                 <h4 class="font-weight-bold">
+                   <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('last_week')->toHtml();?>
+                 </h4>
+                 <p class="h5">
+                 <?php echo is_null($lastWeekIncome) ? '0 '. $currencySymbol : $lastWeekIncome . ' ' . $currencySymbol;?>
+                 </p>
+               </div>
+             </div>
+             <div class="col-12 col-md-4 text-center">
+               <div class="shadow rounded p-4 p-xl-5 h-100 d-flex flex-column align-items-center justify-content-center">
+                 <h4 class="font-weight-bold">
+                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('last_month')->toHtml();?>
+                 </h4>
+                 <p class="h5">
+                    <?php echo is_null($lastMonthIncome) ? '0 '. $currencySymbol : $lastMonthIncome . ' ' . $currencySymbol;?>
+                 </p>
+               </div>
+             </div>
+             <div class="col-12 col-md-4 text-center">
+               <div class="shadow rounded p-4 p-xl-5 h-100 d-flex flex-column align-items-center justify-content-center">
+                 <h4 class="font-weight-bold">
+                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('last_year')->toHtml();?>
+                 </h4>
+                 <p class="h5">
+                    <?php echo is_null($lastYearIncome) ? '0 '. $currencySymbol : $lastYearIncome . ' ' . $currencySymbol;?>
+                 </p>
+               </div>
+             </div>
+           </div>
+      </div>
+      </div>
+  <div class="row gx-0 gx-xl-3">
+  <div class="col-lg-6 px-2">
+     <h3 class="font-weight-bold mt-5">
+        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('orders')->toHtml();?>
+      </h3>
+      <div class="shadow d-flex justify-content-center overflow-hidden rounded">
+        <?php echo $block->getChildHtml('seller_orders'); ?>
+      </div>
+    </div>
+    <div class="col-lg-6 px-2">
+       <?php
+          echo $block->getChildHtml('seller_mostviewed');
+        ?>
+      </div>
+  </div>
+<?php } ?>
+<script>
+function show_tva() {
+  document.getElementById("tva").style.display = "block";
+  document.getElementById("currencies").style.display = "none";
+  document.getElementById("brands_list").style.display = "none;"
+}
+function manage_currencies() {
+  document.getElementById("currencies").style.display = "block";
+  document.getElementById("tva").style.display = "none";
+  document.getElementById("brands_list").style.display = "none";
+}
+function list_currencies() {
+  document.getElementById("list").style.display = "block";
+  document.getElementById("add").style.display = "none";
+}
+function add_currency() {
+  document.getElementById("add").style.display = "block";
+  document.getElementById("list").style.display = "none";
+}
+function brand_requests() {
+  document.getElementById("tva").style.display = "none";
+  document.getElementById("currencies").style.display = "none;"
+  document.getElementById("brands_list").style.display = "block";
+}
+</script>

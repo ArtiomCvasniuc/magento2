@@ -1,0 +1,29 @@
+<?php
+/**
+ * Copyright © 2015 MageWorx. All rights reserved.
+ * See LICENSE.txt for license details.
+ */
+
+$containers = $block->getCustomLinkContainer()->getData();
+?>
+
+<?php if (!empty($containers)) { ?>
+    <?php  foreach ($containers as $container) { ?>
+        <?php if (!empty($container['section_title'] && !empty($container['items']))) { ?>
+            <div class="xsitemap-pages">
+                <h3><?php echo $block->escapeHtml($container['section_title']) ?></h3>
+                <ul class="pages">
+                    <?php foreach ($container['items'] as $item) { ?>
+                        <?php if (!empty($item['title']) && !empty($item['url'])) { ?>
+                        <li class="page-url">
+                            <a href="<?php echo $block->escapeUrl($item['url']) ?>">
+                                <?php echo $block->escapeHtml($item['title']) ?>
+                            </a>
+                        </li>
+                        <?php } ?>
+                    <?php } ?>
+                </ul>
+            </div>
+        <?php } ?>
+    <?php } ?>
+<?php }

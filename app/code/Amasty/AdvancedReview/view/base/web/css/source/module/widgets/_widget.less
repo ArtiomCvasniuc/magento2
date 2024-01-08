@@ -1,0 +1,94 @@
+//
+//  Advanced Review Widget Base Styles
+//  ______________________________________________
+
+//
+//  Common
+//  ----------------------------------------------
+
+& when (@media-common = true) {
+    .amreview-widget-title {
+        display: block;
+        box-sizing: border-box;
+        margin: 0;
+        padding: @amrev__indent;
+        max-width: 100%;
+        width: 100%;
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    .amreview-widget-container {
+        // Slick slider styles
+        .slick-arrow {
+            z-index: 1;
+        }
+
+        .slick-dots {
+            & {
+                position: relative;
+                padding: @amrev__indent 0;
+            }
+
+            li {
+                .am-flex(center, center);
+
+                display: inline-flex;
+                margin: 0 2px;
+            }
+
+            button {
+                & {
+                    width: @amrev__indent;
+                    height: @amrev__indent;
+                    border: 1px solid #b3b3b3;
+                    border-radius: @amrev__indent;
+                }
+
+                &:before {
+                    font-size: 0;
+                }
+            }
+
+            .slick-active button {
+                background: #333;
+            }
+        }
+        // END Slick slider styles
+    }
+
+    // Pagebuilder styles
+    .pagebuilder-content-type {
+        .amreview-review-items {
+            list-style: none;
+        }
+
+        .amreviews .amreviews-placeholder {
+            .am-flex(center, center);
+
+            min-height: 300px;
+            background-color: @amreview-placeholder__color;
+        }
+    }
+    // END Pagebuilder styles
+}
+
+//
+//  Tablet
+//  --------------------------------------------
+
+.media-width(@extremum, @break) when (@extremum = 'min') and (@break = @screen__m) {
+    .amreview-widget-title {
+        padding: @amrev__indent 35px;
+    }
+}
+
+//
+//  Desktop
+//  --------------------------------------------
+
+@media screen and (min-width: @screen__l), print {
+    .page-main .amreview-widget-title {
+        padding: @amrev__indent__xxl 0 @amrev__indent__xl;
+    }
+}

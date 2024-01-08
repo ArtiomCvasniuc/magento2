@@ -1,0 +1,30 @@
+<?php
+/**
+ * @author Amasty Team
+ * @copyright Copyright (c) 2020 Amasty (https://www.amasty.com)
+ * @package Amasty_AdvancedReview
+ */
+
+/** @var Amasty\AdvancedReview\Block\Widget\ProductReviews $block */
+
+$isEmpty = !$block->getReviewCollection()->getSize();
+?>
+<h2 class="amreview-widget-title">
+    <?= $block->escapeHtml($block->getTitle()) ?>
+</h2>
+<div class="amreview-widget-container -summary-widget -<?= $block->escapeHtmlAttr($block->getView()); ?>
+    <?= /* @noEscape */ $isEmpty ? '-empty' : ''; ?>">
+    <?= /* @noEscape */ $block->getProductView() ?>
+    <div data-mage-init='{"Magento_Ui/js/modal/modal": {
+            "modalClass": "amreview-popup",
+            "type": "popup",
+            "trigger": "#amreview-form-<?= (int)$block->getProductId() ?>",
+            "responsive": true,
+            "slideTpl": false,
+            "buttons": []
+         }}'
+         hidden>
+        <?= /* @noEscape */ $block->getAddReviewForm() ?>
+    </div>
+    <?= /* @noEscape */ $block->getReviewsList() ?>
+</div>

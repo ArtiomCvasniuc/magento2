@@ -1,0 +1,1482 @@
+<?php
+/**
+ * Apptha
+ * NOTICE OF LICENSE
+ * This source file is subject to the EULA
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://www.apptha.com/LICENSE.txt
+ * ==============================================================
+ * MAGENTO EDITION USAGE NOTICE
+ * ==============================================================
+ * This package designed for Magento COMMUNITY edition
+ * Apptha does not guarantee correct work of this extension
+ * on any other Magento edition except Magento COMMUNITY edition.
+ * Apptha does not provide extension support in case of
+ * incorrect edition usage.
+ * ==============================================================
+ *
+ * @category Apptha
+ * @package Apptha_Marketplace
+ * @version 1.2
+ * @author Apptha Team <developers@contus.in>
+ * @copyright Copyright (c) 2017 Apptha. (http://www.apptha.com)
+ * @license http://www.apptha.com/LICENSE.txt
+ */
+
+if (file_exists("conf/conf.php"))
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+
+$uri = $_SERVER['REQUEST_URI'];
+$uri_parts = explode("/", $uri);
+$_lang = $uri_parts[1];
+
+/**
+ * Checking whether product add/edit
+ */
+$productId = $this->getRequest()->getParam('product_id');
+$name = $sku = $price = $description = $weight = $metakeyword = $metaDescription = $qty = $baseImage = $status = $specialPrice = $specialPriceFromDate = $specialPriceToDate = $type = $typeId = '';
+$nationalShippingAmount = $internationalShippingAmount = '';
+$isInStock = 1;
+$productCategoryIds = $mediaGallery = array();
+if (!empty($productId)) {
+    $productData = $block->getProductData($productId);
+    $name = $productData->getName();
+    $sku = $productData->getSku();
+    $typeId = $productData->getTypeId();
+    $price = round($productData->getPrice(), 2);
+    $specialPrice = $productData->getSpecialPrice();
+    if ($specialPrice != '') {
+        $specialPrice = round($productData->getSpecialPrice(), 2);
+    }
+    $specialPriceFromDate = $productData->getSpecialFromDate();
+    $specialPriceToDate = $productData->getSpecialToDate();
+    if ($specialPriceFromDate != '') {
+        $fromDate = new DateTime($specialPriceFromDate);
+        $specialPriceFromDate = $fromDate->format('m/d/Y ');
+    }
+    if ($specialPriceToDate != '') {
+        $toDate = new DateTime($specialPriceToDate);
+        $specialPriceToDate = $toDate->format('m/d/Y ');
+    }
+    $description = $productData->getDescription();
+    $weight = round($productData->getWeight(), 2);
+    $productCategoryIds = $productData->getCategoryIds();
+    $stockData = $block->getProductStockDataQty($productId);
+    $qty = $stockData->getQty();
+    $isInStock = $stockData->getIsInStock();
+    if (empty($isInStock)) {
+        $isInStock = 0;
+    }
+    $mediaGallery = $productData->getMediaGallery();
+    $baseImage = $productData->getImage();
+    $status = $productData->getStatus();
+    $productApproval = $productData->getProductApproval();
+    $metakeyword = $productData->getMetaKeyword();
+    $metaDescription = $productData->getMetaDescription();
+
+    $nationalShippingAmount = $productData->getNationalShippingAmount();
+    $internationalShippingAmount = $productData->getInternationalShippingAmount();
+}
+/**
+ * Assigning product types
+ */
+$productTypesVal = $block->getProductTypes();
+$productTypes = explode(',', $productTypesVal);
+/**
+ * Setting weight flag for displaying weight field
+ */
+$weightFlag = 0;
+if (in_array('simple', $productTypes)) {
+    $weightFlag = 1;
+}
+if (count($productTypes) >= 1 && $productTypes[0] == 'virtual' || count($productTypes) >= 1 && $productTypes[0] == 'downloadable') {
+    $weightFlag = 0;
+}
+
+$query_seller_currency = "SELECT currency FROM mgkf_marketplace_seller_currency ";
+$query_seller_currency .= "WHERE seller_id = $customerId";
+$result_seller_currency = $conn->query($query_seller_currency);
+$row_seller_currency = $result_seller_currency->fetch_row();
+$seller_currency = $row_seller_currency[0];
+?>
+<div class="mt-3">
+    <div class="shadow py-3 px-4">
+        <form method="post" action="/add.php" enctype="multipart/form-data">
+            <div class="row">
+                <div class="col-sm-6 col-lg-3">
+                    <h4><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('product_details_block')->toHtml(); ?></h4>
+                    <div class="row flex-column">
+                        <div class="col-12">
+                            <label class="form-label">
+                                <?php  echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('name')->toHtml(); ?>
+                            </label>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" name="name" id="name" required>
+                                <span class="input-group-text">
+                                    <i class="fas fa-file-signature"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">
+                                <?php echo 'SKU'; ?>
+                            </label>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" name="sku" id="sku" required>
+                                <span class="input-group-text">
+                                    <i class="fas fa-file-signature"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('price')->toHtml() . ' (' . ucfirst(strtolower($seller_currency)) . ')' ?>
+                            </label>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" name="price" required>
+                                <span class="input-group-text">
+                                    <i class="fas fa-money-bill"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <h4><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount')->toHtml(); ?></h4>
+                    <div class="row flex-column">
+                        <div class="col-12">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type')->toHtml(); ?>
+                            </label>
+                            <div class="input-group mb-2">
+                                <select class="form-select" id="product-discount-type" name="product_discount_type">
+                                    <option></option>
+                                    <?php
+                                    $query_discount_type = "SELECT discount_type ";
+                                    $query_discount_type .= "FROM mgkf_marketplace_discount_type ";
+                                    $query_discount_type .= "ORDER BY discount_type ASC";
+                                    $result_discount_type = $conn->query($query_discount_type);
+                                    while($row_discount_type = $result_discount_type->fetch_assoc()) {
+                                        $option = $row_discount_type['discount_type']; ?>
+                                        <option value="<?php echo $option; ?>"><?php echo $option; ?></option>
+                                    <?php
+                                    }
+                                    ?>
+                                </select>
+                                <span class="input-group-text">
+                                    <i class="fas fa-minus"></i>
+                                </span>
+                                <span style="display:none;" id="product-discount-type-not-selected" class="alert alert-warning">
+                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type_not_selected')->toHtml(); ?>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_from')->toHtml(); ?>
+                            </label>
+                            <div class="input-group mb-2">
+                                <input type="date" class="form-control" id="product-date-from" name="product_date_from" onchange="product_get_selected_date_from();">
+                                <span class="input-group-text">
+                                    <i class="far fa-calendar-plus"></i>
+                                </span>
+                                <span style="display:none;" id="product-date-from-not-selected" class="alert alert-warning">
+                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('date_from_not_selected')->toHtml(); ?>
+                                </span>
+                                <span style="display:none;" id="product-date-from-smaller-date-to" class="alert alert-warning">
+                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('wrong_date_selection')->toHtml(); ?>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_to')->toHtml(); ?>
+                            </label>
+                            <div class="input-group mb-2">
+                                <input type="date" class="form-control" id="product-date-to" name="product_date_to" onchange="product_get_selected_date_to();">
+                                <span class="input-group-text">
+                                    <i class="far fa-calendar-plus"></i>
+                                </span>
+                                <span style="display:none;" id="product-date-to-not-selected" class="alert alert-warning">
+                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('date_to_not_selected')->toHtml(); ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <h4><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('brand')->toHtml(); ?></h4>
+                    <div class="row align-items-end">
+                        <div class="col-12 mb-2">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('brand')->toHtml(); ?>
+                            </label>
+                            <select class="form-select" name="brand">
+                                <option value=""></option>
+                                <?php
+                                $query_brands = "SELECT DISTINCT(value), mgkf_eav_attribute_option_value.option_id as option_id FROM mgkf_eav_attribute_option_value, mgkf_eav_attribute_option ";
+                                $query_brands .= "WHERE mgkf_eav_attribute_option_value.option_id = mgkf_eav_attribute_option.option_id ";
+                                $query_brands .= "AND attribute_id = 197";
+                                $result_brands = $conn->query($query_brands);
+                                while ($row_brands = $result_brands->fetch_assoc()) {
+                                ?>
+                                    <option value="<?php echo $row_brands['option_id']; ?>"><?php echo $row_brands['value']; ?></option>
+                                <?php
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label for="new-brand" class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('do_you_want_to_add_new_brand')->toHtml(); ?>
+                            </label>
+                            <div class="input-group mb-2">
+                                <input type="text" disabled class="form-control" id="new-brand" name="new_brand">
+                                <button type="button" class="input-group-text add-new-brand">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-12 mb-2">
+                            <?php
+                            /**
+                             * Get categories
+                             */
+                            $categories = $block->getStoreCategories(true, false, true);
+                            ?>
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('category')->toHtml(); ?>
+                            </label>
+                            <select class="form-select select-category d-none" aria-label="Default select example">
+                                <option selected>Open this select menu</option>
+                                <option value="1">One</option>
+                                <option value="2">Two</option>
+                                <option value="3">Three</option>
+                            </select>
+                            <?php
+                            /**
+                             * Check the Categories is not equal to empty
+                             */
+                            if (!empty($categories)) { ?>
+                            <?php
+                                echo $block->alphabaticalOrder($categories, $productCategoryIds);
+                            }
+                            ?>
+                        </div>
+                        <div style="display:none;" class="col-12 sub-categorie" id="sub-1">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('subcategory')->toHtml(); ?>
+                            </label>
+                            <select class="form-select select-subcategory" onchange="get_subcategory_second();" name="product_subcategory" id="child">
+                                <option></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="row flex-column">
+                        <h4><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('image')->toHtml(); ?></h4>
+                        <div class="col-12">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('image')->toHtml(); ?>
+                            </label>
+                            <div class="form-file">
+                                <input type="file" class="form-file-input" onchange="previewFiles();" id="customFile" name="product_images[]">
+                                <label class="form-file-label" for="customFile">
+                                    <span class="form-file-text">No File Uploaded</span>
+                                    <span class="form-file-button">Choose</span>
+                                </label>
+                                <div id="preview"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="generatorSizeColor" class="d-none">
+                <div class="row align-items-end">
+                    <div class="col-md-6 col-lg-5">
+                        <label class="form-label">
+                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('size')->toHtml(); ?>
+                        </label>
+                        <?php 
+                        if (!empty($productId) && $typeId == 'configurable') { 
+                        ?>
+                            <input type="hidden" value="<?php echo $productData->getAttributeSetId(); ?>" name="set" />
+                        <?php 
+                        } 
+                        ?>
+                        <select class="form-control" id="size_child_top" name="size_child_top[]" multiple style="display:none;">
+                            <option>18</option>
+                            <option>20</option>
+                            <option>22</option>
+                            <option>24</option>
+                            <option>26</option>
+                            <option>28</option>
+                            <option>30</option>
+                            <option>32</option>
+                            <option>34</option>
+                            <option>36</option>
+                            <option>38</option>
+                            <option>40</option>
+                            <option>42</option>
+                        </select>
+                        <select class="form-control" id="size_adult_top" name="size_adult_top[]" multiple style="display:none;">
+                            <option>50</option>
+                            <option>56</option>
+                            <option>62</option>
+                            <option>68</option>
+                            <option>74</option>
+                            <option>80</option>
+                            <option>86</option>
+                            <option>92</option>
+                            <option>98</option>
+                            <option>104</option>
+                            <option>110</option>
+                            <option>116</option>
+                            <option>122</option>
+                            <option>134</option>
+                            <option>140</option>
+                            <option>146</option>
+                        </select>
+                        <select class="form-control" id="size_child_bottom" name="size_child_bottom[]" multiple style="display:none;">
+                            <option>16-17</option>
+                            <option>17-18</option>
+                            <option>19</option>
+                            <option>20</option>
+                            <option>21-22</option>
+                            <option>23-24</option>
+                            <option>25</option>
+                            <option>26</option>
+                            <option>27</option>
+                            <option>28</option>
+                            <option>29</option>
+                            <option>30</option>
+                            <option>32</option>
+                        </select>
+                        <select class="form-select select-size form-select mb-2" size="4" id="size_adult_bottom" name="size_adult-bottom[]" multiple>
+                            <option value="28">28</option>
+                            <option value="29">29</option>
+                            <option value="30">30</option>
+                            <option value="31">31</option>
+                            <option value="32">32</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-lg-5">
+                        <label class="form-label">
+                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('color')->toHtml(); ?>
+                        </label>
+                        <select class="form-select select-color form-select mb-2" size="4" id="get_color" name="color[]" multiple>
+                            <?php
+                            $query = "SELECT mgkf_eav_attribute_option_value.value as name, mgkf_eav_attribute_option_swatch.value as color ";
+                            $query .= "FROM mgkf_eav_attribute_option_value, mgkf_eav_attribute_option_swatch ";
+                            $query .= "WHERE mgkf_eav_attribute_option_value.option_id = mgkf_eav_attribute_option_swatch.option_id ";
+                            $query .= "AND mgkf_eav_attribute_option_swatch.value LIKE '%#%' ";
+                            $query .= "AND mgkf_eav_attribute_option_value.store_id = 1";
+                            $result = $conn->query($query);
+                            while ($query = $result->fetch_assoc()) {
+                                $name = $query['name'];
+                                $color = $query['color'];
+                            ?>
+                                <option value="<?php echo $name; ?>">
+                                    <b><?php echo $name; ?></b>
+                                </option>
+                            <?php
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-lg-2">
+                        <button type="button" id="generatorEvent" class="btn btn-primary mb-2 btn-block">
+                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('generate')->toHtml(); ?>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <h5><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('attribute_set')->toHtml(); ?></h5>
+                <div class="col-lg-3">
+                    <label class="form-label">
+                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('category')->toHtml(); ?>
+                    </label>
+                    <select class="form-select select-category-form mb-3">
+                        <option value="default">Default</option>
+                        <option value="haine" selected>Haine</option>
+                        <option value="haine-copii">Haine Copii</option>
+                        <option value="genti">Genti</option>
+                        <option value="nunta">Nunta</option>
+                        <option value="bebelusi">Bebelusi</option>
+                        <option value="lenjerie-dama">Lenjerie Dama</option>
+                        <option value="lenjerie-barbati">Lenjerie Barbati</option>
+                        <option value="incaltaminte">Incaltaminte</option>
+                    </select>
+                    <select style="display:none;" onchange="getval(this);" id="attribute_set" name="set" title="<?php echo __('Attribute Set') ?>" class="form-select select-category-form mb-3">
+                        <option value="<?php echo $block->getDefaultAttributeSetId(); ?>"><?php echo __('Default'); ?></option>
+                        <?php
+                        $attributeSet = $block->getAttributeSet();
+                        foreach ($attributeSet as $set) {
+                            if($set['label'] != 'Default') {
+                        ?>
+                            <option value="<?php echo $set['value']; ?>">
+                                <?php echo $set['label']; ?>
+                            </option>
+                        <?php }
+                        }
+                        ?>
+                    </select>
+                </div>
+                <div class="col-12 col-lg-9">
+                    <div id="block-default" class="d-none block-category-down"></div>
+                    <div id="block-haine" class="block-category-down">
+                        <div class="row mt-3 mt-md-0">
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Material</label>
+                                <select class="form-select form-select mb-2" name="haine-material">
+                                    <option></option>
+                                    <option value="270">Bumbac</option>
+                                    <option value="271">Piele naturala</option>
+                                    <option value="272">Brocart</option>
+                                    <option value="273">Casmir</option>
+                                    <option value="274">Catifea</option>
+                                    <option value="275">Sifon</option>
+                                    <option value="276">Dantela</option>
+                                    <option value="277">Denim</option>
+                                    <option value="278">Vaporos</option>
+                                    <option value="425">In</option>
+                                    <option value="279">Piele Ecologica</option>
+                                    <option value="280">Tricot</option>
+                                    <option value="281">Bumbac Organic</option>
+                                    <option value="282">Elastic</option>
+                                    <option value="283">Sintetic</option>
+                                    <option value="284">Matase</option>
+                                    <option value="285">Latex</option>
+                                    <option value="286">Lurex</option>
+                                    <option value="287">Lyocell</option>
+                                    <option value="288">Bambus</option>
+                                    <option value="383">Lana</option>
+                                    <option value="384">Lana Merinos</option>
+                                    <option value="395">Blugi</option>
+                                    <option value="396">Elastan</option>
+                                    <option value="397">Fas</option>
+                                    <option value="398">Modal</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Model/Croiala</label>
+                                <select class="form-select form-select mb-2" name="haine-model">
+                                    <option></option>
+                                    <option value="224">Skinny</option>
+                                    <option value="225">Evazat</option>
+                                    <option value="226">Drept</option>
+                                    <option value="227">Scurta (mini)</option>
+                                    <option value="228">Lunga (maxi)</option>
+                                    <option value="229">Slim Fit</option>
+                                    <option value="230">Regular Fit</option>
+                                    <option value="231">Boyfriend</option>
+                                    <option value="234">Jacquard</option>
+                                    <option value="235">Creion</option>
+                                    <option value="236">In A</option>
+                                    <option value="237">Asimetric</option>
+                                    <option value="377">Mulat/Pe Corp</option>
+                                    <option value="239">Cambrata</option>
+                                    <option value="378">Peste Genunchi (Midi)</option>
+                                    <option value="379">Trapez</option>
+                                    <option value="380">Clopot</option>
+                                    <option value="385">Tricotat</option>
+                                    <option value="386">Pliuri</option>
+                                    <option value="387">Bie</option>
+                                    <option value="388">Clos</option>
+                                    <option value="389">Volane</option>
+                                    <option value="390">Plisata</option>
+                                    <option value="391">Parka</option>
+                                    <option value="392">Bomber</option>
+                                    <option value="393">Polo</option>
+                                    <option value="394">Conic</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Stil</label>
+                                <select class="form-select form-select mb-2" name="haine-stil">
+                                    <option></option>
+                                    <option value="240">Casual</option>
+                                    <option value="241">Elegant</option>
+                                    <option value="242">Office</option>
+                                    <option value="243">Vintage</option>
+                                    <option value="244">Modern</option>
+                                    <option value="245">Hippi</option>
+                                    <option value="246">Sport</option>
+                                    <option value="247">De Ocazie</option>
+                                    <option value="248">De Zi</option>
+                                    <option value="249">De Casa</option>
+                                    <option value="250">De Seara</option>
+                                    <option value="381">Sexy</option>
+                                    <option value="382">Provocatoare</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Imprimeu</label>
+                                <select class="form-select form-select mb-2" name="haine-imprimeu">
+                                    <option></option>
+                                    <option value="251">Animal Print</option>
+                                    <option value="252">Leopard</option>
+                                    <option value="253">Floral</option>
+                                    <option value="254">Buline</option>
+                                    <option value="255">Abstract</option>
+                                    <option value="256">Camuflaj</option>
+                                    <option value="257">Carouri</option>
+                                    <option value="258">Dungi</option>
+                                    <option value="259">Army</option>
+                                    <option value="260">Tropical</option>
+                                    <option value="261">Geometric</option>
+                                    <option value="426">3D</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Sezon</label>
+                                <select class="form-select form-select mb-2" name="haine-sezon">
+                                    <option></option>
+                                    <option value="291">Vara</option>
+                                    <option value="289">Iarna</option>
+                                    <option value="292">Toamna</option>
+                                    <option value="290">Primavara</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Talie</label>
+                                <select class="form-select form-select mb-2" name="haine-talie">
+                                    <option></option>
+                                    <option value="262">Joasa</option>
+                                    <option value="263">Medie</option>
+                                    <option value="264">Inalta</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Maneca</label>
+                                <select class="form-select form-select mb-2" name="haine-maneca">
+                                    <option></option>
+                                    <option value="265">Fara Maneci</option>
+                                    <option value="266">Maneca Lunga</option>
+                                    <option value="267">Maneca Scurta</option>
+                                    <option value="268">Maneca Medie</option>
+                                    <option value="269">Maneca 3/4</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Unicat/Limitata</label>
+                                <select class="form-select form-select mb-2" name="haine-unicat">
+                                    <option></option>
+                                    <option value="399">New Arrival</option>
+                                    <option value="400">Recomandat</option>
+                                    <option value="401">Unicat</option>
+                                    <option value="402">Editie Limitata</option>
+                                    <option value="403">Handmade</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Tip Guler</label>
+                                <select class="form-select form-select mb-2" name="haine-guler">
+                                    <option></option>
+                                    <option value="404">In baza gatului</option>
+                                    <option value="405">In V</option>
+                                    <option value="406">Pe gat</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Gluga</label>
+                                <select class="form-select form-select mb-2" name="haine-gluga">
+                                    <option></option>
+                                    <option value="407">Cu Gluga</option>
+                                    <option value="408">Fara Gluga</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-8 col-xl-6">
+                                <label class="form-label">Interior/Captuseala</label>
+                                <select class="form-select form-select mb-2" name="haine-interior">
+                                    <option></option>
+                                    <option value="427">Captuseala</option>
+                                    <option value="428">Fulgi de Gasca</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="block-haine-copii" class="d-none block-category-down">
+                        <div class="row mt-3 mt-md-0">
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="block-genti" class="d-none block-category-down">
+                        TODO
+                    </div>
+                    <div id="block-nunta" class="d-none block-category-down">
+                        TODO
+                    </div>
+                    <div id="block-bebelusi" class="d-none block-category-down">
+                        TODO
+                    </div>
+                    <div id="block-lenjerie-dama" class="d-none block-category-down">
+                        <div class="row mt-3 mt-md-0">
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="block-lenjerie-barbati" class="d-none block-category-down">
+                        <div class="row mt-3 mt-md-0">
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="block-incaltaminte" class="d-none block-category-down">
+                        <div class="row mt-3 mt-md-0">
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <label class="form-label">Label</label>
+                                <select class="form-select form-select mb-2">
+                                    <option selected>Open this select menu</option>
+                                    <option value="1">One</option>
+                                    <option value="2">Two</option>
+                                    <option value="3">Three</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3 d-none" id="generate_block">
+                <div class="col-md-6">
+                    <h5 class="mb-2">
+                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_options')->toHtml(); ?>
+                    </h5>
+                    <div class="p-3 g-0 mb-3 mb-md-0 row shadow">
+                        <div class="col-12 mb-2">
+                            <div class="row">
+                                <div class="col-2">
+                                    <p class="m-0 font-weight-bold">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('size')->toHtml(); ?>
+                                    </p>
+                                </div>
+                                <div class="col-2" id="color-column">
+                                    <p class="m-0 font-weight-bold">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('color')->toHtml(); ?>
+                                    </p>
+                                </div>
+                                <div class="col-6">
+                                    <p class="m-0 font-weight-bold">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('qty')->toHtml(); ?>
+                                    </p>
+                                </div>
+                                <div class="col-2 text-right">
+                                    <p class="m-0 font-weight-bold">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('action')->toHtml(); ?>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sizes_block"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="mb-2">
+                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_image_for_each_color')->toHtml(); ?>
+                    </h5>
+                    <div class="images-block"></div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12 col-lg-3 text-lg-right">
+                    <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>">
+                    <input type="hidden" name="lang" value="<?php echo $_lang; ?>" />
+                    <button role="button" class="btn btn-primary btn-block">
+                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('save')->toHtml(); ?>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    require([
+        'jquery'
+    ], function($) {
+        'use strict';
+        $(document).ready(function() {
+            $(".custom-file-input").on("change", function() {
+                var fileName = $(this).val().split("\\").pop();
+                $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+            });
+        });
+    });
+
+    function getval(sel) {
+        console.log(sel.value)
+        if (sel.value == 19) {
+            document.getElementById("haine-1").style.display = "block";
+            document.getElementById("haine-2").style.display = "block";
+            document.getElementById("haine-3").style.display = "block";
+            document.getElementById("haine-copii-1").style.display = "none";
+            document.getElementById("haine-copii-2").style.display = "none";
+            document.getElementById("chiloti-dama-1").style.display = "none";
+            document.getElementById("chiloti-dama-2").style.display = "none";
+            document.getElementById("sutiene-1").style.display = "none";
+            document.getElementById("sutiene-2").style.display = "none";
+            document.getElementById("sutiene-3").style.display = "none";
+            document.getElementById("lenjerie-barbati-1").style.display = "none";
+            document.getElementById("incaltaminte-1").style.display = "none";
+            document.getElementById("incaltaminte-2").style.display = "none";
+            document.getElementById("incaltaminte-3").style.display = "none";
+        } else if (sel.value == 21) {
+            document.getElementById("haine-copii-1").style.display = "flex";
+            document.getElementById("haine-copii-2").style.display = "flex";
+            document.getElementById("haine-1").style.display = "none";
+            document.getElementById("haine-2").style.display = "none";
+            document.getElementById("haine-3").style.display = "none";
+            document.getElementById("chiloti-dama-1").style.display = "none";
+            document.getElementById("chiloti-dama-2").style.display = "none";
+            document.getElementById("sutiene-1").style.display = "none";
+            document.getElementById("sutiene-2").style.display = "none";
+            document.getElementById("sutiene-3").style.display = "none";
+            document.getElementById("lenjerie-barbati-1").style.display = "none";
+            document.getElementById("incaltaminte-1").style.display = "none";
+            document.getElementById("incaltaminte-2").style.display = "none";
+            document.getElementById("incaltaminte-3").style.display = "none";
+        } else if (sel.value == 25) {
+            document.getElementById("chiloti-dama-1").style.display = "flex";
+            document.getElementById("chiloti-dama-2").style.display = "block";
+            document.getElementById("sutiene-1").style.display = "flex";
+            document.getElementById("sutiene-2").style.display = "flex";
+            document.getElementById("sutiene-3").style.display = "flex";
+            document.getElementById("haine-copii-1").style.display = "none";
+            document.getElementById("haine-copii-2").style.display = "none";
+            document.getElementById("haine-1").style.display = "none";
+            document.getElementById("haine-2").style.display = "none";
+            document.getElementById("haine-3").style.display = "none";
+            document.getElementById("lenjerie-barbati-1").style.display = "none";
+            document.getElementById("incaltaminte-1").style.display = "none";
+            document.getElementById("incaltaminte-2").style.display = "none";
+            document.getElementById("incaltaminte-3").style.display = "none";
+        } else if (sel.value == 26) {
+            document.getElementById("lenjerie-barbati-1").style.display = "flex";
+            document.getElementById("chiloti-dama-1").style.display = "none";
+            document.getElementById("chiloti-dama-2").style.display = "none";
+            document.getElementById("sutiene-1").style.display = "none";
+            document.getElementById("sutiene-2").style.display = "none";
+            document.getElementById("sutiene-3").style.display = "none";
+            document.getElementById("haine-copii-1").style.display = "none";
+            document.getElementById("haine-copii-2").style.display = "none";
+            document.getElementById("haine-1").style.display = "none";
+            document.getElementById("haine-2").style.display = "none";
+            document.getElementById("haine-3").style.display = "none";
+            document.getElementById("incaltaminte-1").style.display = "none";
+            document.getElementById("incaltaminte-2").style.display = "none";
+            document.getElementById("incaltaminte-3").style.display = "none";
+        } else if (sel.value == 27) {
+            document.getElementById("incaltaminte-1").style.display = "flex";
+            document.getElementById("incaltaminte-2").style.display = "flex";
+            document.getElementById("incaltaminte-3").style.display = "flex";
+            document.getElementById("lenjerie-barbati-1").style.display = "none";
+            document.getElementById("chiloti-dama-1").style.display = "none";
+            document.getElementById("chiloti-dama-2").style.display = "none";
+            document.getElementById("sutiene-1").style.display = "none";
+            document.getElementById("sutiene-2").style.display = "none";
+            document.getElementById("sutiene-3").style.display = "none";
+            document.getElementById("haine-copii-1").style.display = "none";
+            document.getElementById("haine-copii-2").style.display = "none";
+            document.getElementById("haine-1").style.display = "none";
+            document.getElementById("haine-2").style.display = "none";
+            document.getElementById("haine-3").style.display = "none";
+        } else {
+            document.getElementById("incaltaminte-1").style.display = "none";
+            document.getElementById("incaltaminte-2").style.display = "none";
+            document.getElementById("incaltaminte-3").style.display = "none";
+            document.getElementById("lenjerie-barbati-1").style.display = "none";
+            document.getElementById("chiloti-dama-1").style.display = "none";
+            document.getElementById("chiloti-dama-2").style.display = "none";
+            document.getElementById("sutiene-1").style.display = "none";
+            document.getElementById("sutiene-2").style.display = "none";
+            document.getElementById("sutiene-3").style.display = "none";
+            document.getElementById("haine-copii-1").style.display = "none";
+            document.getElementById("haine-copii-2").style.display = "none";
+            document.getElementById("haine-1").style.display = "none";
+            document.getElementById("haine-2").style.display = "none";
+            document.getElementById("haine-3").style.display = "none";
+        }
+    }
+
+    function get_subcategory() {
+        var selector = document.getElementById("get_sub");
+        var value = selector[selector.selectedIndex].value;
+        var child = value.includes("Copii");
+        var shoes_1 = value.includes("Incaltaminte");
+        var shoes_2 = value.includes("Ghete");
+        var shoes_3 = value.includes("Mocasini");
+        var shoes_4 = value.includes("Pantofi");
+        var shoes_5 = value.includes("Papuci");
+        var shoes_6 = value.includes("Pantofi Oxford");
+        var shoes_7 = value.includes("Sandale");
+        var shoes_8 = value.includes("Adidasi");
+        var shoes_9 = value.includes("Bocanci");
+        var shoes_10 = value.includes("Cizme");
+
+        if (child == true) {
+            document.getElementById("sub-1").style.display = "block";
+            var x = document.getElementById("child");
+            var option1 = document.createElement("option");
+            var option2 = document.createElement("option");
+            option1.text = "Baieti";
+            option1.value = "baieti";
+            option2.text = "Fete";
+            option2.value = "fete";
+            x.add(option1);
+            x.add(option2);
+        } else if (shoes_1 == true || shoes_2 == true || shoes_3 == true || shoes_4 == true ||
+            shoes_5 == true || shoes_6 == true || shoes_7 == true || shoes_8 == true ||
+            shoes_9 == true || shoes_10 == true) {
+            document.getElementById("sub-1").style.display = "block";
+            var x = document.getElementById("child");
+            var option1 = document.createElement("option");
+            var option2 = document.createElement("option");
+            var option3 = document.createElement("option");
+            var option4 = document.createElement("option");
+            option1.text = "Barbati";
+            option1.value = "barbati";
+            option2.text = "Femei";
+            option2.value = "dama";
+            option3.text = "Baieti";
+            option3.value = "baieti";
+            option4.text = "Fete";
+            option4.value = "fete";
+            x.add(option1);
+            x.add(option2);
+            x.add(option3);
+            x.add(option4);
+        } else {
+            document.getElementById("sub-1").style.display = "block";
+            var x = document.getElementById("child");
+            var option1 = document.createElement("option");
+            var option2 = document.createElement("option");
+            option1.text = "Barbati";
+            option1.value = "barbati";
+            option2.text = "Femei";
+            option2.value = "dama";
+            x.add(option1);
+            x.add(option2);
+        }
+    }
+
+    function get_subcategory_second() {
+        var selector_child = document.getElementById("child");
+        var value_child = selector_child[selector_child.selectedIndex].value;
+        var category = document.getElementById("get_sub");
+        var category_value = category[category.selectedIndex].value;
+        var child = category_value.includes("Copii");
+        var shoes_1 = category_value.includes("Incaltaminte");
+        var shoes_2 = category_value.includes("Ghete");
+        var shoes_3 = category_value.includes("Mocasini");
+        var shoes_4 = category_value.includes("Pantofi");
+        var shoes_5 = category_value.includes("Papuci");
+        var shoes_6 = category_value.includes("Pantofi Oxford");
+        var shoes_7 = category_value.includes("Sandale");
+        var shoes_8 = category_value.includes("Adidasi");
+        var shoes_9 = category_value.includes("Bocanci");
+        var shoes_10 = category_value.includes("Cizme");
+
+        if (value_child != '' || value_child_and_adult != '') {
+            var shoes = ["Incaltaminte", "Cizme", "Botine", "Bocanci", "Pantofi", "Adidasi", "Ghete", "Sandale", "Papuci", "Mocasini", "Pantofi Skiletto", "Pantofi Oxford", "Espadrile"];
+            var clothes = [];
+            var x = document.getElementById("get_sub");
+            var value = x.options[x.selectedIndex].value;
+            var str = value.replace(/\D+/g, '');
+            var final = value.replace(str, '');
+            document.getElementById("size_adult_bottom").style.display = "block";
+            document.getElementById("get_color").style.display = "block";
+            var select = document.getElementById("size_adult_bottom");
+            var option1 = document.createElement("option");
+            var option2 = document.createElement("option");
+            var option3 = document.createElement("option");
+            var option4 = document.createElement("option");
+            var option5 = document.createElement("option");
+            var option6 = document.createElement("option");
+            var option7 = document.createElement("option");
+            var option8 = document.createElement("option");
+            var option9 = document.createElement("option");
+            option1.text = "28";
+            option2.text = "29";
+            option3.text = "30";
+            option4.text = "31";
+            option5.text = "32";
+            option6.text = "33";
+            option7.text = "34";
+            option8.text = "36";
+            option9.text = "38";
+            select.add(option1);
+            select.add(option2);
+            select.add(option3);
+            select.add(option4);
+            select.add(option5);
+            select.add(option6);
+            select.add(option7);
+            select.add(option8);
+            select.add(option9);
+        } else if (value_adult != '') {
+            var x = document.getElementById("get_sub");
+            var value = x.options[x.selectedIndex].value;
+            var str = value.replace(/\D+/g, '');
+            var final = value.replace(str, '');
+            document.getElementById("name_size").style.display = "block";
+            document.getElementById("name_color").style.display = "block";
+            document.getElementById("size_adult_bottom").style.display = "block";
+            document.getElementById("size_child_bottom").style.display = "none";
+            document.getElementById("get_color").style.display = "block";
+        }
+    }
+
+    function previewFiles() {
+        var preview = document.querySelector('#preview');   
+        var files = document.querySelector('input[type=file]').files;
+
+        function readAndPreview(file) {
+            // Make sure `file.name` matches our extensions criteria
+            if (/\.(jpe?g|png|gif)$/i.test(file.name)) {
+                var reader = new FileReader();
+
+                reader.addEventListener("load", function() {
+                    var image = new Image(150, 200);
+                    image.title = file.name;
+                    image.src = this.result;
+                    preview.appendChild(image);
+                }, false);
+
+                reader.readAsDataURL(file);
+            }
+        }
+        if (files) {
+            [].forEach.call(files, readAndPreview);
+        }
+    }
+
+    function previewImage(k) {
+        var preview = document.querySelector('#product_image_' + k);
+        var files = document.querySelector('input[type=file]').files;
+
+        function readAndPreview(file) {
+            // Make sure `file.name` matches our extensions criteria
+            if (/\.(jpe?g|png|gif)$/i.test(file.name)) {
+                var reader = new FileReader();
+
+                reader.addEventListener("load", function() {
+                    var image = new Image(150, 200);
+                    //   image.height = 40;
+                    image.title = file.name;
+                    image.src = this.result;
+                    preview.appendChild(image);
+                }, false);
+
+                reader.readAsDataURL(file);
+            }
+        }
+        if (files) {
+            [].forEach.call(files, readAndPreview);
+        }
+    }
+
+    function matrix() {
+        var size_adult_bottom = jQuery("#size_adult_bottom").val();
+        var color = jQuery("#get_color").val();
+
+        for (var i = 0; i < color.length; i++) {
+            var div = jQuery("#color_images");
+            var row = color[i] + "<input type=\"file\" class=\"color_images\" /><div class=\"product_image\"></div>";
+            div.append(row);
+        }
+
+        var parent = document.getElementById("color_images");
+        var input_color_images = parent.getElementsByClassName("color_images");
+        for (var i = 0; i < input_color_images.length; i++) {
+            input_color_images[i].setAttribute("id", "input_color_image_" + i);
+            input_color_images[i].setAttribute("name", "color_image_" + i);
+            input_color_images[i].setAttribute("onchange", "previewImage(" + i + ")");
+        }
+        var product_image = parent.getElementsByClassName("product_image");
+        for (var i = 0; i < product_image.length; i++) {
+            product_image[i].setAttribute("id", "product_image_" + i);
+        }
+
+        if (size_adult_bottom.length > 0) {
+            var table = jQuery("#myTable");
+            var array = [];
+            for (var i = 0; i < size_adult_bottom.length; i++) {
+                for (var j = 0; j < color.length; j++) {
+                    document.getElementById("matrix").style.display = "block";
+                    var z = 0;
+                    var sku = document.getElementById("sku").value;
+                    if (color[j] == 'Black') z = 1;
+                    if (color[j] == 'Blue') z = 2;
+                    if (color[j] == 'Brown') z = 3;
+                    if (color[j] == 'Gray') z = 4;
+                    if (color[j] == 'Green') z = 5;
+                    if (color[j] == 'Lavender') z = 6;
+                    if (color[j] == 'Multi') z = 7;
+                    if (color[j] == 'Orange') z = 8;
+                    if (color[j] == 'Purple') z = 9;
+                    if (color[j] == 'Red') z = 10;
+                    if (color[j] == 'White') z = 11;
+                    if (color[j] == 'Yellow') z = 12;
+                    var k;
+                    if (size_adult_bottom[i] == 'XS' || size_adult_bottom[i] == 'S' || size_adult_bottom[i] == 'M' || size_adult_bottom[i] == 'L' || size_adult_bottom[i] == 'XL') {
+                        if (size_adult_bottom[i] == 'XS') y = 1;
+                        if (size_adult_bottom[i] == 'S') y = 2;
+                        if (size_adult_bottom[i] == 'M') y = 3;
+                        if (size_adult_bottom[i] == 'L') y = 4;
+                        if (size_adult_bottom[i] == 'XL') y = 5;
+                        k = y + z;
+                    } else k = size_adult_bottom[i] + z;
+                    var size_color = size_adult_bottom[i] + color[j];
+                    var size_unique = size_color.replace(/\D+/g, '');
+                    var color_unique = size_color.replace(size_unique, '');
+                    var row = "<tr id=" + k + "><input type=\"hidden\" name=\"full_text_scope[]\" value=" + sku + '-' + color[j] + '-' + size_adult_bottom[i] + "><input type=\"hidden\" name=\"product[]\" value=" + size_adult_bottom[i] + '_' + color[j] + "></tr><tr id=" + k + "><td name=" + size_adult_bottom[i] + ">" + size_adult_bottom[i] + "&nbsp" + "</td><td name=" + color[j] + ">" + color[j] + "</td><td><input name=\"qty[]\" type=\"number\" class=\"form-control\"></td><td><span class=\"btn btn-danger\" id=\"span\" onclick=\"delete_table_row(" + k + ");\">&nbsp;x</span></td></tr>";
+                    array.push(row);
+                    table.append(row);
+                }
+            }
+        }
+    }
+
+    function delete_table_row(k) {
+        jQuery("tr[id=" + k + "]").remove();
+    }
+
+    function show_brand_form() {
+        document.getElementById("brand_form").style.display = "block";
+    }
+
+    function add_discount() {
+        document.getElementById("add-discount-block").style.display = "flex";
+    }
+    
+    function hide_add_product_discount_block() {
+        document.getElementById("add-discount-block").style.display = "none";
+    }
+
+    document.querySelector('.add-new-brand').addEventListener('click', addNewBrand);
+    document.querySelector('.select-category').addEventListener('change', showSubCategory);
+    document.querySelector('.select-category-form').addEventListener('change', showSubCategoryDown);
+    document.querySelector('.select-subcategory').addEventListener('change', showGenerator)
+    document.querySelector('#generatorEvent').addEventListener('click', generateFunction)
+    var categoryDown = document.querySelectorAll('.block-category-down');
+
+    function deleteCantItems(e) {
+        var field_to_delete = e.currentTarget.dataset.delete;
+        var el = document.getElementById(field_to_delete);
+        el.parentNode.removeChild(el);
+    }
+
+    function addNewBrand() {
+        var newBrandInput = document.querySelector('#new-brand');
+        newBrandInput.removeAttribute('disabled');
+        newBrandInput.focus();
+    }
+
+    function showSubCategory() {
+        document.querySelector('.sub-categorie').classList.remove('d-none');
+    }
+
+    function showSubCategoryDown(e) {
+        categoryDown.forEach(el => el.classList.add('d-none'))
+        document.querySelector('#block-' + e.target.value).classList.remove('d-none');
+    }
+
+    function showCant() {
+        document.querySelector('#edit-cant-1').classList.toggle('d-none')
+    }
+
+    function showGenerator() {
+        var generator = document.querySelector('#generatorSizeColor');
+        generator.classList.remove('d-none');
+    }
+
+    function generateFunction() {
+        var sizes = [];
+        var colors = [];
+        var size_nodes = document.querySelector('.sizes_block');
+        var images_nodes = document.querySelector('.images-block');
+
+        var sizeSelect = Array.from(document.querySelectorAll('.select-size option:checked')).map(el => sizes.push(el
+        .value));
+        var colorSelect = Array.from(document.querySelectorAll('.select-color option:checked')).map(el => colors.push(el
+        .value));
+
+        if (sizes.length > 0 && colors.length > 0) {
+            // remove div before adding new nodes
+            size_nodes.innerHTML = '';
+            images_nodes.innerHTML = '';
+
+            var i = 0;
+            for (let size of sizes) {
+                for (let color of colors) {
+                    var sku = document.getElementById("sku").value;
+                    var box_color =
+                        `
+                        <div id="${size + '_' + color}">
+                            <input type="hidden" name="full_text_scope[]" value="${sku + '-' + color + '-' + size}">
+                            <input type="hidden" name="product[]" value="${size + '_' + color}">
+                            <div class="row mb-2 align-items-end">
+                                <div class="col-2">
+                                    <p class="m-0 text-capitalize">${color}</p>
+                                </div>
+                                <div class="col-2">
+                                    <p class="m-0 text-capitalize">${size}</p>
+                                </div>
+                                <div class="col-6">
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" name="qty[]">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-file-signature"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-2 text-right">
+                                    <button role="button" data-delete="${size + '_' + color}" onclick="deleteCantItems(event); return false" class="delete_cant_item btn rounded border-0 btn-secondary">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        `;
+
+                    var div = document.createElement("div");
+                    div.innerHTML = box_color;
+                    div.setAttribute('class', 'col-sm-12 mb-2');
+                    size_nodes.appendChild(div);
+                    i++;
+                }
+            }
+            var i = 0;
+            for (let color of colors) {
+                var box_image = `
+                    <div id="${'id' + color}">
+                        <div class="row align-items-end mb-3">
+                            <div class="col-12">
+                                <div class="form-file">
+                                    <input type="file" class="form-file-input" name="color_image_${i}">
+                                    <label class="form-file-label" for="customFile">
+                                        <span class="form-file-text">Choose ${color} file</span>
+                                        <span class="form-file-button">Browse</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                var div_img = document.createElement("div");
+                div_img.innerHTML = box_image;
+                images_nodes.appendChild(div_img);
+                i++;
+            }
+            document.querySelector('#generate_block').classList.remove('d-none');
+        }
+        else {
+            // remove div before adding new nodes
+            size_nodes.innerHTML = '';
+
+            document.getElementById("color-column").classList.add("d-none");
+
+            var i = 0;
+            for (let size of sizes) {
+                var sku = document.getElementById("sku").value;
+                var box_color =
+                    `
+                    <div id="${size}">
+                        <input type="hidden" name="full_text_scope[]" value="${sku + '-' + size}">
+                        <input type="hidden" name="product[]" value="${size}">
+                        <div class="row mb-2 align-items-end">
+                            <div class="col-2">
+                                <p class="m-0 text-capitalize">${size}</p>
+                            </div>
+                            <div class="col-6">
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="qty[]">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-file-signature"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-2 text-right">
+                                <button role="button" data-delete="${size}" onclick="deleteCantItems(event); return false" class="delete_cant_item btn rounded border-0 btn-secondary">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+
+                var div = document.createElement("div");
+                div.innerHTML = box_color;
+                div.setAttribute('class', 'col-sm-12 mb-2');
+                size_nodes.appendChild(div);
+            }
+            document.querySelector('#generate_block').classList.remove('d-none');
+        }
+    }
+</script>

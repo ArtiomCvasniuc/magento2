@@ -1,0 +1,46 @@
+<?php
+if($banners = $block->getBannerCollection()):
+	$slider = $block->getSlider();
+	$sliderId = $block->getSliderId(); 
+?>
+<div class="wrapper_slider slider_<?php echo $sliderId; ?>">
+	<div class="row">
+		<div class="owl">
+		<?php foreach($banners as $banner){	?>
+			<div class="banner_item">
+			<?php
+			$html = $block->getImageElement($banner->getSlideImage());
+			if($link = $banner->getSlideLink())
+				$html = '<a href="'. $link .'">' . $html . '</a>' ; 
+			echo $html;
+			?>
+			<?php if($text = $banner->getSlideText()){
+				echo $block->getContentText($text);
+			}
+			?>
+			</div>
+		<?php } ?>
+		</div>
+	</div>
+</div>
+<script>
+	require([
+		'jquery',
+		'mage/mage',
+		'themevast/owl'
+	], function ($) {
+		'use strict';
+
+		jQuery(".slider_<?php echo $sliderId; ?> .owl").owlCarousel(
+			{<?php foreach($slider->getSliderSetting() as $key=>$value)
+				{
+					if(in_array($key, array('autoPlay', 'navigation', 'stopOnHover', 'pagination', 'scrollPerPage'))){
+						$value == 0 ? $value = 'false': '';
+						$value == 1 ? $value = 'true': '';
+					}
+					echo $key . ':' . $value . ',';
+				} ?>}
+		);
+	});
+</script>
+<?php endif; ?>

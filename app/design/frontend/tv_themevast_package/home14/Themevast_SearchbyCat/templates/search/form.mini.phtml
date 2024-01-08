@@ -1,0 +1,43 @@
+<?php
+$helper = $this->helper('Magento\Search\Helper\Data');
+?>
+<div class="block-content">
+  <form id="search_mini_form" action="<?php /* @escapeNotVerified */ echo $helper->getResultUrl() ?>" method="get">
+    <div class="input-group">
+        <input id="search"
+          data-mage-init='{"quickSearch":{
+          "formSelector":"#search_mini_form",
+          "url":"<?php /* @escapeNotVerified */ echo $block->getUrl('search/ajax/suggest', ['_secure' => $block->getRequest()->isSecure()]); ?>",
+          "destinationSelector":"#search_autocomplete"}
+          }'
+          type="text"
+          name="<?php /* @escapeNotVerified */ echo $helper->getQueryParamName() ?>"
+          value="<?php /* @escapeNotVerified */ echo $helper->getEscapedQueryText() ?>"
+          placeholder="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('search')->toHtml();?>"
+          class="form-control rounded rounded-top shadow-none form-control-sm main-search"
+          maxlength="<?php /* @escapeNotVerified */ echo $helper->getMaxQueryLength();?>"
+          role="combobox"
+          aria-haspopup="false"
+          aria-autocomplete="both"
+          autocomplete="off"/>
+        <div class="icon-search">
+          <button class="btn shadow-none rounded-0"
+              type="submit" id="btn_search"
+              title="<?php echo $block->escapeHtml(__('Search')) ?>">
+         <i class="fal fa-search"></i>
+          </button>
+        </div>
+        <div id="search_autocomplete" class="search-autocomplete"></div>
+        <?php echo $block->getChildHtml() ?>
+    </div>
+  </form>
+</div>
+
+<script type="text/javascript">
+    require([
+        'jquery',
+        'themevast/choose'
+    ], function ($) {
+		$("#choose_category").chosen();
+    });
+</script>

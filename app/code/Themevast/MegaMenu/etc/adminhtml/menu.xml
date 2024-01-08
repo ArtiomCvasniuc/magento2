@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+	<menu>
+		<add id="Themevast_MegaMenu::megamenu" title="Megamenu" module="Themevast_MegaMenu" sortOrder="11" resource="Themevast_MegaMenu::index" parent="Themevast_Themevast::themevast" />
+		<add id="Themevast_MegaMenu::manage_menus" title="Manage Megamenu" module="Themevast_MegaMenu" sortOrder="0" parent="Themevast_MegaMenu::megamenu" action="megamenu/index" resource="Themevast_MegaMenu::index" />
+		<add id="Themevast_MegaMenu::new_menu" title="Create New Megamenu" module="Themevast_MegaMenu" sortOrder="0" parent="Themevast_MegaMenu::megamenu" action="megamenu/index/new" resource="Themevast_MegaMenu::edit" />
+		<add id="Themevast_MegaMenu::settings" title="Setting Megamenu" module="Themevast_MegaMenu" sortOrder="20" parent="Themevast_MegaMenu::megamenu" action="adminhtml/system_config/edit/section/themevast_megamenu" resource="Themevast_MegaMenu::settings" />
+	</menu>
+</config>

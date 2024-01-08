@@ -1,0 +1,48 @@
+//
+//  Amasty Popup Component Styles
+//  ______________________________________________
+
+//
+//  Variables
+//  ----------------------------------------------
+
+@amrev-popup__background: #fafafa;
+
+//
+//  Common
+//  ----------------------------------------------
+
+& when (@media-common = true) {
+    .amreview-popup.modal-popup {
+        & {
+            .transition(.3);
+        }
+
+        .modal-header {
+            background: @amrev-popup__background;
+        }
+
+        .modal-content {
+            padding: 0;
+        }
+
+        .block-content {
+            padding: @amrev__indent @amrev__indent__xl @amrev__indent__xl * 2;
+            background: @amrev-popup__background;
+        }
+
+        .modal-inner-wrap {
+            max-width: 640px;
+        }
+    }
+}
+
+//
+//  Tablet
+//  ----------------------------------------------
+
+.media-width(@extremum, @break) when (@extremum = 'min') and (@break = @screen__m) {
+    .amreview-popup.modal-popup .block-content {
+        padding: @amrev__indent @amrev__indent__xl * 2 @amrev__indent__xl * 2;
+    }
+}

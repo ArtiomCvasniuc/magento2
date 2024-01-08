@@ -1,0 +1,152 @@
+<?php
+/**
+ * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+?>
+<?php /** @var $block \Magento\Bundle\Block\Sales\Order\Items\Renderer */ ?>
+
+<?php
+$parentItem = $block->getItem();
+$isBarcode = $block->getIsBarcode();
+$pageSize = $block->getPageSize();
+$a4Barcode = $isBarcode && ($pageSize == 'A4');
+$a5Barcode = $isBarcode && ($pageSize == 'A5');
+$_order = $block->getOrder();
+$block->setStoreId($_order->getStoreId());
+?>
+<?php $items = array_merge([$parentItem], $parentItem->getChildrenItems()) ?>
+<?php if ($block->getItemOptions() || $parentItem->getDescription() || $this->helper('Magento\GiftMessage\Helper\Message')->isMessagesAllowed('order_item', $parentItem) && $parentItem->getGiftMessageId()): ?>
+    <?php $_showlastRow = true ?>
+<?php else: ?>
+    <?php $_showlastRow = false ?>
+<?php endif ?>
+
+<?php $_prevOptionId = '' ?>
+<div class="bundle-item <?= /** @noEscape */ $block->getIndexKey() ?>" style="border-bottom: 1px solid #ddd;">
+    <?php foreach ($items
+
+    as $_item): ?>
+    <div class="mp-row">
+        <div class="<?= /** @noEscape */ $a4Barcode ? 'mp-item-bc' : 'mp-item' ?>">
+            <?php if ($_item->getParentItem()): ?>
+                <?php $attributes = $block->getSelectionAttributes($_item) ?>
+                <?php if ($_prevOptionId != $attributes['option_id']): ?>
+                    <div>
+                        <strong><em><?= /* @noEscape */
+                                $attributes['option_label'] ?></em></strong>
+                    </div>
+                    <?php $_prevOptionId = $attributes['option_id'] ?>
+                <?php endif ?>
+            <?php endif ?>
+
+            <?php if (!$_item->getParentItem()): ?>
+            <div class="item-info">
+                <p class="product-name"><?= $block->escapeHtml($_item->getName()) ?></p>
+                <p class="sku"><?= /* @noEscape */
+                    __('SKU') ?>: <?= $block->escapeHtml($_item->getSku()) ?></p>
+            </div>
+        </div>
+        <?php else: ?>
+        <div class="item-info">
+            <p><?= $block->getValueHtml($_item) ?></p>
+            <?php if ($a5Barcode): ?>
+                <p>
+                    <barcode code="<?= $block->escapeHtml($_item->getSku()) ?>" type="C39E" size="0.9" height="0.7"/>
+                </p>
+            <?php endif ?>
+        </div>
+    </div>
+<?php if ($a4Barcode): ?>
+    <div class="mp-barcode-bc">
+        <p>
+            <barcode code="<?= $block->escapeHtml($_item->getSku()) ?>" type="C39E" size="0.9"/>
+        </p>
+    </div>
+<?php endif ?>
+    <div class="<?= /** @noEscape */ $a4Barcode ? 'mp-qty-bc' : 'mp-qty' ?>">
+        <span><?= /* @noEscape */
+            $_item->getQtyOrdered() * 1 ?></span>
+    </div>
+    <div class="<?= /** @noEscape */ $a4Barcode ? 'mp-price-bc' : 'mp-price' ?>">
+        <?php if ($block->displayPriceExclTax() || $block->displayBothPrices()): ?>
+            <?php if ($block->displayBothPrices()): ?>
+                <span class="label"><?= /* @noEscape */
+                    __('Excl. Tax') ?>:</span>
+            <?php endif ?>
+            <?= /* @noEscape */
+            $_order->formatPrice($_item->getPrice()) ?>
+        <?php endif ?>
+
+        <?php if ($block->displayPriceInclTax() || $block->displayBothPrices()): ?>
+            <?php if ($block->displayBothPrices()): ?>
+                <br/><span class="label"><?= /* @noEscape */
+                    __('Incl. Tax') ?>:</span>
+            <?php endif ?>
+            <?= /* @noEscape */
+            $_order->formatPrice($_item->getPriceInclTax()) ?>
+        <?php endif ?>
+    </div>
+    <div class="<?= /** @noEscape */ $a4Barcode ? 'mp-subtotal-bc' : 'mp-subtotal' ?>">
+        <?php if ($block->displayPriceExclTax() || $block->displayBothPrices()): ?>
+            <?php if ($block->displayBothPrices()): ?>
+                <span class="label"><?= /* @noEscape */
+                    __('Excl. Tax') ?>:</span>
+            <?php endif ?>
+            <?= /* @noEscape */
+            $_order->formatPrice($_item->getRowTotal()) ?>
+        <?php endif ?>
+
+        <?php if ($block->displayPriceInclTax() || $block->displayBothPrices()): ?>
+            <?php if ($block->displayBothPrices()): ?>
+                <br/><span class="label"><?= /* @noEscape */
+                    __('Incl. Tax') ?>:</span>
+            <?php endif ?>
+            <?php $_incl = $this->helper('Magento\Checkout\Helper\Data')->getSubtotalInclTax($_item) ?>
+            <?= /* @noEscape */
+            $_order->formatPrice($_incl) ?>
+        <?php endif ?>
+    </div>
+<?php endif ?>
+</div>
+    <div class="clr"></div>
+<?php endforeach ?>
+</div>
+
+<?php if ($_showlastRow): ?>
+    <div class="item-extra">
+        <?php if ($block->getItemOptions()): ?>
+            <div>
+                <?php foreach ($block->getItemOptions() as $option): ?>
+                    <div><strong><em><?= /* @noEscape */
+                                $option['label'] ?></em></strong></div>
+                    <div><?= /* @noEscape */
+                        $option['value'] ?></div>
+                <?php endforeach ?>
+            </div>
+        <?php endif ?>
+        <?php if ($_item->getGiftMessageId() && $_giftMessage = $this->helper('Magento\GiftMessage\Helper\Message')->getGiftMessage($_item->getGiftMessageId())): ?>
+            <table class="message-gift">
+                <tr>
+                    <td>
+                        <h3><?= /* @noEscape */
+                            __('Gift Message') ?></h3>
+                        <strong><?= /* @noEscape */
+                            __('From:') ?></strong> <?= $block->escapeHtml($_giftMessage->getSender()) ?>
+                        <br/><strong><?= /* @noEscape */
+                            __('To:') ?></strong> <?= $block->escapeHtml($_giftMessage->getRecipient()) ?>
+                        <br/><strong><?= /* @noEscape */
+                            __('Message:') ?></strong>
+                        <br/><?= $block->escapeHtml($_giftMessage->getMessage()) ?>
+                    </td>
+                </tr>
+            </table>
+        <?php endif ?>
+    </div>
+    <div class="clr"></div>
+<?php endif ?>
+
+

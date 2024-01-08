@@ -1,0 +1,66 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_StoreSwitcher
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+/** @var \Mageplaza\StoreSwitcher\Block\Switcher $block */ ?>
+
+<?php if ($block->getSaveSwitchedStoreConfig()) : ?>
+    <div id="mpstoreswitcher-save-store-popup" data-mage-init='{"mpSavePopup":<?= /** @noEscape */ $block->getDataSave() ?>}'
+         style="display: none">
+        <div class="mpstoreswitcher-popup_save">
+            <span class="mpstoreswitcher-btn-close-save-popup"></span>
+            <div class="mpstoreswitcher-save-store-content">
+                <label><?= /** @noEscape */ __('Would you like to save this store view for the next visit?') ?></label>
+                <div class="mpstoreswitcher-choose">
+                    <button class="mp-save-store-yes mpstoreswitcher-select"><?= /** @noEscape */ __('YES') ?></button>
+                    <button class="mp-save-store-no mpstoreswitcher-select"><?= /** @noEscape */ __('NO') ?></button>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
+<?php if ($block->checkRedirectPopup()) : ?>
+    <div id="mpstoreswitcher-redirect-popup" data-store-code="<?= /** @noEscape */ $block->getStoreSwitcherCode() ?>"
+         data-mage-init='{"mpRedirectPopup":<?= /** @noEscape */ $block->getDataSave() ?>}' style="display: none;">
+        <div class="mpstoreswitcher-redirect-content">
+            <label><?= /** @noEscape */ $block->getPopupSwitcherLabel() ?></label>
+            <div class="mpstoreswitcher-redirect-choose">
+                <button class="mp-redirect-no mpstoreswitcher-select"><?= /** @noEscape */ __('No, thanks!') ?></button>
+                <button class="mp-redirect-yes mpstoreswitcher-select">
+                    <a href="<?= /** @noEscape */ $block->getStoreSwitcherUrl() ?>">
+                        <?= /** @noEscape */ __('Switch to %1', $block->getSwitcherCountryLabel()) ?>
+                    </a>
+                </button>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
+<style>
+    .mp-redirect-yes.mpstoreswitcher-select a {
+        color: #757575;
+        text-decoration: none;
+    }
+
+    .mp-redirect-yes.mpstoreswitcher-select a:hover {
+        color: #FFFFFF;
+    }
+</style>

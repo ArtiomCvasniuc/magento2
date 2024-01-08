@@ -1,0 +1,28 @@
+{
+    "name": "themevast/module-ProductTab",
+    "description": "Products Tab",
+    "require": {
+        "php": "~5.5.0|~5.6.0",
+        "magento/module-store": "1.0.0-beta",
+        "magento/module-catalog": "1.0.0-beta",
+        "magento/module-catalog-inventory": "1.0.0-beta",
+        "magento/module-ui": "self.version",
+        "magento/magento-composer-installer": "*",
+        "themevast/module-Themevast": "1.0.*"
+    },
+    "suggest": {
+      "magento/module-webapi": "1.0.0-beta"
+    },
+    "type": "magento2-module",
+     "version": "1.0.0-beta",
+    "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+    ],
+    "autoload": {
+        "files": [ "registration.php" ],
+        "psr-4": {
+            "Themevast\\ProductTab\\": ""
+        }
+    }
+    }

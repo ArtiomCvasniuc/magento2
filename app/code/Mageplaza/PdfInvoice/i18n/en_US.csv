@@ -1,0 +1,204 @@
+"Add New Template","Add New Template"
+"Save and Continue Edit","Save and Continue Edit"
+"Save Template","Save Template"
+"Edit Template '%1'","Edit Template '%1'"
+"New Template","New Template"
+"Load default template","Load default template"
+Template,Template
+"Load Template","Load Template"
+"Template Information","Template Information"
+"Apply Template At","Apply Template At"
+"Template Name","Template Name"
+"Insert Variable...","Insert Variable..."
+"Template style","Template style"
+"Stores -> Configuration -> Mageplaza -> ","Stores -> Configuration -> Mageplaza -> "
+"PDF Invoice","PDF Invoice"
+"Edit html","Edit html"
+"HTML,","HTML,"
+"CSS Supported","CSS Supported"
+Preview,Preview
+"Can not print PDF!","Can not print PDF!"
+"You don't have permission to print this ' . . '.","You don't have permission to print this ' . . '."
+"Invalid ' . . ' ID.","Invalid ' . . ' ID."
+"Cannot print PDF!","Cannot print PDF!"
+"There are no printable documents related to selected orders.","There are no printable documents related to selected orders."
+Templates,Templates
+"This template no longer exists.","This template no longer exists."
+"Cannot delete! The Template is using in config","Cannot delete! The Template is using in config"
+"The Template has been deleted.","The Template has been deleted."
+"Template to delete was not found.","Template to delete was not found."
+"Create New Template","Create New Template"
+"Manage Templates","Manage Templates"
+"Load message success!","Load message success!"
+"Cannot load template.","Cannot load template."
+"Cannot delete template #%1! The Template is using in config","Cannot delete template #%1! The Template is using in config"
+"A total of %1 record(s) have been deleted.","A total of %1 record(s) have been deleted."
+"Please insert content to preview!","Please insert content to preview!"
+"Can't preview. Please check HTML and Css in template.","Can't preview. Please check HTML and Css in template."
+"This template does not exist.","This template does not exist."
+"You saved the PDF template.","You saved the PDF template."
+"Something went wrong while saving template.","Something went wrong while saving template."
+A4,A4
+A5,A5
+A6,A6
+A7,A7
+"Custom PDF","Custom PDF"
+Both,Both
+No,No
+Active,Active
+Inactive,Inactive
+Order,Order
+Invoice,Invoice
+Shipment,Shipment
+"Credit Memo","Credit Memo"
+"Base Unsecure URL","Base Unsecure URL"
+"Base Secure URL","Base Secure URL"
+"General Contact Name","General Contact Name"
+"General Contact Email","General Contact Email"
+"Sales Representative Contact Name","Sales Representative Contact Name"
+"Sales Representative Contact Email","Sales Representative Contact Email"
+"Custom1 Contact Name","Custom1 Contact Name"
+"Custom1 Contact Email","Custom1 Contact Email"
+"Custom2 Contact Name","Custom2 Contact Name"
+"Custom2 Contact Email","Custom2 Contact Email"
+"Store Name","Store Name"
+"Store Phone Number","Store Phone Number"
+"Store Hours","Store Hours"
+Country,Country
+Region/State,Region/State
+"Zip/Postal Code","Zip/Postal Code"
+City,City
+"Street Address 1","Street Address 1"
+"Street Address 2","Street Address 2"
+"VAT Number","VAT Number"
+"Store Contact Information","Store Contact Information"
+Print,Print
+"'Print PDF ' .","'Print PDF ' ."
+"Print PDF %1","Print PDF %1"
+"SKU: %1","SKU: %1"
+"Excl. Tax","Excl. Tax"
+"Incl. Tax","Incl. Tax"
+Items,Items
+Qty,Qty
+Price,Price
+Subtotal,Subtotal
+SKU,SKU
+"Gift Message","Gift Message"
+From:,From:
+To:,To:
+Message:,Message:
+"Gift Message for this Order","Gift Message for this Order"
+"From: %1","From: %1"
+"To: %1","To: %1"
+"Message: %1","Message: %1"
+N/A,N/A
+Tax,Tax
+"Store Credit","Store Credit"
+"Refunded to Store Credit","Refunded to Store Credit"
+"Print PDF Order","Print PDF Order"
+"Print Order","Print Order"
+"Print Invoice","Print Invoice"
+"Print PDF Invoice","Print PDF Invoice"
+"Print All Invoices","Print All Invoices"
+"Print All PDF Invoices","Print All PDF Invoices"
+"Print Shipment","Print Shipment"
+"Print PDF Shipment","Print PDF Shipment"
+"Print All Shipments","Print All Shipments"
+"Print All PDF Shipments","Print All PDF Shipments"
+"Print Refund","Print Refund"
+"Print PDF Refund","Print PDF Refund"
+"Print All Refunds","Print All Refunds"
+"Print All PDF Refunds","Print All PDF Refunds"
+Address,Address
+Phone,Phone
+"Tax ID","Tax ID"
+Contact,Contact
+Registered,Registered
+CREDITMEMO,CREDITMEMO
+"Creditmemo ","Creditmemo "
+"Date : ","Date : "
+"Amount : ","Amount : "
+"Billing Address","Billing Address"
+"Payment Method","Payment Method"
+"Shipping Address","Shipping Address"
+"Shipping Method","Shipping Method"
+Notes,Notes
+"Address(1) Line Here","Address(1) Line Here"
+"Address(2) Line Here","Address(2) Line Here"
+"Cty Here, Country","Cty Here, Country"
+"P: +12 34 567 0001","P: +12 34 567 0001"
+"+12 34 567 0002","+12 34 567 0002"
+"+12 34 567 0003","+12 34 567 0003"
+Email,Email
+contact@mageplaza.com,contact@mageplaza.com
+support@mageplaza.com,support@mageplaza.com
+www.mageplaza.com,www.mageplaza.com
+"CREDIT MEMO","CREDIT MEMO"
+"Credit memo: #","Credit memo: #"
+"Date: ","Date: "
+"Amount: ","Amount: "
+"BILLING ADDRESS","BILLING ADDRESS"
+"PAYMENT METHOD","PAYMENT METHOD"
+"SHIPPING ADDRESS","SHIPPING ADDRESS"
+"SHIPPING METHOD","SHIPPING METHOD"
+"Credit memo","Credit memo"
+"No #","No #"
+"Note : ","Note : "
+INVOICE,INVOICE
+"Invoice ","Invoice "
+"Invoice: #","Invoice: #"
+"To: ","To: "
+"Note :","Note :"
+"Company Information","Company Information"
+ORDER,ORDER
+"Order ","Order "
+"Order: #","Order: #"
+SHIPMENT,SHIPMENT
+"Shipment ","Shipment "
+"Shipment: #","Shipment: #"
+Loading....,Loading....
+"General Configuration","General Configuration"
+"Enable PDF Invoice","Enable PDF Invoice"
+"Business Information","Business Information"
+"Company Name","Company Name"
+"Black Logo (Color)","Black Logo (Color)"
+"Your default logo will be used on template design. If empty, default logo will be used.<br />(jpeg, gif, png). You should upload logo 180 x 52","Your default logo will be used on template design. If empty, default logo will be used.<br />(jpeg, gif, png). You should upload logo 180 x 52"
+"White Logo","White Logo"
+"Logo Width","Logo Width"
+"Necessary only if an image has been uploaded above. Enter image width size in pixels without appending ""px"".","Necessary only if an image has been uploaded above. Enter image width size in pixels without appending ""px""."
+"Logo Height","Logo Height"
+"Necessary only if an image has been uploaded above. Enter image height size in pixels without appending ""px"".","Necessary only if an image has been uploaded above. Enter image height size in pixels without appending ""px""."
+"Registered Number","Registered Number"
+Design,Design
+"Heading Color","Heading Color"
+"Select the color for headings in template design","Select the color for headings in template design"
+"Show Page Number","Show Page Number"
+"Page Size","Page Size"
+"Default templates work better in A4 and A5 sizes","Default templates work better in A4 and A5 sizes"
+"Enable PDF Attachment","Enable PDF Attachment"
+"Select Yes to enable attaching PDF documents","Select Yes to enable attaching PDF documents"
+"Select Template","Select Template"
+"Select a PDF template used for Order documents","Select a PDF template used for Order documents"
+"Show Custom Print Button","Show Custom Print Button"
+"Select which type of print button to display","Select which type of print button to display"
+"Display Print Button On Top","Display Print Button On Top"
+"Select Yes to display print button on top of order grid","Select Yes to display print button on top of order grid"
+Note,Note
+"Insert a note displayed in Order templates","Insert a note displayed in Order templates"
+"Select a PDF template used for Invoice documents","Select a PDF template used for Invoice documents"
+"Display Print Button In Order Grid","Display Print Button In Order Grid"
+"Select Yes to display print invoice button in action list from order grid","Select Yes to display print invoice button in action list from order grid"
+"Insert a note displayed in Invoice templates","Insert a note displayed in Invoice templates"
+"Select a PDF template used for Shipment documents","Select a PDF template used for Shipment documents"
+"Insert a note displayed in Shipment templates","Insert a note displayed in Shipment templates"
+"Select a PDF template used for Credit Memo documents","Select a PDF template used for Credit Memo documents"
+"Insert a note displayed in Credit Memo templates","Insert a note displayed in Credit Memo templates"
+Delete,Delete
+"Delete Templates","Delete Templates"
+"Are you sure you wan't to delete selected items?","Are you sure you wan't to delete selected items?"
+ID,ID
+Name,Name
+Type,Type
+Created,Created
+Modified,Modified
+Edit,Edit

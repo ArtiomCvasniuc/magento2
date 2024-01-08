@@ -1,0 +1,133 @@
+type Query {
+    advreview (
+        productId: Int @doc(description: "Product ID"),
+        storeId: Int @doc(description: "Store ID")
+    ): ReviewsData @resolver(class: "Amasty\\AdvancedReviewGraphQl\\Model\\Resolver\\Review"),
+    amReviewSetting (
+        storeId: Int @doc(description: "Store ID")
+    ): AmReviewSetting @resolver(class: "Amasty\\AdvancedReviewGraphQl\\Model\\Resolver\\Setting"),
+    amReviewWidget (
+        widgetId: Int @doc(description: "Widget ID"),
+        storeId: Int @doc(description: "Store ID")
+    ): AmReviewWidget @resolver(class: "Amasty\\AdvancedReviewGraphQl\\Model\\Resolver\\Widget")
+}
+
+type ReviewsData {
+    totalRecords: Int @doc(description: "Total records."),
+    items: [Review] @doc(description: "Reviews."),
+    ratingSummary: Int @doc(description: "Rating summary."),
+    ratingSummaryValue: Float @doc(description: "Rating summary value."),
+    recomendedPercent: Int @doc(description: "Recomended percent."),
+    detailedSummary: DetailedSummary @doc(description: "Detailed summary."),
+    isRecommendFieldEnabled: Boolean @doc(description: "Recomended field enable."),
+    isAllowGuest: Boolean @doc(description: "Allow guest."),
+    isAllowAnswer: Boolean @doc(description: "Allow answer."),
+    isAllowCoupons: Boolean @doc(description: "Allow coupons."),
+    isAllowHelpful: Boolean @doc(description: "Allow helpful."),
+    isAllowImages: Boolean @doc(description: "Allow images."),
+    isToolbarDisplayed: Boolean @doc(description: "Toolbar displayed."),
+    isSortingEnabled: Boolean @doc(description: "Sorting enabled."),
+    isProsConsEnabled: Boolean @doc(description: "Pros and Cons."),
+    isFilteringEnabled: Boolean @doc(description: "Sorting enabled."),
+    availableOrders: String @doc(description: "Available orders."),
+    availableFilters: String @doc(description: "Available filter."),
+}
+
+type Review {
+    review_id: Int @doc(description: "Review id."),
+    created_at: String @doc(description: "Created at."),
+    entity_id: Int @doc(description: "Entity id."),
+    entity_pk_value: Int @doc(description: "Product id."),
+    status_id: Int @doc(description: "Status id."),
+    answer: String @doc(description: "Answer."),
+    verified_buyer: Int @doc(description: "Verified buyer."),
+    is_recommended: Boolean @doc(description: "Reomended."),
+    detail_id: Int @doc(description: "Detail id."),
+    title: String @doc(description: "Review title."),
+    detail: String @doc(description: "Review detail."),
+    nickname: String @doc(description: "Reviewer name."),
+    customer_id: Int @doc(description: "Reviewer id."),
+    like_about: String @doc(description: "Advantages."),
+    not_like_about: String @doc(description: "Disadvantages."),
+    guest_email: String @doc(description: "Guest email."),
+    entity_code: String @doc(description: "Entity code."),
+    plus_review: String @doc(description: "Plus review."),
+    minus_review: String @doc(description: "Minus review."),
+    rating_votes: [RatingVote] @doc(description: "Rating votes."),
+    images: [Images] @doc(description: "Images."),
+    comments: [Comment] @doc(description: "Comments."),
+}
+
+type DetailedSummary {
+    one: Int @doc(description: "One star."),
+    two: Int @doc(description: "Two stars."),
+    three: Int @doc(description: "Three stars."),
+    four: Int @doc(description: "Four stars."),
+    five: Int @doc(description: "Five stars."),
+}
+
+type RatingVote {
+    vote_id: Int @doc(description: "Vote id."),
+    option_id: Int @doc(description: "Option id."),
+    remote_ip: String @doc(description: "Remote ip."),
+    remote_ip_long: String @doc(description: "Remote ip long."),
+    customer_id: Int @doc(description: "Customer id."),
+    entity_pk_value: Int @doc(description: "Product id."),
+    rating_id: Int @doc(description: "Rating id."),
+    review_id: Int @doc(description: "Review id."),
+    percent: Int @doc(description: "Percent."),
+    value: Int @doc(description: "Value."),
+    rating_code: String @doc(description: "Rating code."),
+    store_id: Int @doc(description: "Store id."),
+}
+
+type Images {
+    full_path: String @doc(description: "Image full path."),
+    resized_path: String @doc(description: "Resized image path."),
+}
+
+type Comment {
+    id: Int @doc(description: "Comment id."),
+    review_id: Int @doc(description: "Review id."),
+    store_id: Int @doc(description: "Store id."),
+    status: Int @doc(description: "Status."),
+    customer_id: Int @doc(description: "Customer id."),
+    message: String @doc(description: "Message."),
+    nickname: String @doc(description: "Nickname."),
+    email: String @doc(description: "Email."),
+    session_id: String @doc(description: "Session id."),
+    created_at: String @doc(description: "Created at."),
+    updated_at: String @doc(description: "Updated at."),
+}
+
+type AmReviewSetting {
+    isGDPREnabled: Boolean @doc(description: "GDPR Consent."),
+    getGDPRText: String @doc(description: "Сonsent Text."),
+    getReviewImageWidth: String @doc(description: "Review Image Width."),
+    isAllowReminder: Boolean @doc(description: "Review Reminder."),
+    isCommentsEnabled: Boolean @doc(description: "Comments Enabled."),
+    isGuestCanComment: Boolean @doc(description: "Guest Can Comment."),
+    isReminderEnabled: Boolean @doc(description: "Reminder Enabled."),
+}
+
+type AmReviewWidget {
+    title: String,
+    reviews_count: Int @doc(description: "Number of Reviews to Show."),
+    current_category: Boolean @doc(description: "Reviews from Current Category Only."),
+    current_product_category: Boolean @doc(description: "Reviews of Products which belong to the Same Categories Only."),
+    review_type: Int @doc(description: "Reviews Type."),
+    enable_slider: Boolean @doc(description: "Enable Slider."),
+    items: [AmReviewWidgetItem]
+}
+
+type AmReviewWidgetItem {
+    productUrl: String @doc(description: "Product URL."),
+    name: String @doc(description: "Product Name."),
+    image: ProductImage @resolver(class: "Magento\\CatalogGraphQl\\Model\\Resolver\\Product\\ProductImage"),
+    voteRatingCode: String @doc(description: "Vote Rating Code."),
+    voteRatingValue: Float @doc(description: "Vote Rating Value."),
+    recommendedHtml: String @doc(description: "Recommended Html."),
+    reviewBy: String @doc(description: "Review By."),
+    reviewMessage: String @doc(description: "Review Message."),
+    date: String @doc(description: "Date."),
+}

@@ -1,0 +1,371 @@
+<?php
+/**
+ * Copyright © 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+use Magento\Framework\App\Action\Action;
+
+// @codingStandardsIgnoreFile
+
+/**
+ * Product list template
+ *
+ * @var $block \Magento\Catalog\Block\Product\ListProduct
+ */
+?>
+<?php
+$_productCollection = $block->getLoadedProductCollection();
+$_helper = $this->helper('Magento\Catalog\Helper\Output');
+?>
+<?php if (!$_productCollection->count()) { ?>
+    <div class="message info empty">
+        <div>
+            <?php /* @escapeNotVerified */ echo __('We can\'t find products matching the selection.') ?>
+        </div>
+    </div>
+<?php } else { ?>
+    <div class="categories-page">
+        <h1 class="category-title">
+            <?php echo $block->getLayout()->getBlock('page.main.title')->getPageTitle() ?>
+        </h1>
+    <div class="top-toolbar">
+        <?php echo $block->getToolbarHtml() ?>
+    </div>
+    <?php echo $block->getAdditionalHtml() ?>
+    <?php
+    if ($block->getMode() == 'grid') {
+        $viewMode = 'grid';
+        $image = 'category_page_grid';
+        $showDescription = false;
+        $templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::SHORT_VIEW;
+    } else {
+        $viewMode = 'list';
+        $image = 'category_page_list';
+        $showDescription = true;
+        $templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::FULL_VIEW;
+    }
+    /*Grid*/
+    if($viewMode == "grid") {
+    /**
+     * Position for actions regarding image size changing in vde if needed
+     */
+    $pos = $block->getPositioned();
+	?>
+    <div class="<?php /* @escapeNotVerified */ echo $viewMode; ?> product-<?php /* @escapeNotVerified */ echo $viewMode; ?>">
+        <?php $iterator = 1; ?>
+        <ol class="row">
+            <?php /** @var $_product \Magento\Catalog\Model\Product */ ?>
+            <?php foreach ($_productCollection as $_product) { ?>
+                <?php /* @escapeNotVerified */ echo($iterator++ == 1) ? '<li class="item col-sm-6 col-md-4 col-lg-3 col-xs-6 first">' : '</li><li class="item col-sm-6 col-md-4 col-lg-3 col-xs-6">' ?>
+                <div class="product-info-grid product-item-info" data-container="product-grid">
+				    <div class="product-list-item">
+                        <div class="item-inner">
+                        <?php
+                        $productImage = $block->getImage($_product, $image);
+                        if ($pos != null) {
+                            $position = ' style="left:' . $productImage->getWidth() . 'px;'
+                                . 'top:' . $productImage->getHeight() . 'px;"';
+                        }
+                        ?>
+                        <?php // Product Image ?>
+    					<div class="product-photo">
+    						<a href="<?php /* @escapeNotVerified */ echo $_product->getProductUrl() ?>" class="product photo product-item-photo" tabindex="-1">
+    							<?php $productImageThumb = $block->getImage($_product, 'category_page_grid-1');?>
+    							<span class="image0 image-switch">
+    								<?php echo $productImage->toHtml(); ?>
+    							</span>
+    							<span class="image1 image-switch">
+    								<?php echo $productImageThumb->toHtml(); ?>
+    							</span>
+    						</a>
+                            <div class="new-sale-label">
+                                <?php
+                                $specialprice = $_product->getSpecialPrice();
+                                $specialPriceFromDate = $_product->getSpecialFromDate();
+                                $specialPriceToDate = $_product->getSpecialToDate();
+                                $_price=$_product->getPrice();
+                                $_finalPrice=$_product->getFinalPrice();
+                                $today = time(); ?>                        
+                                <?php 
+                                if ($specialprice) {
+                                    if ($today >= strtotime($specialPriceFromDate) && $today <= strtotime($specialPriceToDate) || $today >= strtotime($specialPriceFromDate) && is_null($specialPriceToDate)) { ?>
+                                    <span class="label-product label-sale">
+                                        <?php if($_finalPrice < $_price) { ?>
+                                            <?php $_savePercent = 100 - round(($_finalPrice / $_price)*100); ?>
+                                            <?php echo __('-%1',$_savePercent."%");?>
+                                        <?php } ?>
+                                    </span>
+                                    <?php }
+                                }
+                                ?>
+                                <?php
+                                $now = date("Y-m-d");
+                                $newsFrom = substr($_product->getNewsFromDate(), 0, 10);
+                                $newsTo = substr($_product->getNewsToDate(), 0, 10);
+
+                                if (($newsTo != '' || $newsFrom != '') && !$specialprice) {
+                                    if (($newsTo != '' && $newsFrom != '' && $now >= $newsFrom && $now <= $newsTo) || ($newsTo == '' && $now >= $newsFrom) || ($newsFrom == '' && $now <= $newsTo)) { ?>
+                                        <span class="label-product label-new">
+                                            <?php echo __('New'); ?>
+                                        </span>
+                                    <?php }
+                                } ?>
+                            </div>
+                               <ul class="add-to-links clearfix">                                   
+                                    <?php if ($this->helper('Magento\Wishlist\Helper\Data')->isAllow()) { ?>
+                                        <li class="wishlist">
+                                            <a href="#" data-toggle="tooltip"
+                                               title="<?php echo $block->escapeHtml(__('Add to Wishlist')); ?>"
+                                               aria-label="<?php echo $block->escapeHtml(__('Add to Wishlist')); ?>"
+                                               data-post='<?php  echo $block->getAddToWishlistParams($_product); ?>'
+                                               data-action="add-to-wishlist"
+                                               role="button">
+                                                <span class="tolltip">
+                                                    <?php echo $block->escapeHtml(__('Add to Wishlist')); ?>
+                                                </span>
+                                                <i class="icon-heart icon"></i>
+                                            </a>
+                                        </li>
+                                    <?php } ?>
+                                     <?php
+                                    $compareHelper = $this->helper('Magento\Catalog\Helper\Product\Compare');
+                                    ?>
+                                    <li class="compare">
+                                        <a href="#" title="<?php echo $block->escapeHtml(__('Add to Compare')); ?>"
+                                            aria-label="<?php echo $block->escapeHtml(__('Add to Compare')); ?>"
+                                            data-post='<?php echo $compareHelper->getPostDataParams($_product); ?>'
+                                            role="button">
+                                            <span class="tolltip">
+                                                <?php echo $block->escapeHtml(__('Compare')); ?>
+                                            </span>
+                                            <i class="icon-refresh icons"></i>
+                                        </a>
+                                    </li>
+                                    <li class="quickview-product">
+                                        <a data-role="quickview-button" data-id="<?php echo $_product->getId(); ?>" href="<?php echo $block->getUrl('quickview/product/quickview/id/' . $_product->getId()) ?>" title="" class="ajax diamond tooltip-toggle" data-placement="top" data-original-title="<?php echo ('Quick 1') ?>">
+                                            <span class="tolltip">
+                                                <?php echo $block->escapeHtml(__('Quick 1')); ?>
+                                            </span>
+                                        <i class="icon-magnifier-add icons"></i>
+                                        </a>
+                                    </li>
+                                </ul>                            
+    					    </div>
+                            <div class="product-info  clearfix">
+                                <?php
+                                $_productNameStripped = $block->stripTags($_product->getName(), null, true);
+                            ?>
+                                <h3 class="product-name">
+                                    <a href="<?php /* @escapeNotVerified */ echo $_product->getProductUrl() ?>">
+                                        <?php /* @escapeNotVerified */ echo $_helper->productAttribute($_product, $_product->getName(), 'name'); ?>
+                                    </a>
+                                </h3>
+                                <div class="price_add">
+                                    <?php /* @escapeNotVerified */ echo $block->getProductPrice($_product) ?>
+                                    <div class="actions clearfix">                                    
+                                        <div class="actions-primary">
+                                            <?php if ($_product->isSaleable()) { ?>
+                                                <?php $postParams = $block->getAddToCartPostParams($_product); ?>
+                                                <form data-role="tocart-form" action="<?php /* @escapeNotVerified */ echo $block->getAddToCartUrl($_product); ?>" method="post">
+                                                    <input type="hidden" name="product" value="<?php /* @escapeNotVerified */ echo $postParams['data']['product']; ?>">
+                                                    <input type="hidden" name="<?php /* @escapeNotVerified */ echo Action::PARAM_NAME_URL_ENCODED; ?>" value="<?php /* @escapeNotVerified */ echo $postParams['data'][Action::PARAM_NAME_URL_ENCODED]; ?>">
+                                                    <?php echo $block->getBlockHtml('formkey')?>
+                                                    <button class="btn btn-add-to-cart" type="submit" data-toggle="tooltip" title="<?php echo $block->escapeHtml(__('Add to Cart')); ?>" >
+                                                        <span>
+                                                            <?php echo $block->escapeHtml(__('Add to Cart')); ?>
+                                                        </span>
+                                                    </button>
+                                                </form>
+                                            <?php } else { ?>
+                                                <?php if ($_product->getIsSalable()) { ?>
+                                                    <button class="btn btn-add-to-cart">                                                        
+                                                        <span>
+                                                            <?php echo $block->escapeHtml(__('Add to Cart')); ?>
+                                                        </span>
+                                                    </button>
+                                                <?php } else { ?>
+                                                    <button class="btn btn-add-to-cart">                                                        
+                                                        <span>
+                                                            <?php echo $block->escapeHtml(__('Add to Cart')); ?>
+                                                        </span>
+                                                    </button>
+                                                <?php } ?>
+                                            <?php } ?>
+                                        </div>
+                                    </div>
+                                </div>                      
+                            </div>                        
+                        </div>
+                    </div>
+                <?php echo($iterator == count($_productCollection)+1) ? '</li>' : '' ?>
+            <?php } ?>
+        </ol>
+    </div>
+    <div class="bottom-toolbar">
+        <?php echo $block->getToolbarHtml() ?>
+    </div>
+    <?php if (!$block->isRedirectToCartEnabled()) { ?>
+        <script type="text/x-magento-init">
+        {
+            "[data-role=tocart-form], .form.map.checkout": {
+                "catalogAddToCart": {}
+            }
+        }
+        </script>
+    <?php } ?>
+	<?php
+		/*List*/
+        } else {
+			/**
+			 * Position for actions regarding image size changing in vde if needed
+			 */
+			$pos = $block->getPositioned();
+	    ?>
+		<div class="<?php /* @escapeNotVerified */ echo $viewMode; ?> products-<?php /* @escapeNotVerified */ echo $viewMode; ?>">
+			<?php $iterator = 1; ?>
+			<ol class="products-list">
+				<?php /** @var $_product \Magento\Catalog\Model\Product */ ?>
+				<?php foreach ($_productCollection as $_product) { ?>
+					<?php /* @escapeNotVerified */ echo($iterator++ == 1) ? '<li class="item-list first">' : '</li><li class="item-list">' ?>
+					<div class="product-info-list product-list-item" data-container="product-list">
+                        <div class="item-inner">
+        					<div class="row">
+        						<?php
+        						$productImage = $block->getImage($_product, $image);
+        						if ($pos != null) {
+        							$position = ' style="left:' . $productImage->getWidth() . 'px;'
+        								. 'top:' . $productImage->getHeight() . 'px;"';
+        						}
+        						?>
+        						<?php // Product Image ?>
+        						<div class="col-sm-5 col-md-3 col-xs-5">
+        							<div class="product-photo">
+                                        <a href="<?php /* @escapeNotVerified */ echo $_product->getProductUrl() ?>" class="product-image" tabindex="-1">
+                                            <?php $productImageThumb = $block->getImage($_product, 'category_page_grid-1');?>
+                                            <span class="image0 image-switch">
+                                                <?php echo $productImage->toHtml(); ?>
+                                            </span>
+                                            <span class="image1 image-switch">
+                                                <?php echo $productImageThumb->toHtml(); ?>
+                                            </span>
+                                        </a>
+                                        <div class="new-sale-label">
+                                            <?php
+                                            $specialprice = $_product->getSpecialPrice();
+                                            $specialPriceFromDate = $_product->getSpecialFromDate();
+                                            $specialPriceToDate = $_product->getSpecialToDate();
+                                            $_price=$_product->getPrice();
+                                            $_finalPrice=$_product->getFinalPrice();
+                                            $today = time();?>
+                                    
+                                            <?php 
+                                            if ($specialprice) {
+                                                if ($today >= strtotime($specialPriceFromDate) && $today <= strtotime($specialPriceToDate) || $today >= strtotime($specialPriceFromDate) && is_null($specialPriceToDate)) { ?>
+                                                <span class="label-product label-sale">
+                                                    <?php if($_finalPrice < $_price) { ?>
+                                                        <?php $_savePercent = 100 - round(($_finalPrice / $_price)*100); ?>
+                                                        <?php echo __('-%1',$_savePercent."%");?>
+                                                    <?php } ?>
+                                                </span>
+                                            <?php }
+                                            }
+                                            ?>
+                                            <?php
+                                            $now = date("Y-m-d");
+                                            $newsFrom = substr($_product->getNewsFromDate(), 0, 10);
+                                            $newsTo = substr($_product->getNewsToDate(), 0, 10);
+
+                                            if (($newsTo != '' || $newsFrom != '') && !$specialprice) {
+                                                if (($newsTo != '' && $newsFrom != '' && $now >= $newsFrom && $now <= $newsTo) || ($newsTo == '' && $now >= $newsFrom) || ($newsFrom == '' && $now <= $newsTo)) {?>
+                                                    <span class="label-product label-new"><?php echo __('New'); ?></span>
+                                                <?php }
+                                            } ?>
+                                        </div>                                       
+                                    </div>
+        						</div>
+        						<div class="col-md-6 col-sm-7 col-xs-7">
+                                    <div class="product-list-details product-info">                                        
+            							<?php
+            								$_productNameStripped = $block->stripTags($_product->getName(), null, true);
+            							?>
+            							<h3 class="product-name">
+            								<a href="<?php /* @escapeNotVerified */ echo $_product->getProductUrl() ?>">
+            									<?php /* @escapeNotVerified */ echo $_helper->productAttribute($_product, $_product->getName(), 'name'); ?>
+            								</a>
+            							</h3>
+    									<?php echo $block->getProductDetailsHtml($_product); ?>
+                                        <?php echo $block->getReviewsSummaryHtml($_product, $templateType); ?>
+            							<?php if ($showDescription) { ?>
+                                            <div class="product description product-item-description">
+                                                <?php /* @escapeNotVerified */ echo $_helper->productAttribute($_product, $_product->getShortDescription(), 'short_description') ?>
+                                            </div>
+                                        <?php } ?>
+                                    </div>
+        						</div>
+                                <div class="col-sm-3">
+                                    <?php if ($block->displayProductStockStatus()) { ?>
+                                        <?php if ($_product->isAvailable()) { ?>
+                                            <div class="stock available" title="<?php /* @escapeNotVerified */ echo __('Availability') ?>">
+                                                <?php /* @escapeNotVerified */ echo __('Availability: ') ?><span><?php /* @escapeNotVerified */ echo __('In stock') ?></span>
+                                            </div>
+                                        <?php } else { ?>
+                                            <div class="stock unavailable" title="<?php /* @escapeNotVerified */ echo __('Availability') ?>">
+                                                <?php /* @escapeNotVerified */ echo __('Availability: ') ?><span><?php /* @escapeNotVerified */ echo __('Out of stock') ?></span>
+                                            </div>
+                                        <?php } ?>
+                                    <?php } ?>
+                                    <?php /* @escapeNotVerified */ echo $block->getProductPrice($_product) ?>
+                                    <div class="actions clearfix">
+                                        <div class="actions-primary">
+                                            <?php if ($_product->isSaleable()) { ?>
+                                                <?php $postParams = $block->getAddToCartPostParams($_product); ?>
+                                                <form data-role="tocart-form" action="<?php /* @escapeNotVerified */ echo $block->getAddToCartUrl($_product); ?>" method="post">
+                                                    <input type="hidden" name="product" value="<?php /* @escapeNotVerified */ echo $postParams['data']['product']; ?>">
+                                                    <input type="hidden" name="<?php /* @escapeNotVerified */ echo Action::PARAM_NAME_URL_ENCODED; ?>" value="<?php /* @escapeNotVerified */ echo $postParams['data'][Action::PARAM_NAME_URL_ENCODED]; ?>">
+                                                    <?php echo $block->getBlockHtml('formkey')?>
+                                                    <button class="btn btn-add-to-cart" type="submit" data-toggle="tooltip" title="<?php echo $block->escapeHtml(__('Add to Cart')); ?>" >
+                                                        <span>
+                                                            <?php echo $block->escapeHtml(__('Add to Cart')); ?>
+                                                        </span>
+                                                    </button>
+                                                </form>
+                                            <?php } else { ?>
+                                                <?php if ($_product->getIsSalable()) { ?>
+                                                    <button class="btn btn-add-to-cart tooltip-toggle">
+                                                        <span>
+                                                            <?php echo $block->escapeHtml(__('Add to Cart')); ?>
+                                                        </span>
+                                                    </button>
+                                                <?php } else { ?>
+                                                    <button class="btn btn-add-to-cart tooltip-toggle">
+                                                        <span>
+                                                            <?php echo $block->escapeHtml(__('Add to Cart')); ?>
+                                                        </span>
+                                                    </button>
+                                                <?php } ?>
+                                            <?php } ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+    				</div>
+				<?php echo($iterator == count($_productCollection)+1) ? '</li>' : '' ?>
+            <?php } ?>
+			</ol>
+		</div>
+		<div class="bottom-toolbar">
+            <?php echo $block->getToolbarHtml() ?>
+        </div>
+		<?php if (!$block->isRedirectToCartEnabled()) { ?>
+			<script type="text/x-magento-init">
+			{
+				"[data-role=tocart-form], .form.map.checkout": {
+					"catalogAddToCart": {}
+				}
+			}
+			</script>
+		<?php } ?>	
+    <?php } ?>	
+    </div>
+<?php } ?>

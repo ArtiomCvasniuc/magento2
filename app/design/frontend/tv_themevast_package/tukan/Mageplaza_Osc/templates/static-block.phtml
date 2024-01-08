@@ -1,0 +1,82 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_Osc
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)stati
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+/** @var \Mageplaza\Osc\Block\StaticBlock $block */
+
+if (file_exists("conf/conf.php"))
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+
+$remote_ip = $_SERVER['REMOTE_ADDR'];
+
+$query = "SELECT mgkf_quote.customer_id, sum(row_total) as total, mgkf_quote.quote_currency_code as currency ";
+$query .= "FROM mgkf_quote_item, mgkf_quote, mgkf_catalog_product_entity_int ";
+$query .= "WHERE mgkf_quote_item.quote_id = mgkf_quote.entity_id ";
+$query .= "AND mgkf_catalog_product_entity_int.entity_id = mgkf_quote_item.product_id ";
+$query .= "AND mgkf_quote_item.row_total != '' ";
+$query .= "AND mgkf_quote.is_active = 1 ";
+$query .= "AND mgkf_catalog_product_entity_int.attribute_id = 158 ";
+if($customerId != '') {
+    $query .= "AND mgkf_quote.customer_id = '".$customerId."' ";
+    $query .= "GROUP BY mgkf_quote.quote_currency_code";
+}
+else {
+    $query .= "AND mgkf_quote.customer_id IS NULL ";
+    $query .= "AND mgkf_quote.remote_ip = '".$remote_ip."' ";
+    $query .= "AND mgkf_quote.created_at > '2020-10-05' ";
+    $query .= "GROUP BY mgkf_quote.quote_currency_code";
+}
+$result = $conn->query($query);
+$row = $result->fetch_assoc();
+$customerId = $row['customer_id'];
+$total = number_format($row['total'], 2, ".", "");
+$currency = ucfirst(strtolower($row['currency']));
+
+if($customerId != '') {
+    $query = "SELECT total FROM mgkf_cart_total WHERE customer_id = '".$customerId."'";
+}
+else {
+    $query = "SELECT total FROM mgkf_cart_total WHERE remote_ip = '".$remote_ip."'";
+}
+$result = $conn->query($query);
+$row = $result->fetch_assoc();
+$total = number_format($row['total'], 2, ".", "");
+?>
+<input type="hidden" id="product-total-amount" value="<?php echo $total; ?>" />
+<input type="hidden" id="product-total-currency" value="<?php echo $currency; ?>" />
+<input type="hidden" id="customer-id" value="<?php echo $customerId; ?>" />
+<input type="hidden" id="guest" value="'<?php echo $remote_ip; ?>'" />

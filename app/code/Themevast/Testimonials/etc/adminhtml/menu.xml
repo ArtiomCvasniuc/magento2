@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!--
+	/**
+		* ducdevphp@gmail.com
+	*/
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+		<add id="Themevast_Testimonials::testimonials_testimonials" title="Testimonials" module="Themevast_Testimonials" sortOrder="0" parent="Themevast_Themevast::themevast" resource="Themevast_Testimonials::testimonials_testimonials"/>
+        <add id="Themevast_Testimonials::testimonials_manager" title="Manage Testimonials" module="Themevast_Testimonials" sortOrder="20" parent="Themevast_Testimonials::testimonials_testimonials" action="testimonials/testimonials" resource="Themevast_Testimonials::testimonials_manager"/>
+        <add id="Themevast_Testimonials::testimonials_setting" title="Testimonials Settings" module="Themevast_Testimonials" sortOrder="30" parent="Themevast_Testimonials::testimonials_testimonials" action="adminhtml/system_config/edit/section/testimonials_setting" resource="Themevast_Testimonials::testimonials_setting"/>
+    </menu>
+</config>

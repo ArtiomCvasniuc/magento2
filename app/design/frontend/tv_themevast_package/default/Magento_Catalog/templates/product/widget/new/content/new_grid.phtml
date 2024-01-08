@@ -1,0 +1,97 @@
+<?php
+/**
+ * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+/**
+ * Template for displaying new products widget
+ *
+ * @var $block \Magento\Catalog\Block\Product\Widget\NewWidget
+ */
+if ($exist = ($block->getProductCollection() && $block->getProductCollection()->getSize())) {
+    $type = 'widget-new-grid';
+    $mode = 'grid';
+    $image = 'new_products_content_widget_grid';
+    $title = __('New Arrivals');
+    $items = $block->getProductCollection()->getItems();
+    $showWishlist = true;
+    $showCompare = true;
+    $showCart = true;
+    $templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::DEFAULT_VIEW;
+    $description = false;
+}
+?>
+<?php if ($exist) { ?>
+    <div class="block-new-products">
+        <div class="title-menu-heading new-title">
+            <h2>
+                <?php /* @escapeNotVerified */ echo $title; ?>
+            </h2>
+        </div>
+        <div class="new-content">
+            <?php /* @escapeNotVerified */ echo '<!-- ' . $image . '-->' ?>
+            <ol class="product-items <?php /* @escapeNotVerified */ echo $type; ?>">
+                <?php $iterator = 1; ?>
+                <?php foreach ($items as $_item) { ?>
+                    <?php /* @escapeNotVerified */ echo($iterator++ == 1) ? '<li class="product-item">' : '</li><li class="product-item">' ?>
+                    <div class="product-photo">
+                        <a href="<?php /* @escapeNotVerified */ echo $block->getProductUrl($_item) ?>" class="product-item-photo">
+                            <?php echo $block->getImage($_item, $image)->toHtml(); ?>
+                        </a>
+                        <div class="quickview-product">
+                            <a data-role="quickview-button" data-id="<?php echo $_item->getId(); ?>" href="<?php echo $block->getUrl('quickview/product/quickview/id/' . $_item->getId()) ?>" title="" class="ajax diamond tooltip-toggle" data-placement="top" data-original-title="<?php echo ('Quick view') ?>">
+                                <?php echo $block->escapeHtml(__('Quick View')); ?>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <?php if ($templateType) { ?>
+                            <?php echo $block->getReviewsSummaryHtml($_item, $templateType) ?>
+                        <?php } ?>
+                        <h3 class="product-name">
+                            <a title="<?php echo $block->escapeHtml($_item->getName()) ?>" href="<?php /* @escapeNotVerified */ echo $block->getProductUrl($_item) ?>" class="product-item-link">
+                                <?php echo $block->escapeHtml($_item->getName()) ?>
+                            </a>
+                        </h3>
+                        <?php
+                        echo $block->getProductPriceHtml($_item, $type);
+                        ?>
+                        <div class="actions">
+                            <div class="actions-primary">
+                                <?php if ($_item->isSaleable()) { ?>
+                                    <?php if ($_item->getTypeInstance()->hasRequiredOptions($_item)) { ?>
+                                        <button class="btn btn-add-to-cart" data-mage-init='{"redirectUrl":{"url":"<?php /* @escapeNotVerified */ echo $block->getAddToCartUrl($_item) ?>"}}' type="button" title="<?php /* @escapeNotVerified */ echo __('Add to Cart') ?>">
+                                            <span>
+                                                <?php /* @escapeNotVerified */ echo __('Add to Cart') ?>
+                                            </span>
+                                        </button>
+                                    <?php } else { ?>
+                                        <?php
+                                            $postDataHelper = $this->helper('Magento\Framework\Data\Helper\PostHelper');
+                                            $postData = $postDataHelper->getPostData($block->getAddToCartUrl($_item), ['product' => $_item->getEntityId()])
+                                        ?>
+                                        <button class="btn btn-add-to-cart" data-post='<?php /* @escapeNotVerified */ echo $postData; ?>' type="button" title="<?php /* @escapeNotVerified */ echo __('Add to Cart') ?>">
+                                            <span>
+                                                <?php /* @escapeNotVerified */ echo __('Add to Cart') ?>
+                                            </span>
+                                        </button>
+                                    <?php } ?>
+                                <?php } else { ?>
+                                    <?php if ($_item->getIsSalable()) { ?>
+                                        <div class="stock available btn btn-add-to-cart"><span><?php /* @escapeNotVerified */ echo __('In stock') ?></span></div>
+                                    <?php } else { ?>
+                                        <div class="stock unavailable btn btn-add-to-cart"><span><?php /* @escapeNotVerified */ echo __('Out of stock') ?></span></div>
+                                    <?php } ?>
+                                <?php } ?>
+                            </div>
+                        </div>
+                    </div>
+                    <?php echo($iterator == count($items)+1) ? '</li>' : '' ?>
+                <?php } ?>
+            </ol>
+        </div>
+    </div>
+<?php } ?>

@@ -1,0 +1,97 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_StoreSwitcher
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+?>
+<div id="mpstoreswitcher-conditions">
+    <?= /** @noEscape */ $block->getForm()->getHtml() ?>
+</div>
+
+<script>
+    require([
+        'jquery',
+        'jquery/ui',
+        'jquery/editableMultiselect/js/jquery.editable',
+        'jquery/editableMultiselect/js/jquery.multiselect'
+    ], function ($) {
+        var ruleType = $('#rule_page_type'),
+            pageType = ruleType.val(),
+            selectAllEl = $('.mpstoreswitcher-selectall-checkbox');
+
+        if (pageType === 'specific_pages') {
+            $('.field-include_path').show();
+            $('.field-exclude_path').show();
+        } else {
+            $('.field-include_path').hide();
+            $('.field-exclude_path').hide();
+        }
+
+        ruleType.on('change', function () {
+            if ($(this).val() === 'specific_pages') {
+                $('.field-include_path').show();
+                $('.field-exclude_path').show();
+            } else {
+                $('.field-include_path').hide();
+                $('.field-exclude_path').hide();
+            }
+        });
+
+        /**
+         * Select All
+         */
+
+        var selectAllLabel = $('.mpstoreswitcher-selectall-label');
+        selectAllLabel.on('click', function () {
+            if ($(this).hasClass('selected-all')) {
+                selectAllEl.prop('checked', false);
+                $(this).removeClass('selected-all');
+                $("#rule_countries option").removeAttr('selected');
+
+            } else {
+                selectAllEl.prop('checked', true);
+                $(this).addClass('selected-all');
+                $('#rule_countries option').prop("selected", true);
+            }
+        });
+
+        selectAllEl.on('change', function () {
+            if (this.checked) {
+                $('#rule_countries option').prop("selected", true);
+            } else {
+                $("#rule_countries option").removeAttr('selected');
+            }
+        });
+
+        if ($('#rule_countries option:selected').length === $('#rule_countries option').length) {
+            selectAllEl.attr("checked", "checked");
+            selectAllLabel.addClass('selected-all');
+        } else {
+            selectAllEl.prop('checked', false);
+        }
+
+        $('#rule_countries').on('change', function () {
+            if ($('#rule_countries option:selected').length === $('#rule_countries option').length) {
+                selectAllEl.attr("checked", "checked");
+            } else {
+                $('.mpstoreswitcher-selectall-checkbox').prop('checked', false);
+            }
+        })
+    });
+</script>

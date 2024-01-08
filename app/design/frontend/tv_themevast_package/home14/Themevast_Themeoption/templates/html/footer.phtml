@@ -1,0 +1,23 @@
+<div class="container">
+    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('home5_newsletter')->toHtml();?>
+</div>
+<div class="footer-container">
+    <div class="footer-info">
+        <div class="container">
+            <div class="footer-info-container">
+                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('home14 footer')->toHtml();?>
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <div class="container">
+            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('footer_payment')->toHtml();?>
+            <div class="footer-copyright">
+                <?php echo $this->getChildHtml("copyright"); ?>
+            </div>
+        </div>
+    </div>
+    <div id="back-top">
+        <i class="fal fa-angle-up"></i>
+    </div>
+</div>

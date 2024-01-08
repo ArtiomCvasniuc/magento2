@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widgets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../../../Magento/Widget/etc/widget.xsd">
+    <widget id="themevast_testimonials" class="Themevast\Testimonials\Block\Testimonials" is_email_compatible="true"
+            placeholder_image="Magento_CatalogWidget::images/products_list.png" ttl="86400">
+        <label translate="true">Themevast : Testimonials</label>
+        <description translate="true">Option Testimonials</description>
+        <parameters>
+            <parameter name="title" xsi:type="text" required="false" visible="true">
+                <label translate="true">Title</label>
+            </parameter>
+			<parameter name="identify" xsi:type="text" required="true" visible="true">
+                <label translate="true">Identify</label>
+            </parameter>
+			 <parameter name="template" xsi:type="select" required="true" visible="true">
+                <label translate="true">Template</label>
+                <options>
+                    <option name="default" value="themevast/testimonials/slider.phtml" selected="true">
+                        <label translate="true">Products Grid Template</label>
+                    </option>
+                </options>
+            </parameter>    
+        </parameters>
+        <containers>
+            <container name="content">
+                <template name="grid" value="default" />
+            </container>
+            <container name="content.top">
+                <template name="grid" value="default" />
+            </container>
+            <container name="content.bottom">
+                <template name="grid" value="default" />
+            </container>
+        </containers>
+    </widget>
+</widgets>

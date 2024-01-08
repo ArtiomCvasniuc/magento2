@@ -1,0 +1,846 @@
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" />
+<?php
+if (file_exists("conf/conf.php"))
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+$reviewSellerId = $this->getRequest()->getParam('seller_id');
+
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$requestInterface = $helper->actionController();
+$routeName = $requestInterface->getRouteName();
+$action = $requestInterface->getActionName();
+
+$remote_ip = $_SERVER['REMOTE_ADDR'];
+
+if ($customerId != '') {
+    $query_wishlist_id = "SELECT wishlist_id ";
+    $query_wishlist_id .= "FROM mgkf_wishlist ";
+    $query_wishlist_id .= "WHERE customer_id = '" . $customerId . "'";
+    $result_wishlist_id = $conn->query($query_wishlist_id);
+    $row_wishlist_id = $result_wishlist_id->fetch_assoc();
+    $wishlistId = $row_wishlist_id['wishlist_id'];
+
+    $query_wishlist_count = "SELECT COUNT(product_id) as count ";
+    $query_wishlist_count .= "FROM mgkf_wishlist_item ";
+    $query_wishlist_count .= "WHERE wishlist_id = '" . $wishlistId . "'";
+    $result_wishlist_count = $conn->query($query_wishlist_count);
+    $row_wishlist_count = $result_wishlist_count->fetch_assoc();
+    $wishlistCount = $row_wishlist_count['count'];
+}
+else {
+    $query_wishlist_id = "SELECT id ";
+    $query_wishlist_id .= "FROM mgkf_guest_wishlist ";
+    $query_wishlist_id .= "WHERE remote_ip = '" . $remote_ip . "'";
+    $result_wishlist_id = $conn->query($query_wishlist_id);
+    if($result_wishlist_id) {
+        $row_wishlist_id = $result_wishlist_id->fetch_assoc();
+        $wishlistId = $row_wishlist_id['id'];
+
+        $query_wishlist_count = "SELECT COUNT(product_id) as count ";
+        $query_wishlist_count .= "FROM mgkf_guest_wishlist_item ";
+        $query_wishlist_count .= "WHERE guest_wishlist_id = '" . $wishlistId . "'";
+        $result_wishlist_count = $conn->query($query_wishlist_count);
+        $row_wishlist_count = $result_wishlist_count->fetch_assoc();
+        $wishlistCount = $row_wishlist_count['count'];
+    }
+    else {
+        $wishlistCount = 0;
+    }
+}
+if(strpos($currentUrl, 'checkout') !== false) {
+    $query = "SELECT * FROM mgkf_customer_grid_flat ";
+    $query .= "WHERE entity_id = '".$customerId."'";
+    $result = $conn->query($query);
+    if ($result != '') {
+        $row = $result->fetch_assoc();
+        $name = $row['billing_company'];
+        $country = $row['billing_country_id'];
+        $city = $row['billing_city'];
+        $address = $row['billing_street'];
+        $cui = $row['billing_vat_id'];
+
+        $query = "SELECT firstname, lastname ";
+        $query .= "FROM mgkf_customer_entity ";
+        $query .= "WHERE entity_id = '".$customerId."'";
+        $result = $conn->query($query);
+        $row = $result->fetch_assoc();
+        $responsible = $row['firstname'] . ' ' . $row['lastname'];
+
+        $query = "SELECT entity_id ";
+        $query .= "FROM mgkf_customer_address_entity ";
+        $query .= "WHERE parent_id = '".$customerId."' ";
+        $query .= "LIMIT 0,1";
+        $result = $conn->query($query);
+        $row = $result->fetch_assoc();
+        $entityId = $row['entity_id'];
+
+        $query = "SELECT street as address ";
+        $query .= "FROM mgkf_customer_address_entity ";
+        $query .= "WHERE entity_id = '".$entityId."'";
+        $result = $conn->query($query);
+        $row = $result->fetch_assoc();
+        $address = $row['address'];
+
+        $query_name = "SELECT company ";
+        $query_name .= "FROM mgkf_customer_address_entity ";
+        $query_name .= "WHERE entity_id = '".$entityId."'";
+        $result_name = $conn->query($query_name);
+        $row_name = $result_name->fetch_assoc();
+        $name = $row_name['company'];
+
+        $query_cui = "SELECT value ";
+        $query_cui .= "FROM mgkf_customer_address_entity_int ";
+        $query_cui .= "WHERE attribute_id = 238 ";
+        $query_cui .= "AND entity_id = '".$entityId."'";
+        $result_cui = $conn->query($query_cui);
+        $row_cui = $result_cui->fetch_assoc();
+        $cui = $row_cui['value'];
+
+        $query_reg_number = "SELECT value ";
+        $query_reg_number .= "FROM mgkf_customer_address_entity_varchar ";
+        $query_reg_number .= "WHERE attribute_id = 239 ";
+        $query_reg_number .= "AND entity_id = '".$entityId."'";
+        $result_reg_number = $conn->query($query_reg_number);
+        $row_reg_number = $result_reg_number->fetch_assoc();
+        $reg_number = $row_reg_number['value'];
+
+        $query_bank = "SELECT value ";
+        $query_bank .= "FROM mgkf_customer_address_entity_varchar ";
+        $query_bank .= "WHERE attribute_id = 240 ";
+        $query_bank .= "AND entity_id = '".$entityId."'";
+        $result_bank = $conn->query($query_bank);
+        $row_bank = $result_bank->fetch_assoc();
+        $bank = $row_bank['value'];
+
+        $query_bank_account = "SELECT value ";
+        $query_bank_account .= "FROM mgkf_customer_address_entity_varchar ";
+        $query_bank_account .= "WHERE attribute_id = 241 ";
+        $query_bank_account .= "AND entity_id = '".$entityId."'";
+        $result_bank_account = $conn->query($query_bank_account);
+        $row_bank_account = $result_bank_account->fetch_assoc();
+        $account = $row_bank_account['value'];
+    }
+    ?>
+    <div id="checkout-product-info">
+        <?php
+        $query = "SELECT product_id ";
+        $query .= "FROM mgkf_quote_item, mgkf_quote ";
+        $query .= "WHERE mgkf_quote_item.quote_id = mgkf_quote.entity_id ";
+        $query .= "AND mgkf_quote.is_active = 1 ";
+        $query .= "AND mgkf_quote_item.row_total != '' ";
+        if($customerId != '') {
+            $query .= "AND mgkf_quote.customer_id = '".$customerId."' ";
+        }
+        else {
+            $query .= "AND mgkf_quote.customer_id IS NULL ";
+            $query .= "AND mgkf_quote.remote_ip = '".$remote_ip."' ";
+            $query .= "AND mgkf_quote.created_at > '2020-10-05' ";
+        }
+        $result = $conn->query($query);
+        while($row = $result->fetch_assoc()) {
+            $productId = $row['product_id'];
+            $query_seller = "SELECT value as seller_id ";
+            $query_seller .= "FROM mgkf_catalog_product_entity_int ";
+            $query_seller .= "WHERE attribute_id = 158 ";
+            $query_seller .= "AND entity_id = '".$productId."'";
+            $result_seller = $conn->query($query_seller);
+            $row_seller = $result_seller->fetch_assoc();
+            $sellerId = $row_seller['seller_id'];
+            ?>
+            <input type="hidden" class="seller_id_value" value="<?php echo $sellerId; ?>" />
+        <?php
+        }
+        ?>
+        <input type="hidden" id="seller-ids" />
+    </div>
+    <input type="hidden" id="company_name" value="<?php echo $name; ?>" />
+    <input type="hidden" id="company_country" value="<?php echo $country; ?>" />
+    <input type="hidden" id="company_city" value="<?php echo $city; ?>" />
+    <input type="hidden" id="company_address" value="<?php echo $address; ?>" />
+    <input type="hidden" id="company_cui" value="<?php echo $cui; ?>" />
+    <input type="hidden" id="company_reg_number" value="<?php echo $reg_number; ?>" />
+    <input type="hidden" id="company_bank" value="<?php echo $bank; ?>" />
+    <input type="hidden" id="company_account" value="<?php echo $account; ?>" />
+    <input type="hidden" id="company_responsible" value="<?php echo $responsible; ?>" />
+
+    <script>
+    var parent = document.getElementById("checkout-product-info");
+    var id = parent.getElementsByClassName("seller_id_value");
+    var array = [];
+    for(var i=0; i<id.length; i++) {
+        id[i].setAttribute("id", "seller_id_"+i);
+        var value = document.getElementById("seller_id_"+i).value;
+        array.push(value);
+    }
+    var seller_ids = array;
+    document.getElementById("seller-ids").value = seller_ids.join();
+    </script>
+
+    <div class="checkout-header" id="checkout-header">
+        <div class="mb-4 bg-white">
+            <header class="container">
+                <div class="align-items-center g-0 py-2 row">
+                    <div class="col-3 col-md-2 col-xl-4">
+                        <?php 
+                        if(isset($_SERVER['HTTP_REFERER'])) {
+                            $link = $_SERVER['HTTP_REFERER'];
+                        }
+                        else {
+                            $link = str_replace("checkout/", "", $currentUrl);
+                        }
+                        ?>
+                        <a href="<?php echo $link; ?>">
+                            <i class="fal fa-arrow-left text-body"></i>&nbsp;
+                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('go_back')->toHtml(); ?>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4 text-center">
+                        <?php echo $this->getChildHtml("logo"); ?>
+                    </div>
+                    <div class="col-xl-4 col-md-6 mt-2 mt-md-0">
+                   <div class="d-flex justify-content-between justify-content-md-end">
+                        <div class="d-flex flex-column align-items-center px-1 px-lg-3">
+                                               <i class="fal fa-check-square text-body font-weight-normal"></i>
+                                               <p class="m-0">
+                                               <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('warranty')->toHtml(); ?>
+                                               </p>
+                                           </div>
+                                           <div class="d-flex flex-column align-items-center px-1 px-lg-3">
+                                               <i class="fal fa-globe text-body font-weight-normal"></i>
+                                                <p class="m-0">
+                                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('global_delivery')->toHtml(); ?>
+                                                                           </p>
+                                           </div>
+                                           <div class="d-flex flex-column align-items-center px-1 px-lg-3">
+                                               <i class="fal fa-credit-card text-body font-weight-normal"></i>
+                                                <p class="m-0">
+                                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('secure_payment')->toHtml(); ?>
+
+                                                                           </p>
+                                           </div>
+                   </div>
+                    </div>
+                </div>
+            </header>
+        </div>
+    </div>
+<?php
+}
+else {
+?>
+    <input type="hidden" id="customer_id" value="<?php echo $customerId; ?>" />
+    <div class="main-header" id="main-header">
+        <div class="fixed-top bg-white">
+            <header class="container">
+                <div class="row pt-2 align-items-center pb-2 pb-lg-0">
+                    <div class="col-7 col-sm-7 col-md-8 col-lg-6 col-xl-7">
+                        <div class="row align-items-center">
+                            <div class="col-4 d-none d-md-block">
+                                <?php echo $this->getChildHtml("logo"); ?>
+                            </div>
+                            <div id="mobile_search" class="col-6 col-md-8 d-none d-md-block">
+                                <i class="fal fa-arrow-left d-lg-none" id="close_mobile_search"></i>
+                                <?php echo $this->getChildHtml("topSearch"); ?>
+                            </div>
+                            <div class="col-2 d-block d-lg-none text-center">
+                                <a class="d-block d-md-none menu-bar">
+                                    <i class="fal fa-bars top-5" id="menu-icon"></i>
+                                </a>
+                            </div>
+                            <div class="col-10 d-md-none">
+                                <?php echo $this->getChildHtml("logo"); ?>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-5 col-sm-5 col-md-4 col-lg-6 col-xl-5">
+                        <div class="row align-items-center">
+                            <div class="col-12 col-xl-7 col-lg-7 justify-content-between mt-md-0 mt-3 d-none d-lg-flex px-0 px-lg-2">
+                                <my class="currency">
+                                    <?php echo $this->getChildHtml("currency"); ?>
+                                </my>
+                                <my class="language">
+                                    <?php echo $this->getChildHtml("store_language"); ?>
+                                </my>
+                                <?php
+                                $objectModelManager = \Magento\Framework\App\ObjectManager::getInstance();
+                                $customerSession = $objectModelManager->get('Magento\Customer\Model\Session');
+                                ?>
+                                <?php if ($customerSession->isLoggedIn()) { ?>
+                                    <my class="nav-item dropdown m-0">
+                                        <a class="nav-link text-dark dropdown-toggle py-2 px-1" href="<?php echo $this->getUrl('customer/account') ?>">
+                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('my_account')->toHtml(); ?>
+                                        </a>
+                                        <div class="border-0 dropdown-menu m-0 p-0 rounded-0">
+                                            <?php if ($routeName != 'catalog' && $routeName != 'catalogsearch' && ($customerGroupId == $sellerGroupId && $status == 1)) { ?>
+                                                <?php if ($customerId == 10 || $customerId == 11) { ?>
+                                                    <a class="dropdown-item" href="<?php echo $block->getUrl('customer/account/') ?>">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('account_settings')->toHtml(); ?>
+                                                    </a>
+                                                    <a class="dropdown-item" href="<?php echo $block->getUrl('marketplace/seller/dashboard') ?>">Marketplace Settings</a>
+                                                    <a class="dropdown-item" href="<?php echo $block->getUrl('marketplace/order/manage') ?>">View Transports</a>
+                                                    <a class="dropdown-item" href="<?php echo $block->getUrl('marketplace/product/manage') ?>">Manage Invoices</a>
+                                                    <a class="dropdown-item" href="<?php echo $block->getUrl('marketplace/seller/profile/') ?>">Store Info</a>
+                                                <?php
+                                                } else { ?>
+                                                    <a class="dropdown-item" href="<?php echo $block->getUrl('marketplace/seller/dashboard') ?>">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('seller_dashboard')->toHtml(); ?>
+                                                    </a>
+                                                    <a class="dropdown-item" href="<?php echo $block->getUrl('marketplace/order/manage') ?>">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('order_management')->toHtml(); ?>
+                                                    </a>
+                                                    <a class="dropdown-item" href="<?php echo $block->getUrl('marketplace/discount') ?>">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discounts')->toHtml(); ?>
+                                                    </a>
+                                                    <a class="dropdown-item" href="<?php echo $block->getUrl('marketplace/return') ?>">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('returns')->toHtml(); ?>
+                                                    </a>
+                                                    <a class="dropdown-item" href="<?php echo $block->getUrl('marketplace/product/manage') ?>">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('manage_products')->toHtml(); ?>
+                                                    </a>
+                                                    <a class="dropdown-item" href="<?php echo $block->getUrl('marketplace/seller/profile') ?>">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('account_settings')->toHtml(); ?>
+                                                    </a>
+                                                    <a class="dropdown-item" href="<?php echo $block->getUrl('marketplace/seller/transactions') ?>">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('payments')->toHtml(); ?>
+                                                    </a>
+                                                <?php
+                                                }
+                                            } else { ?>
+                                                <a class="dropdown-item" href="<?php echo $this->getUrl('sales/order/history') ?>">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('my_orders')->toHtml(); ?>
+                                                </a>
+                                                <a class="dropdown-item" href="<?php echo $this->getUrl('customer/returns') ?>">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('returns')->toHtml(); ?>
+                                                </a>
+                                                <a class="dropdown-item" href="<?php echo $this->getUrl('wishlist') ?>">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('my_wishlist')->toHtml(); ?>
+                                                </a>
+                                                <a class="dropdown-item" href="<?php echo $this->getUrl('review/customer') ?>">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('evaluation')->toHtml(); ?>
+                                                </a>
+                                                <a class="dropdown-item" href="<?php echo $this->getUrl('customer/account') ?>">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('account_settings')->toHtml(); ?>
+                                                </a>
+                                                <a class="dropdown-item" href="<?php echo $this->getUrl('customer/cards') ?>">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('cards')->toHtml(); ?>
+                                                </a>
+                                            <?php
+                                            } 
+                                            ?>
+                                            <a class="dropdown-item" href="<?php echo $this->getUrl('customer/account/logout') ?>">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('logout')->toHtml(); ?>
+                                            </a>
+                                        </div>
+                                    </my>
+                                <?php
+                                } else { ?>
+                                    <my class="login">
+                                        <a class="nav-link text-dark p-2" href="<?php echo $this->getUrl('customer/account') ?>">
+                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('my_account')->toHtml(); ?>
+                                        </a>
+                                    </my>
+                                <?php
+                                }
+                                ?>
+                            </div>
+                            <div class="col-12 col-xl-5 col-lg-5 mt-xl-0 text-right">
+                                <?php if ($routeName != 'catalog' && $routeName != 'catalogsearch' && ($customerGroupId == $sellerGroupId && $status == 1)) { ?>
+                                    <div class="d-lg-none">
+                                        <i class="fa-user fal mt-1 top-5" id="user-icon"></i>
+                                    </div>
+                                <?php
+                                } else { ?>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="quick-access">
+                                                <my class="options">
+                                                    <?php if (!($customerGroupId == $sellerGroupId && $status == 1)) { ?>
+                                                        <div class="d-flex justify-content-end align-items-center">
+                                                            <a class="d-lg-none d-md-block d-none menu-bar mobile-navigation pr-3">
+                                                                <i class="fal fa-bars"></i>
+                                                            </a>
+                                                            <i id="show_search_mobile" class="fas fa-search font-weight-light d-md-none pr-3"></i>
+                                                            <div class="d-block d-md-none pr-3 pr-mobile">
+                                                                <i class="fa-user fal mt-1" id="user-icon"></i>
+                                                            </div>
+                                                            <?php 
+                                                            if($customerId != '') {
+                                                            ?>
+                                                            <div class="link" data-bind="scope: 'wishlist'">
+                                                                <?php
+                                                                echo $block->getLinkAttributes();
+                                                                ?>
+                                                                <a class="position-relative" href="<?php echo $block->getUrl('wishlist'); ?>">
+                                                                    <i class="fal fa-heart wish-icon pr-3 pr-mobile"></i>
+                                                                    <span id="wish-list-buble" class="counter-list counter qty wishlist">
+                                                                        <?php echo $wishlistCount; ?>
+                                                                    </span>
+                                                                </a>
+                                                            </div>
+                                                            <script type="text/x-magento-init">
+                                                                { "*": { "Magento_Ui/js/core/app": { "components": { "wishlist": { "component": "Magento_Wishlist/js/view/wishlist" } } } } }
+                                                            </script>
+                                                            <?php 
+                                                            }
+                                                            else {
+                                                            ?>
+                                                                <div class="link">
+                                                                    <?php
+                                                                    echo $block->getLinkAttributes();
+                                                                    ?>
+                                                                    <a class="position-relative" href="<?php echo $block->getUrl('wishlist/guest'); ?>">
+                                                                        <i class="fal fa-heart wish-icon pr-3 pr-mobile"></i>
+                                                                        <span id="wish-list-buble" class="counter-list counter qty wishlist">
+                                                                            <?php 
+                                                                            echo $wishlistCount;
+                                                                            ?>
+                                                                        </span>
+                                                                    </a>
+                                                                </div> 
+                                                            <?php
+                                                            }
+                                                            ?>
+                                                            <?php echo $this->getChildHtml("wishlist"); ?>
+                                                            <?php echo $this->getChildHtml("minicart"); ?>
+                                                        </div>
+                                                    <?php
+                                                    } else { ?>
+                                                </my>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 text-right">
+                                            <div class="mobile-logo-vendor">
+                                                <?php $this->getChildHtml("logo"); ?>
+                                            </div>
+                                        <?php } ?>
+                                        </div>
+                                    </div>
+                                <?php
+                                }
+                                ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <div class="header-container">
+                <div class="container">
+                    <div class="header-inner">
+                        <div class="row">
+                            <div class="col-sm-12" id="header-center">
+                                <div class="megamenu-top">
+                                    <div class="menu-overlay"></div>
+                                    <div class="megamenu-inner">
+                                        <div id="login-mobile" class="d-none h-100 d-lg-none">
+                                            <?php if ($customerId == 10 || $customerId == 11) { ?>
+                                                <div id="nav-mobile" class="nav-mobile">
+                                                    <a class="menu-link pl-lg-0 px-3 py-2" href="<?php echo $block->getUrl('customer/account') ?>">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('account_settings')->toHtml(); ?>
+                                                    </a>
+                                                    <a class="menu-link pl-lg-0 px-3 py-2" href="<?php echo $block->getUrl('marketplace/seller/dashboard') ?>">Marketplace Settings</a>
+                                                    <a class="menu-link pl-lg-0 px-3 py-2" href="<?php echo $block->getUrl('marketplace/order/manage') ?>">View Transports</a>
+                                                    <a class="menu-link pl-lg-0 px-3 py-2" href="<?php echo $block->getUrl('marketplace/product/manage') ?>">Manage Invoices</a>
+                                                    <a class="menu-link pl-lg-0 px-3 py-2" href="<?php echo $block->getUrl('marketplace/seller/profile') ?>">Store Info</a>
+                                                    <hr />
+                                                    <a class="menu-link pl-lg-0 px-3 py-2" href="<?php echo $this->getUrl('customer/account/logout') ?>">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('logout')->toHtml(); ?>
+                                                    </a>
+                                                </div>
+                                            <?php
+                                            }
+                                            if ($routeName != 'catalog' && $routeName != 'catalogsearch' && ($customerGroupId == $sellerGroupId && $status == 1)) {
+                                            ?>
+                                                <div class="mobile-nav d-block d-md-none">
+                                                    <h3 class="title-mobile-menu m-0 p-3">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('my_account')->toHtml(); ?>
+                                                        <span class="close-menu">
+                                                            <i class="fal fa-times"></i>
+                                                        </span>
+                                                    </h3>
+                                                    <div id="nav-mobile" class="nav-mobile">
+                                                        <a class="menu-link d-block text-body pl-lg-0 px-3 py-2" href="<?php echo $block->getUrl('marketplace/seller/dashboard') ?>">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('seller_dashboard')->toHtml(); ?>
+                                                        </a>
+                                                        <a class="menu-link d-block text-body pl-lg-0 px-3 py-2" href="<?php echo $block->getUrl('marketplace/order/manage') ?>">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('order_management')->toHtml(); ?>
+                                                        </a>
+                                                        <a class="menu-link d-block text-body pl-lg-0 px-3 py-2" href="<?php echo $block->getUrl('marketplace/discount') ?>">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discounts')->toHtml(); ?>
+                                                        </a>
+                                                        <a class="menu-link d-block text-body pl-lg-0 px-3 py-2" href="<?php echo $block->getUrl('marketplace/return') ?>">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('returns')->toHtml(); ?>
+                                                        </a>
+                                                        <a class="menu-link d-block text-body pl-lg-0 px-3 py-2" href="<?php echo $block->getUrl('marketplace/product/manage') ?>">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('manage_products')->toHtml(); ?>
+                                                        </a>
+                                                        <a class="menu-link d-block text-body pl-lg-0 px-3 py-2" href="<?php echo $block->getUrl('marketplace/seller/profile') ?>">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('account_settings')->toHtml(); ?>
+                                                        </a>
+                                                        <a class="menu-link d-block text-body pl-lg-0 px-3 py-2" href="<?php echo $block->getUrl('marketplace/seller/transactions') ?>">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('payments')->toHtml(); ?>
+                                                        </a>
+                                                        <div class="d-lg-none mt-3">
+                                                            <?php echo $this->getChildHtml("currency"); ?>
+                                                        </div>
+                                                        <div class="d-lg-none">
+                                                            <?php echo $this->getChildHtml("store_language"); ?>
+                                                        </div>
+                                                        <a class="menu-link pl-lg-0 px-3 py-2 btn btn-java mt-5 mx-3" href="<?php echo $this->getUrl('customer/account/logout') ?>">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('logout')->toHtml(); ?>
+                                                        </a>
+                                                        <br>
+                                                    </div>
+                                                </div>
+                                            <?php
+                                            } else { ?>
+                                                <?php if ($customerSession->isLoggedIn()) { ?>
+                                                    <h3 class="title-mobile-menu m-0 p-3">
+                                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('my_account')->toHtml(); ?>
+                                                        <span class="close-menu">
+                                                            <i class="fal fa-times"></i>
+                                                        </span>
+                                                    </h3>
+                                                    <div class="mobile-navigation">
+                                                        <div id="nav-mobile" class="nav-mobile d-lg-none">
+                                                            <a class="menu-link d-inline-block px-3 py-2" href="<?php echo $this->getUrl('customer/account') ?>">
+                                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('my_account')->toHtml(); ?>
+                                                            </a>
+                                                            <br>
+                                                            <a class="menu-link d-inline-block px-3 py-2" href="<?php echo $this->getUrl('sales/order/history') ?>">
+                                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('my_orders')->toHtml(); ?>
+                                                            </a>
+                                                            <br>
+                                                            <a class="menu-link d-inline-block px-3 py-2" href="<?php echo $this->getUrl('customer/returns') ?>">
+                                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('returns')->toHtml(); ?>
+                                                            </a>
+                                                            <br>
+                                                            <a class="menu-link d-inline-block px-3 py-2" href="<?php echo $this->getUrl('wishlist') ?>">
+                                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('my_wishlist')->toHtml(); ?>
+                                                            </a>
+                                                            <br>
+                                                            <a class="menu-link d-inline-block px-3 py-2" href="<?php echo $this->getUrl('review/customer') ?>">
+                                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('evaluation')->toHtml(); ?>
+                                                            </a>
+                                                            <br>
+                                                            <a class="menu-link d-inline-block px-3 py-2" href="<?php echo $this->getUrl('customer/account') ?>">
+                                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('account_settings')->toHtml(); ?>
+                                                            </a>
+                                                            <br>
+                                                            <a class="menu-link d-inline-block px-3 py-2" href="<?php echo $this->getUrl('customer/cards') ?>">
+                                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('cards')->toHtml(); ?>
+                                                            </a>
+                                                            <hr />
+                                                            <div class="pl-lg-0 px-3 py-2">
+                                                                <a class="btn btn-java menu-link shadow-none" href="<?php echo $this->getUrl('customer/account/logout') ?>">
+                                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('logout')->toHtml(); ?>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php
+                                                } else { ?>
+                                                    <div class="mobile-nav flex-column bg-white h-100 d-flex justify-content-between">
+                                                        <div>
+                                                            <h3 class="title-mobile-menu m-0 p-3">
+                                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('my_account')->toHtml(); ?>
+                                                                <span class="close-menu">
+                                                                    <i class="fal fa-times"></i>
+                                                                </span>
+                                                            </h3>
+                                                            <div>
+                                                                <div class="px-3 py-2 mt-3">
+                                                                    <a class="text-center w-100 shadow-none btn d-inline-block border-0 text-left btn-java menu-link" href="<?php echo $this->getUrl('customer/account/login') ?>">Login</a>
+                                                                </div>
+                                                                <div class="px-3 py-2">
+                                                                    <a class="text-center w-100 btn d-inline-block shadow-none text-left btn-default-outline menu-link" href="<?php echo $this->getUrl('customer/account/create') ?>">Create Account</a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div class="d-lg-none">
+                                                                <?php echo $this->getChildHtml("currency"); ?>
+                                                            </div>
+                                                            <div class="d-lg-none">
+                                                                <?php echo $this->getChildHtml("store_language"); ?>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php
+                                                    }
+                                                }
+                                                ?>
+                                            </div>
+                                            <div id="menu-mobile" class="d-flex d-lg-block flex-column h-100 justify-content-between">
+                                                <div>
+                                                    <h3 class="title-mobile-menu m-0 p-3 d-lg-none">
+                                                        <?php echo __('Menu'); ?>
+                                                        <span class="close-menu">
+                                                            <i class="fal fa-times"></i>
+                                                        </span>
+                                                    </h3>
+                                                    <?php echo $block->getLayout()->createBlock('Themevast\MegaMenu\Block\Widget\Megamenu')->setMenu('top-menu')->toHtml(); ?>
+                                                    <?php if (!$customerSession->isLoggedIn()) { ?>
+                                                        <div class="d-lg-none">
+                                                            <div class="px-3 py-2 mt-3">
+                                                                <a class="text-center w-100 shadow-none btn d-inline-block border-0 text-left btn-java menu-link" href="<?php echo $this->getUrl('customer/account/login') ?>">Login</a>
+                                                            </div>
+                                                            <div class="px-3 py-2">
+                                                                <a class="text-center w-100 btn d-inline-block shadow-none text-left btn-default-outline menu-link" href="<?php echo $this->getUrl('customer/account/create') ?>">Create Account</a>
+                                                            </div>
+                                                        </div>
+                                                    <?php } ?>
+                                                </div>
+                                                <div class="d-flex flex-column">
+                                                    <div class="px-lg-3 d-lg-none">
+                                                        <?php echo $this->getChildHtml("currency"); ?>
+                                                    </div>
+                                                    <div class="px-lg-3 d-lg-none">
+                                                        <?php echo $this->getChildHtml("store_language"); ?>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        require([
+            'jquery'
+        ], function($) {
+            'use strict';
+            $(document).ready(function() {
+
+                $('#narrow-by-list').find('.filter-options-content').addClass('d-block')
+                // show red bubble is hav value
+                if (!$('#wish-list-buble').is(':empty')) {
+                    $('#wish-list-buble').removeClass('d-none');
+                }
+
+                // mega menu js
+                if ($(window).width() > 992) {
+                    $('.level0').hover(function() {
+                        $('body').addClass('overlay-menu');
+                        $(this).find('.menu-link').addClass('grey-link');
+                        $(this).find('.groupmenu-drop').addClass('d-block');
+                    }, function() {
+                        $('body').removeClass('overlay-menu');
+                        $(this).find('.menu-link').removeClass('grey-link');
+                        $(this).find('.groupmenu-drop').removeClass('d-block');
+                    });
+                } else {
+                    $('.currency_click').click(function() {
+                        $('.menu-1').slideToggle();
+                        $('.nav-link').toggleClass('border-bottom-small');
+                    })
+                    $('.view__click').click(function() {
+                        $('.menu-2').slideToggle();
+                    })
+
+                    // here is mobile js
+                    $(".menu-link").click(function() {
+                        $('.groupmenu-drop').not(this).slideUp().prev().removeClass("d-block");
+                        $(this).parent().find('.groupmenu-drop').not(":visible").slideDown().prev().addClass("d-block");
+                    });
+
+                    $('.open-d').click(function() {
+                        $('.dropdown-links').slideUp().prev().removeClass("d-block");
+                        $(this).find('.dropdown-links').not(":visible").slideDown().prev().addClass("d-block");
+                    })
+                }
+
+                $('#show_search_mobile').on('click', function() {
+                    $('#mobile_search').fadeIn();
+                    $('#mobile_search').addClass('d-block col-12');
+                    $('html, body').css({
+                        overflow: 'hidden',
+                        height: '100%'
+                    });
+                })
+
+                $('#close_mobile_search').on('click', function() {
+                    $('#mobile_search').removeClass('d-block col-12');
+                    $('html, body').css({
+                        overflow: 'scroll',
+                        height: '100%'
+                    });
+                })
+            });
+        });
+        require([
+            'jquery'
+        ], function($) {
+            'use strict';
+            $(document).ready(function() {
+                $('#additional-addresses-table').find('th').removeClass('col');
+                $('#b-close_search').click(function() {
+                    $('body').removeClass('open');
+                });
+            });
+        });
+        require([
+            'jquery'
+        ], function($) {
+            'use strict';
+            $(document).ready(function() {
+                $('.showcart').click(function() {
+                    $('body').addClass('open1');
+                });
+            });
+        });
+        require([
+            'jquery'
+        ], function($) {
+            'use strict';
+            $(document).ready(function() {
+                $('body').addClass('mx-auto');
+                $('.btn-minicart-close1').click(function(event) {
+                    $('body').removeClass('open1');
+                });
+            });
+        });
+        require([
+            'jquery'
+        ], function($) {
+            'use strict';
+            $(document).ready(function() {
+                $('.close-menu').click(function(event) {
+                    $('body').removeClass('open2');
+                });
+            });
+        });
+        require([
+            'jquery'
+        ], function($) {
+            'use strict';
+            $(document).ready(function() {
+                // give .main-header dynamic top pixels 
+                var header_height = $('.fixed-top').height()
+                $(".main-header").css("margin-top", header_height - 1 + 'px');
+
+                $(window).resize(function() {
+                    var header_height = $('.fixed-top').height()
+                    $(".main-header").css("margin-top", header_height - 1 + 'px');
+                });
+
+                // on scroll events
+                $(document).scroll(function() {
+                    $('mobile_search').removeClass('d-block col-12');
+                })
+
+                // open mobile ligin
+                $('#user-icon').on('click', function() {
+                    $('.megamenu-top').addClass('open-nav');
+                    $('#login-mobile').removeClass('d-none')
+                    $("#menu-mobile").addClass('d-none').removeClass('d-flex')
+                });
+
+                // open mobile menu
+                $('#menu-icon').on('click', function() {
+                    $('.groupmenu-drop').removeClass('d-block');
+                    $('.megamenu-top').addClass('open-nav');
+                    $('#login-mobile').addClass('d-none');
+                    $("#menu-mobile").removeClass('d-none').addClass('d-flex');
+                })
+
+                // ?>?
+                $('.menu-overlay').click(function(event) {
+                    $('body').removeClass('open2');
+                });
+
+                // a on click return false
+                $('#menu-mobile').find('.menu-link').click(function() {
+                    return false;
+                });
+            });
+        });
+
+        document.getElementById("btn_search").setAttribute("disabled", "false");
+        var timer = setInterval(function() {
+            var x = document.getElementById("btn_search").hasAttribute("disabled");
+            if (x == true) {
+                document.getElementById("btn_search").setAttribute("disabled", "false");
+                return;
+            }
+        }, 1000);
+
+        var span = document.getElementsByClassName("company_data");
+
+        if ((window.location.href.indexOf("/en/") <= -1) || (window.location.href.indexOf("/uk/") <= -1) || (window.location.href.indexOf("/ro/") <= -1)) {
+            for (var i = 0; i < 20; i++) {
+                if (document.getElementById("menu_en_" + i)) {
+                    document.getElementById("menu_en_" + i).style.display = "block";
+                }
+                if (document.getElementById("menu_ro_" + i)) {
+                    document.getElementById("menu_ro_" + i).style.display = "none";
+                }
+                if (document.getElementById("menu_uk_" + i)) {
+                    document.getElementById("menu_uk_" + i).style.display = "none";
+                }
+            }
+        }
+        if (window.location.href.indexOf("/ro/") > -1) {
+            for (var i = 0; i < 20; i++) {
+                if (document.getElementById("menu_ro_" + i)) {
+                    document.getElementById("menu_ro_" + i).style.display = "block";
+                }
+                if (document.getElementById("menu_en_" + i)) {
+                    document.getElementById("menu_en_" + i).style.display = "none";
+                }
+                if (document.getElementById("menu_uk_" + i)) {
+                    document.getElementById("menu_uk_" + i).style.display = "none";
+                }
+            }
+        }
+        if (window.location.href.indexOf("/uk/") > -1) {
+            for (var i = 0; i < 20; i++) {
+                if (document.getElementById("menu_uk_" + i)) {
+                    document.getElementById("menu_uk_" + i).style.display = "block";
+                }
+                if (document.getElementById("menu_ro_" + i)) {
+                    document.getElementById("menu_ro_" + i).style.display = "none";
+                }
+                if (document.getElementById("menu_en_" + i)) {
+                    document.getElementById("menu_en_" + i).style.display = "none";
+                }
+            }
+        }
+        if (window.location.href.indexOf("/en/") > -1) {
+            for (var i = 0; i < 20; i++) {
+                if (document.getElementById("menu_en_" + i)) {
+                    document.getElementById("menu_en_" + i).style.display = "block";
+                }
+                if (document.getElementById("menu_ro_" + i)) {
+                    document.getElementById("menu_ro_" + i).style.display = "none";
+                }
+                if (document.getElementById("menu_uk_" + i)) {
+                    document.getElementById("menu_uk_" + i).style.display = "none";
+                }
+            }
+        }
+    </script>
+<?php
+}
+?>

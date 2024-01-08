@@ -1,0 +1,23 @@
+{
+    "name": "amasty/advanced-review-graphql",
+    "description": "Advanced Review Graphql By Amasty",
+    "require": {
+        "php": "7.0.2|7.0.4|~7.0.6|^7.1.0",
+        "amasty/base": ">=1.10.1",
+        "amasty/advanced-review": ">=1.14.1",
+        "magento/module-graph-ql": "*"
+    },
+    "type": "magento2-module",
+    "version": "1.0.1",
+    "license": [
+        "Commercial"
+    ],
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Amasty\\AdvancedReviewGraphQl\\": ""
+        }
+    }
+}

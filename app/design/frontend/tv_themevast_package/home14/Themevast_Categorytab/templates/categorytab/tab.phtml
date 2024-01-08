@@ -1,0 +1,295 @@
+<?php 
+use Magento\Framework\App\Action\Action;
+
+$enable = $block->getConfigSys('enabled');
+if($enable < 1) return ;
+$cattabHelper = $this->helper('Themevast\Categorytab\Helper\Data');
+$items = $block->getConfig('items',5);
+$speed = $block->getConfig('speed',1000);
+$qty = $block->getConfig('qty',8);
+$showCart = $block->getConfig('addtocart',1);
+$showWishlist = $block->getConfig('wishlist',1);
+$showCompare = $block->getConfig('compare',1);
+$show_navigation = $block->getConfig('navigation',1);
+$show_pagination = $block->getConfig('pagination');
+$auto = $block->getConfig('auto');
+$rows = $block->getConfig('row',1);
+$show_slider = $block->getConfig('show_slider',0);
+$title = $block->getTitle(); 
+$identify = trim($block->getIdentify()); 
+$categoryIds = $block->getCategoryIds();
+$categoryIds = explode(',', $categoryIds);
+
+$productsOnRow = 2 ;
+if(!$productsOnRow) $productsOnRow = 3;
+$image_width=300;
+$image_height=300;
+$show_image=1;
+$alt_image=1;
+$_imgHelper = $this->helper('Themevast\Categorytab\Helper\Image');
+$alt_image_column ='position';
+$alt_image_column_value = 2 ;
+$strRandom   = $block->generateRandomString(10);
+$id          = 'cattab_'.$identify;
+$cmsblock1 = $this->getConfig('cmsblock1');
+$cmsblock2 = $this->getConfig('cmsblock2');
+$show_best = $this->getConfig('show_best');
+$config = $this->getData();
+$config['cmsblock2'] = $this->getConfig('cmsblock2');
+if($show_best && $this->getConfig('banner_product_best')) {
+	$config['banner_product_best'] = $block->filterImage($this->getConfig('banner_product_best'));
+}
+if($this->getConfig('show_banner_in_category') && $this->getConfig('banner_product_cat1')) {
+	$config['banner_product_cat1'] = $block->filterImage($this->getConfig('banner_product_cat1'));
+}
+if($this->getConfig('show_banner_in_category') && $this->getConfig('banner_product_cat2')) {
+	$config['banner_product_cat2'] = $block->filterImage($this->getConfig('banner_product_cat2'));
+}
+$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+$storeManager = $objectManager->get('\Magento\Store\Model\StoreManagerInterface');
+$link_all = $storeManager->getStore()->getBaseUrl().'/'.$this->getConfig('link_all','#');
+
+$config['show_best'] = $show_best;
+$config['qty'] = $block->getConfig('qty',8);
+$config['qty_best'] = $block->getConfig('qty_best',2);
+$config_tab = json_encode($config);
+$config_tab = strtr(rtrim(base64_encode($config_tab), '='), '+/', '-_');
+$bestsellerIds = $this->getConfig('categorybestseller_id');
+$show_slider = $block->getConfig('show_slider');
+$tv_column1 = $this->getConfig('tv_column1', 5);
+$tv_column2 = $this->getConfig('tv_column2', 4);
+$tv_column3 = $this->getConfig('tv_column3', 3);
+$tv_column4 = $this->getConfig('tv_column4', 2);
+$tv_column5 = $this->getConfig('tv_column5', 2);
+?>
+<div id="<?php echo $id ?>" class="categorytab cate-style first <?php echo $this->getConfig('customClass') ?> clearfix">
+	<?php if($this->getConfig('banner_image')){ ?>
+		<p class="banner_image"><img src="<?php echo $this->filterImage($this->getConfig('banner_image')); ?>" alt="<?php echo __($title)?>"/></p>
+	<?php } ?>
+	<div class="cattabs_title">
+		<div class="title-product-heading">
+			<h2><?php echo __($title); ?></h2>
+		</div>
+		<div class="cattabs_container" data-ajaxurl="<?php echo $block->getUrl('categorytab/index/index');?>" 
+									   data-cattab_id = <?php echo $id ?> >
+				<div class="cattabs_row">
+					<span class="cattab_isactive" style="display:none;"></span>
+						<ul class="cattabs cf">
+							<?php $k = 0; foreach ($categoryIds as $cate_id) { 
+								$cate_model =  $block->getCategory($cate_id);
+								$cateName = $cate_model->load($cate_id)->getName();
+								if($cateName) {
+							?>
+									<li class="cattab <?php echo $k==0 ? 'cattab_active cattab_loaded' : ''; ?>" data-cattab-id="<?php echo $cate_id; ?>" data-active-content=".cattab-items-<?php echo $cate_id; ?>">
+										<span class="cattab_title">
+											<?php echo __($cateName); ?>
+										</span>
+									</li>
+							<?php } $k++; }?>
+						</ul>
+				</div>
+		</div>
+	</div>
+	<div class="box-products">
+		<div class="cattabs_wrapper">
+			<div class="cattab_items_container show-slider">
+				<div class="cattabFirst_loading">
+					<div id="fountainTextG">
+						<div id="fountainTextG_1" class="fountainTextG">L</div>
+						<div id="fountainTextG_2" class="fountainTextG">o</div>
+						<div id="fountainTextG_3" class="fountainTextG">a</div>
+						<div id="fountainTextG_4" class="fountainTextG">d</div>
+						<div id="fountainTextG_5" class="fountainTextG">i</div>
+						<div id="fountainTextG_6" class="fountainTextG">n</div>
+						<div id="fountainTextG_7" class="fountainTextG">g</div>
+					</div>
+				</div>
+				<?php $j=0 ; foreach($categoryIds as $cate_id) { ?>
+					<div class="cattab_items cattab-items-<?php echo $cate_id; ?> <?php echo $j==0 ? ' cattab_items_active cattab_items_loaded cattab_item_preload' : ''; ?>">
+						<div class="cattab_items_inner clearfix">
+							<?php if($j==0) {
+								$data = $config;
+								$_productCollectionT = $block->getProductCate($cate_id);
+								$_collectionSizeT = $_productCollectionT->count();
+								$data['productCollection'] = $_productCollectionT;
+							?>	
+							<?php
+								$bestarray  = explode(',',$bestsellerIds);
+								$bestsellerProduct='';
+								?>
+								<?php if(in_array($cate_id,$bestarray) && $show_best) { ?>
+								<?php 
+									$bestsellerProduct = $block->getBestsellerProductByCat($cate_id);
+								?>
+								<?php } ?>							
+								<?php 
+									$data['bestsellerCollection'] = $bestsellerProduct;
+								?>
+								<?php echo $block->getProductHtml($data);?>
+							<?php } else { ?>
+								<div class="cattab_loading">
+									<div id="fountainTextG"><div id="fountainTextG_1" class="fountainTextG">L</div><div id="fountainTextG_2" class="fountainTextG">o</div><div id="fountainTextG_3" class="fountainTextG">a</div><div id="fountainTextG_4" class="fountainTextG">d</div><div id="fountainTextG_5" class="fountainTextG">i</div><div id="fountainTextG_6" class="fountainTextG">n</div><div id="fountainTextG_7" class="fountainTextG">g</div></div>
+								</div>
+							<?php } ?>
+						</div>
+				   </div>
+				<?php $j++;} ?>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+require(['jquery','mage/mage','themevast/owl'], function () {
+	jQuery(document).ready(function ($) {
+		;
+		(function (tv) {
+			var $tv = $(tv),
+				$cattab = $('.cattab', $tv),
+				$cattabs = $('.cattabs', $tv),
+				ajax_url = $cattabs.parents('.cattabs_container').attr('data-ajaxurl'),
+				producttabRandomId = $cattabs.parents('.cattabs_container').attr('data-productab_id'),
+				$cattab_items = $('.cattab_items', $tv),
+				$cattab_items_inner = $('.cattab_items_inner', $cattab_items),
+				$cattab_items_active = $('.cattab_items_active', $tv),
+				$cattab_isactive = $('.cattab_isactive', $tv);
+				$cattab.on('click', function () {
+					var $this = $(this);
+					if ($this.hasClass('cattab_active')) return false;
+					$cattab.removeClass('cattab_active');
+					$this.addClass('cattab_active');
+					var items_active = $this.attr('data-active-content');
+					var _tvcattab_active = $(items_active, $tv);
+					$cattab_items.removeClass('cattab_items_active');
+					_tvcattab_active.addClass('cattab_items_active');
+					$cattab_isactive.html($cattab.filter('.cattab_active').children('.cattab_title').html());
+					var $cattab_loading = $('.cattab_loading', _tvcattab_active);
+					var tvcattab_loaded = _tvcattab_active.hasClass('cattab_items_loaded');
+
+					if (!tvcattab_loaded && !_tvcattab_active.hasClass('cattab_process')) {
+						_tvcattab_active.addClass('cattab_process');
+						var cattab_id = $this.attr('data-cattab-id');
+						$cattab_loading.show();
+						$.ajax({
+							type: 'POST',
+							url: ajax_url,
+							dataType: 'json',
+							data: {
+								is_ajax_cattab: 1,
+								cattabId: cattab_id,
+								cattabconfig: '<?php echo $config_tab; ?>',
+								bestIds:'<?php echo $bestsellerIds?>',
+							},
+							success: function (data) {
+								if (data.cattab_ajax_data != '') {
+									$('.cattab_items_inner', _tvcattab_active).html(data.cattab_ajax_data);
+									_tvcattab_active.addClass('cattab_items_loaded').removeClass('cattab_process');
+									$cattab_loading.remove();
+										CattabSlider($('.cattab_items_inner', _tvcattab_active));
+										SliderBestCat($('.cattab_items_inner', _tvcattab_active));
+								}
+								if($.fn.mage !== undefined){
+									$('.btn.btn-add-to-cart' ).unbind( "click" ).click(function() {
+										var form = $(this).closest('form');
+										var currentW = form.catalogAddToCart({ bindSubmit: false });
+										currentW.catalogAddToCart('submitForm', form);
+										return false;
+									});
+								}
+								if($('.quickview-product').length){
+									$('.quickview-product [data-role=quickview-button]' ).productQuickview();
+								}
+							},
+							
+						});
+
+					} else {
+						var owlcattab = $('.cattab_items_inner', _tvcattab_active);
+						owlcattab = owlcattab.data('owlCarousel');
+						if (typeof owlcattab === 'undefined') {
+						} else {
+							owlcattab.onResize();
+						}
+					}
+				});
+
+			if ($('.cattab_items_inner', $tv).parent().hasClass('cattab_items_active')) {
+				var items_active = $('.cattab.cattab_active', $tv).attr('data-active-content');
+				var _tvcattab_active = $(items_active, $tv);
+				setTimeout(function () {
+					$('.cattabFirst_loading', $tv).remove();
+					_tvcattab_active.removeClass('cattab_item_preload');
+					CattabSlider($('.cattab_items_inner', _tvcattab_active));
+					SliderBestCat($('.cattab_items_inner', _tvcattab_active));
+				}, 500);
+				
+			}
+
+			function CattabSlider($cattab_items_inner) {
+				$owl_tab_slider = $('.cattab_owl',$cattab_items_inner);
+				$owl_tab_slider.owlCarousel({
+					items : 3,
+					autoplay : <?php if($auto) echo 'true'; else echo 'false'; ?>,
+					smartSpeed : <?php if($speed) echo $speed; else echo '500'; ?>,
+					nav : <?php if($show_navigation) echo 'true'; else echo 'false'; ?>,
+					stopOnHover : true,
+					dots : <?php if($show_pagination) echo 'true'; else echo 'false'; ?>,
+					margin: 30,
+					responsive: {
+						0: {
+							items : <?php echo $tv_column5;?>,
+						},
+						480: {
+							items : <?php echo $tv_column4;?>,
+						},
+						768: {
+							items : <?php echo $tv_column3;?>,
+						},
+						991: {
+							items : <?php echo $tv_column2;?>,
+						},						
+						1200: {
+							items : <?php echo $tv_column1;?>,
+						}
+					}
+				});
+				$('.owl-stage-outer', $owl_tab_slider).hover(function(){
+				     $(this).css("padding", "10px 10px 200px").css("margin", "-10px -10px -200px");
+				     }, function(){
+				     $(this).css("padding", "0").css("margin", "0");
+			    });
+			}
+			function SliderBestCat($cattab_items_inner){
+			<?php if($show_slider){?>
+				var owlBestTab = $(".cattab_bestseller .owl-carousel",$cattab_items_inner);
+				owlBestTab.owlCarousel({
+					items : 1,
+					autoplay : <?php if($auto) echo 'true'; else echo 'false'; ?>,
+					smartSpeed : <?php if($speed) echo $speed; else echo '500'; ?>,
+					nav : <?php if($show_navigation) echo 'true'; else echo 'false'; ?>,
+					stopOnHover : true,
+					dots : <?php if($show_pagination) echo 'true'; else echo 'false'; ?>,
+					margin: 30,
+					responsive: {
+						0: {
+							items:1
+						},
+						480: {
+							items:1
+						},
+						768: {
+							items:1
+						},
+						991: {
+							items:1
+						},						
+						1200: {
+							items:1
+						}
+					}
+				});	
+			<?php } ?>
+			}
+		})('#<?php echo $id; ?>');
+	});
+});
+</script>

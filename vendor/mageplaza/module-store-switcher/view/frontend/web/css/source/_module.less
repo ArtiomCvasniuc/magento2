@@ -1,0 +1,131 @@
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_StoreSwitcher
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+#mpstoreswitcher-redirect-popup {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  background: #FFFFFF;
+  -webkit-box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.mpstoreswitcher-redirect-content {
+  position: relative;
+  margin: 0 auto;
+  padding: 20px;
+  width: 100%;
+  max-width: 1000px;
+}
+
+.mpstoreswitcher-select {
+  background: #ffffff;
+  border: 1px solid #c2c2c2 !important;
+  color: #757575 !important;
+  cursor: pointer;
+  display: inline-block;
+  font-weight: 600;
+  padding: 12px 16px;
+  font-size: 1.4rem;
+  box-sizing: border-box;
+  vertical-align: middle;
+}
+
+button:not(.primary) {
+  box-shadow: none !important;
+}
+
+.mpstoreswitcher-select:hover {
+  background: #464646;
+  color: #FFFFFF !important;
+}
+
+.mpstoreswitcher-redirect-choose {
+  float: right;
+  margin: 25px;
+}
+
+
+#mpstoreswitcher-save-store-popup {
+  visibility: visible;
+  opacity: 1;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  transition: opacity 500ms;
+  z-index: 200;
+}
+
+.mpstoreswitcher-popup_save {
+  position: relative;
+  margin: 15% auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 5px;
+  width: 20%;
+}
+
+.mpstoreswitcher-save-store-content {
+  width: 95%;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.mpstoreswitcher-save-store-content label {
+  font-weight: 600;
+}
+
+.mpstoreswitcher-choose {
+  padding: 20px;
+}
+
+.mp-save-store-yes {
+  margin-right: 20px;
+}
+
+.mpstoreswitcher-btn-close-save-popup:before, .mpstoreswitcher-btn-close-save-popup:after {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  content: ' ';
+  height: 20px;
+  width: 2px;
+  background-color: #575757;
+  cursor: pointer;
+}
+
+.mpstoreswitcher-btn-close-save-popup:before {
+  transform: rotate(45deg);
+}
+
+.mpstoreswitcher-btn-close-save-popup:after {
+  transform: rotate(-45deg);
+}
+
+@media (min-width: 300px) and (max-width: 1000px) {
+  .mpstoreswitcher-popup_save {
+    width: 60%;
+  }
+}

@@ -1,0 +1,135 @@
+<?php
+/**
+ * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+/**
+ * Product list toolbar
+ *
+ * @var $block \Magento\Catalog\Block\Product\ProductList\Toolbar
+ */
+use Magento\Catalog\Model\Product\ProductList\Toolbar;
+
+$url = $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
+?>
+<div class="col-6 col-xl-9 d-none d-md-block">
+    <h1 id="category-title" class="h4 m-0"></h1>
+</div>
+<div class="align-items-center col-6 col-xl-3 d-flex gx-2">
+    <span class="d-none d-md-block text-nowrap">
+        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('sort_by')->toHtml() . ':'; ?>
+    </span>
+    <select onchange="sort_by();" name="sorter" id="sorter" data-role="sorter" class="ml-0 ml-md-2 sorter-select form-control-sm form-control shadow-none">
+        <?php foreach ($block->getAvailableOrders() as $_key => $_order) { ?>
+            <option value="<?php /* @escapeNotVerified */ echo $_key; ?>"
+                <?php if ($block->isOrderCurrent($_key)) { ?>
+                    selected="selected"
+                <?php } ?>
+            >
+                <?php 
+                $sort_option = $block->escapeHtml(__($_order));
+                if($sort_option == 'Featured') {
+                    if(strpos($url, '/ro/') !== false) {
+                        $sort_option = 'Cele mai populare';
+                    }
+                    else {
+                        $sort_option = 'Featured';
+                    }
+                }
+                if($sort_option == 'Date, new to old') {
+                    if(strpos($url, '/ro/') !== false) {
+                        $sort_option = 'Cele mai noi';
+                    }
+                    else {
+                        $sort_option == 'New';
+                    }
+                }
+                if($sort_option == 'Price, low to high') {
+                    if(strpos($url, '/ro/') !== false) {
+                        $sort_option = 'Preț crescător';
+                    }
+                    else {
+                        $sort_option == 'Price, low to high';
+                    }
+                }
+                if($sort_option == 'Price, high to low') {
+                    if(strpos($url, '/ro/') !== false) {
+                        $sort_option = 'Preț descrescător';
+                    }
+                    else {
+                        $sort_option == 'Price, high to low';
+                    }
+                }
+                echo $sort_option;
+                ?>
+            </option>
+        <?php } ?>
+        <?php 
+        if(strpos($url, '/ro/') !== false) {
+            echo '<option value="nr_rev">Nr. review-uri</option>';
+        }
+        else {
+            echo '<option value="nr_rev">Nr. reviews</option>';
+        }
+        if(strpos($url, '/ro/') !== false) {
+            echo '<option value="discount">Discount %</option>';
+        }
+        else {
+            echo '<option value="discount">Discount %</option>';
+        }
+        ?>
+    </select>
+</div>
+<div class="col-6 gx-2 d-md-none">
+<button class="btn btn-java btn-sm d-md-none btn-block" id="showFilters">
+    Filter
+    <i class="fal fa-filter font-12 pl-1"></i>
+</button>
+</div>
+<script>
+ require([
+        'jquery'
+    ], function($) {
+        'use strict';
+        $(document).ready(function() {
+            $('#showFilters').click(function() {
+                $('#layered-filter-block').addClass('d-block');
+            });
+
+            $('#closeFilters').click(function() {
+                $('#layered-filter-block').removeClass('d-block');
+            });
+        });
+    });
+
+var breadcrumbs_current = document.getElementById("breadcrumbs_current").innerHTML;
+document.getElementById("category-title").innerHTML = breadcrumbs_current;
+
+function show_sorter() {
+    document.getElementById("sorter").style.display = "block";
+}
+function sort_by() {
+    var e = document.getElementById("sorter");
+    var option_value = e.options[e.selectedIndex].value;
+    var option_text = e.options[e.selectedIndex].text;
+    jQuery("#sorter").attr("data-role", "sorter");  
+}
+var selectobject = document.getElementById("sorter");
+for (var i=0; i<selectobject.length; i++) {
+    if (selectobject.options[i].value == 'created_asc') {
+        selectobject.remove(i);
+    }
+}
+var sorting = window.location.search;
+if(sorting.includes("discount")) {
+    document.getElementById("sorter").removeAttribute("data-role");
+    var count_products = document.getElementsByClassName("col-6 col-lg-4 col-xl-3 px-1 px-md-2 mb-2 mb-md-3").length;
+    for(var i=0; i<count_products; i++) {
+        document.getElementsByClassName("col-6 col-lg-4 col-xl-3 px-1 px-md-2 mb-2 mb-md-3")[i].setAttribute("id", "product-"+i);
+        if(!document.getElementById("new-price-"+i)) {
+            document.getElementById("product-"+i).style.display = "none";
+        }
+    }
+}
+</script>

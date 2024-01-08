@@ -1,0 +1,139 @@
+/* Reset ================================================================================= */
+ html, body, div, span, object, iframe,
+h1, h2, h3, h4, h5, h6, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: top;
+}
+/* HTML5 display-role reset for older browsers */
+article, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+    display: block;
+}
+body {
+    line-height: 1; 
+}
+ol, ul, li {
+    list-style: none;
+    margin: 0;
+}
+ul > li, ol > li{ margin: 0;}
+blockquote, q {
+    quotes: none; 
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+    content: '';
+    content: none;
+}
+img {
+     max-width: 100%;
+     height: auto; 
+     border:0;
+     vertical-align:middle;
+}
+a:visited, .alink:visited, a{
+    color: #333333;
+    line-height: 1.6;
+    cursor: pointer;
+    transition: all 0.2s ease-in;
+    -webkit-transition: all 0.2s ease-in;
+    -moz-transition: all 0.2s ease-in;
+}
+
+a:hover{ color:@linkshover; text-decoration:none;}
+p{ line-height: 22px;}
+a:focus{ outline:none; text-decoration:none; }
+:focus{ outline:none; text-decoration:none; }
+h1            { font-size:1.5em; line-height:1.4; font-weight:normal; }
+h2            { font-size:1.33em; line-height:1.4; font-weight:normal; margin-bottom:0.57em;}
+h3            { font-size:1.09em; line-height:1.4; font-weight:bold; margin-bottom:0.69em;}
+h4            { font-size:1em; line-height:1.4; font-weight:bold; margin-bottom:0.75em;}
+h5            { font-size:0.91em; line-height:1.4; font-weight:bold; margin-bottom:0.83em;}
+h6            { font-size:0.91em; line-height:1.4; font-weight:normal; margin-bottom:0.83em;}
+h1,h2,h3,
+h4,h5,h6      { }
+
+input:not([type]), input[type="text"], input[type="password"], input[type="date"], input[type="datetime"], input[type="datetime-local"], input[type="month"], input[type="week"], input[type="email"], input[type="number"], input[type="search"], input[type="tel"], input[type="time"], input[type="url"], input[type="color"]
+{
+    
+    background: @inputtext;
+    font-family: @bdf;
+    height: 38px;
+    line-height: 38px;
+    border-color: #ddd;
+}
+button, input, select, textarea{
+        margin: 0;
+    max-width: 100%;
+    font-size: 13px;
+    border-color: #ddd;
+}
+table {
+    border-collapse: separate;
+    border-color: @bordercolor;
+    border-spacing: 0;
+    border-style: solid;
+    border-width: 1px 0 0 1px;
+    margin-bottom: 24px;
+    width: 100%;
+    
+    th, td {
+        border-bottom: 1px solid @bordercolor;
+        border-right: 1px solid @bordercolor;
+        padding: 10px;
+    }
+}
+caption {
+    padding: 10px;
+}
+.label{
+    font-size: 13px;
+    padding: 0;
+    text-align: left;
+}
+.fieldset > .field {
+    margin-bottom: 20px;
+}
+.fieldset > .field:not(.choice) > .label{
+    text-align: left;
+    width: 100%;
+    margin-bottom: 15px;
+    font-weight: 600;
+    &:after {
+        font-size: 13px;
+    }
+}
+.fieldset > .field:not(.choice) > .control{
+    width: 100%;
+}
+._keyfocus *:focus, input:not([disabled]):focus, textarea:not([disabled]):focus, select:not([disabled]):focus{
+    box-shadow: none;
+}
+div.mage-error[generated] { font-size: 0.75em;}
+.message.info > *:first-child:before,
+.message.success > *:first-child:before { font-size: 24px;}
+.message.info,
+.page.messages { font-size: 13px;}
+.login-container .block .block-title { font-size: 1rem; text-transform: uppercase;}
+.message.success {
+    color: #666;
+    background: #f1f1f1;
+    >*:first-child:before {
+        color: #333;
+    }
+}

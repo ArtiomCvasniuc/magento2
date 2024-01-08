@@ -1,0 +1,2031 @@
+<?php
+/**
+ * Apptha
+ * NOTICE OF LICENSE
+ * This source file is subject to the EULA
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://www.apptha.com/LICENSE.txt
+ * ==============================================================
+ * MAGENTO EDITION USAGE NOTICE
+ * ==============================================================
+ * This package designed for Magento COMMUNITY edition
+ * Apptha does not guarantee correct work of this extension
+ * on any other Magento edition except Magento COMMUNITY edition.
+ * Apptha does not provide extension support in case of
+ * incorrect edition usage.
+ * ==============================================================
+ *
+ * @category Apptha
+ * @package Apptha_Marketplace
+ * @version 1.2
+ * @author Apptha Team <developers@contus.in>
+ * @copyright Copyright (c) 2017 Apptha. (http://www.apptha.com)
+ * @license http://www.apptha.com/LICENSE.txt
+ */
+
+if (file_exists("conf/conf.php"))
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+$sellerProfileDetails = $block->getSellerProfile();
+$sellerDetails = $sellerProfileDetails['seller_details'];
+$countryDatas = $sellerProfileDetails['country_list'];
+$logoImage = $sellerProfileDetails['logo_image'];
+$bannerImage = $sellerProfileDetails['banner_image'];
+$objectModelManager = \Magento\Framework\App\ObjectManager::getInstance();
+
+if(isset($_GET['IsDanger'])) {
+    $customer = $_GET['hidden'];
+    $test = $_GET['IsDanger'];
+
+    $query = "UPDATE mgkf_marketplace_seller ";
+    $query .= "SET enable_invoices = '" . $test . "' ";
+    $query .= "WHERE customer_id = '" . $customer . "'";
+    $result = $conn->query($query);
+}
+if(isset($_GET['disable'])) {
+    $customer = $_GET['hidden'];
+    $test = $_GET['disable'];
+
+    $query = "UPDATE mgkf_marketplace_seller ";
+    $query .= "SET enable_invoices = '" . $test . "' ";
+    $query .= "WHERE customer_id = '" . $customer . "'";
+    $result = $conn->query($query);
+}
+if(isset($_POST['name'])) {
+    $name = $_POST['name'];
+    $address = $_POST['address'];
+    $tax_id = $_POST['tax_id'];
+    $registration_number = $_POST['registration_number'];
+    $bank = $_POST['bank'];
+    $account = $_POST['account'];
+
+    $query = "UPDATE mgkf_store_info ";
+    $query .= "SET name = '" . $name . "', ";
+    $query .= "address = '" . $address . "', ";
+    $query .= "tax_id = '" . $tax_id . "', ";
+    $query .= "registration_number = '" . $registration_number . "', ";
+    $query .= "bank = '" . $bank . "', ";
+    $query .= "account = '" . $account . "' ";
+    $result = $conn->query($query);
+}
+if(isset($_POST['zone_delete_id'])) {
+    $id = $_POST['zone_delete_id'];
+
+    $query = "DELETE FROM mgkf_marketplace_transports ";
+    $query .= "WHERE id = '".$id."'";
+    $result = $conn->query($query);
+}
+if(isset($_POST['add_address'])) {
+    $seller_id = $_POST['seller_id'];
+    $address = $_POST['address'];
+    $transport = $_POST['transport'];
+    $city = $_POST['city'];
+    $iso = $_POST['country'];
+    $postCode = $_POST['postcode'];
+    $phone = $_POST['phone'];
+    $companyName = $_POST['company'];
+
+    $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+    $countryCode = $iso;
+    $country = $objectManager->create('\Magento\Directory\Model\Country')->load($countryCode)->getName();
+
+    $query = "INSERT INTO mgkf_marketplace_seller_return_address (seller_id, return_address, return_transport, company_name, city, iso, country, postcode, phone) ";
+    $query .= "VALUES ('".$seller_id."', '".$address."', '".$transport."', '".$companyName."', '".$city."', '".$iso."', '".$country."', '".$postCode."', '".$phone."');";
+    $result = $conn->query($query);
+}
+if(isset($_POST['edit_address'])) {
+    $seller_id = $_POST['seller_id'];
+    $old_address = $_POST['old_address'];
+    $address = $_POST['address'];
+    $old_transport = $_POST['transport'];
+    $transport = $_POST['transport'];
+    $iso = $_POST['country'];
+    $city = $_POST['city'];
+    $postCode = $_POST['postcode'];
+    $phone = $_POST['phone'];
+    $companyName = $_POST['company'];
+
+    $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+    $countryCode = $iso;
+    $country = $objectManager->create('\Magento\Directory\Model\Country')->load($countryCode)->getName();
+
+    $query = "UPDATE mgkf_marketplace_seller_return_address ";
+    $query .= "SET return_address = '" . $address . "', ";
+    $query .= "return_transport = '" . $transport . "', ";
+    $query .= "company_name = '".$companyName."', ";
+    $query .= "city = '".$city."', ";
+    $query .= "iso = '".$iso."', ";
+    $query .= "country = '".$country."', ";
+    $query .= "postcode = '".$postCode."', ";
+    $query .= "phone = '".$phone."' ";
+    $query .= "WHERE seller_id = '".$seller_id."' ";
+    $query .= "AND return_address = '" . $old_address . "'";
+    $result = $conn->query($query);
+}
+if(isset($_POST['delete_address'])) {
+    $seller_id = $_POST['seller_id'];
+    $address = $_POST['address'];
+
+    $query = "DELETE FROM mgkf_marketplace_seller_return_address ";
+    $query .= "WHERE seller_id = '".$seller_id."' ";
+    $query .= "AND return_address = '" . $address . "'";
+    $result = $conn->query($query);
+}
+if(isset($_POST['courier'])) {
+    $seller_id = $_POST['seller_id'];
+    $iso = $_POST['iso'];
+    $country = $_POST['countries'];
+    $courier = $_POST['courier'];
+    $price = $_POST['price'];
+    $price_free_transport = $_POST['price_free_transport'];
+    $average_delivery_time = $_POST['delivery_time'];
+
+    $query_seller_currency = "SELECT currency FROM mgkf_marketplace_seller_currency ";
+    $query_seller_currency .= "WHERE seller_id = '".$seller_id."'";
+    $result_seller_currency = $conn->query($query_seller_currency);
+    $row_seller_currency = $result_seller_currency->fetch_row();
+    $seller_currency = $row_seller_currency[0];
+    if ($seller_currency != '') {
+        $currency = $seller_currency;
+        if ($currency == 'RON') {
+            $price = $price / 4.726883;
+            $price_free_transport = $price_free_transport / 4.726883;
+        } else if ($currency == 'USD') {
+            $price = $price / 1.12;
+            $price_free_transport = $price_free_transport / 1.12;
+        } else if ($currency == 'EUR') {
+            $price = number_format($price, 2, '.', '');
+            $price_free_transport = number_format($price_free_transport, 2, '.', '');
+        }
+    }
+
+    if(isset($_POST['first'])) {
+        $first = "1";
+    }
+    else {
+        $first = "0";
+    }
+    if(isset($_POST['second'])) {
+        $second = "1";
+    }
+    else {
+        $second = "0";
+    }
+
+    $query = "INSERT INTO mgkf_marketplace_transports ";
+    $query .= "(seller_id, country, iso, ramburs, card, courier, price, price_free_transport, average_delivery_time) ";
+    $query .= "VALUES ('" . $seller_id . "', '" . $country . "', '" . $iso . "', '" . $first . "', '" . $second . "', '" . $courier . "', '" . $price . "', '" . $price_free_transport . "', '" . $average_delivery_time . "')";
+    $result = $conn->query($query);
+}
+if(isset($_POST['zone_edit'])) {
+    $id = $_POST['zone_id'];
+    $country = $_POST['country'];
+    $iso = $_POST['iso'];
+    $courier = $_POST['edit_courier'];
+    $price = $_POST['price'];
+    $price_free_transport = $_POST['price_free_transport'];
+    $delivery_time = $_POST['delivery_time'];
+    $seller_id = $_POST['seller_id'];
+
+    $first = $_POST['first'];
+    $second = $_POST['second'];
+
+    if ($first == 'on') {
+        $query = "UPDATE mgkf_marketplace_transports ";
+        $query .= "SET ramburs = '1' ";
+        $query .= "WHERE seller_id = '".$seller_id."' ";
+        $query .= "AND country = '" . $country . "'";
+        $result = $conn->query($query);
+    } 
+    else {
+        $query = "UPDATE mgkf_marketplace_transports ";
+        $query .= "SET ramburs = '0' ";
+        $query .= "WHERE seller_id = '".$seller_id."' ";
+        $query .= "AND country = '" . $country . "'";
+        $result = $conn->query($query);
+    }
+    if ($second == 'on') {
+        $query = "UPDATE mgkf_marketplace_transports ";
+        $query .= "SET card = '1' ";
+        $query .= "WHERE seller_id = '".$seller_id."' ";
+        $query .= "AND country = '" . $country . "'";
+        $result = $conn->query($query);
+    }
+    if ($second == '') {
+        $query = "UPDATE mgkf_marketplace_transports ";
+        $query .= "SET card = '0' ";
+        $query .= "WHERE seller_id = '".$seller_id."' ";
+        $query .= "AND country = '" . $country . "'";
+        $result = $conn->query($query);
+    }
+
+    $query_seller_currency = "SELECT currency ";
+    $query_seller_currency .= "FROM mgkf_marketplace_seller_currency ";
+    $query_seller_currency .= "WHERE seller_id = '".$seller_id."'";
+    $result_seller_currency = $conn->query($query_seller_currency);
+    $row_seller_currency = $result_seller_currency->fetch_row();
+    $seller_currency = $row_seller_currency[0];
+    if ($seller_currency != '') {
+        $currency = $seller_currency;
+        if ($currency == 'RON') {
+            $price = $price / 4.726883;
+            $price_free_transport = $price_free_transport / 4.726883;
+        } else if ($currency == 'USD') {
+            $price = $price / 1.12;
+            $price_free_transport = $price_free_transport / 1.12;
+        } else if ($currency == 'EUR') {
+            $price = number_format($price, 2, '.', '');
+            $price_free_transport = number_format($price_free_transport, 2, '.', '');
+        }
+    }
+
+    $query = "UPDATE mgkf_marketplace_transports ";
+    $query .= "SET courier = '" . $courier . "', ";
+    $query .= "price = '" . $price . "', ";
+    $query .= "price_free_transport = '" . $price_free_transport . "', ";
+    $query .= "average_delivery_time = '" . $delivery_time . "' ";
+    $query .= "WHERE country = '" . $country . "' ";
+    $query .= "AND seller_id = '".$seller_id."' ";
+    $query .= "AND id = '".$id."'";
+    $result = $conn->query($query);
+}
+if(isset($_POST['store_name'])) {
+    $customer = $_POST['hidden'];
+    $store_name = $_POST['store_name'];
+    $trading_company_name = $_POST['trading_company_name'];
+    $state = $_POST['state'];
+    $address = $_POST['address'];
+    $cui = $_POST['cui'];
+    $registration_number = $_POST['registration_number'];
+    $bank = $_POST['bank'];
+    $account = $_POST['bank_account'];
+    $delegate = $_POST['delegate'];
+    $delegate_phone = $_POST['delegate_phone'];
+    $description = $_POST['company_description'];
+    $contact_email = $_POST['company_email'];
+    $contact_phone = $_POST['company_phone'];
+
+    $query_store_name = "UPDATE mgkf_marketplace_seller ";
+    $query_store_name .= "SET store_name = '" . $store_name . "', ";
+    $query_store_name .= "trading_company_name = '" . $trading_company_name . "', ";
+    $query_store_name .= "state = '" . $state . "', ";
+    $query_store_name .= "address = '" . $address . "', ";
+    $query_store_name .= "cui = '" . $cui . "', ";
+    $query_store_name .= "registration_number = '" . $registration_number . "', ";
+    $query_store_name .= "bank = '" . $bank . "', ";
+    $query_store_name .= "bank_account = '" . $account . "', ";
+    $query_store_name .= "delegate = '" . $delegate . "', ";
+    $query_store_name .= "delegate_phone = '" . $delegate_phone . "', ";
+    $query_store_name .= "`desc` = '" . $description . "', ";
+    $query_store_name .= "company_email = '" . $contact_email . "', ";
+    $query_store_name .= "company_phone = '" . $contact_phone . "' ";
+    $query_store_name .= "WHERE customer_id = '".$customer."'";
+    $result_store_name = $conn->query($query_store_name);
+}
+if(isset($_POST['currency_settings'])) {
+    $seller_id = $_POST['seller_id'];
+    $currency = $_POST['currency_settings'];
+
+    $query = "SELECT currency ";
+    $query .= "FROM mgkf_marketplace_seller_currency ";
+    $query .= "WHERE seller_id = '".$seller_id."'";
+    $result = $conn->query($query);
+    $row = $result->fetch_row();
+    $row_currency = $row[0];
+    if ($row_currency == '') {
+        $query = "INSERT INTO mgkf_marketplace_seller_currency (seller_id, currency) ";
+        $query .= "VALUES ('".$seller_id."', '" . $currency . "')";
+        $result = $conn->query($query);
+    } 
+    else {
+        $query = "UPDATE mgkf_marketplace_seller_currency ";
+        $query .= "SET currency = '" . $currency . "' ";
+        $query .= "WHERE seller_id = '".$seller_id."'";
+        $result = $conn->query($query);
+    }
+}
+if(isset($_POST['invoice_settings'])) {
+    $seller = $_POST['seller_hidden'];
+
+    if (isset($_POST['seria']) && !empty($_POST['seria'])) {
+        $seria = $_POST['seria'];
+        $query_seria = "UPDATE mgkf_marketplace_seller ";
+        $query_seria .= "SET seria = '" . $seria . "' ";
+        $query_seria .= "WHERE customer_id = '".$seller."'";
+        $result_seria = $conn->query($query_seria);
+    }
+    if (isset($_POST['invoice_nr']) && !empty($_POST['invoice_nr'])) {
+        $invoice_nr = $_POST['invoice_nr'];
+        $query_invoice = "UPDATE mgkf_marketplace_seller ";
+        $query_invoice .= "SET invoice_nr = '" . $invoice_nr . "' ";
+        $query_invoice .= "WHERE customer_id = '".$seller."'";
+        $result_invoice = $conn->query($query_invoice);
+    }
+    if (isset($_POST['tva_level']) && !empty($_POST['tva_level'])) {
+        $tva_level = $_POST['tva_level'];
+        $query_tva = "UPDATE mgkf_marketplace_seller ";
+        $query_tva .= "SET tva_level = '" . $tva_level . "' ";
+        $query_tva .= "WHERE customer_id = '".$seller."'";
+        $result_tva = $conn->query($query_tva);
+    }
+}
+if(isset($_POST['conditions'])) {
+    $sellerId = $_POST['seller_id'];
+    if(isset($_POST['return_free_shipping'])) {
+        $name = 'return_free_shipping';
+        $value = $_POST['return_free_shipping_value'];
+
+        $query = "SELECT value FROM mgkf_marketplace_seller_return_condition ";
+        $query .= "WHERE return_condition = 'return_free_shipping' ";
+        $query .= "AND seller_id = '".$sellerId."'";
+        $result = $conn->query($query);
+        if($result->num_rows > 0) {     
+            $query = "UPDATE mgkf_marketplace_seller_return_condition ";
+            $query .= "SET value = '".$value."' ";
+            $query .= "WHERE seller_id = '".$sellerId."' ";
+            $query .= "AND return_condition = 'return_free_shipping'";
+            $result = $conn->query($query);
+        }
+        else {
+            $query = "INSERT INTO mgkf_marketplace_seller_return_condition ";
+            $query .= "(seller_id, return_condition, value) ";
+            $query .= "VALUES ";
+            $query .= "('".$sellerId."', '".$name."', '".$value."')";
+            $result = $conn->query($query);
+        }
+    }
+    else {
+        $query = "SELECT value FROM mgkf_marketplace_seller_return_condition ";
+        $query .= "WHERE return_condition = 'return_free_shipping' ";
+        $query .= "AND seller_id = '".$sellerId."'";
+        $result = $conn->query($query);
+        if($result->num_rows > 0) {
+            $query = "DELETE FROM mgkf_marketplace_seller_return_condition ";
+            $query .= "WHERE seller_id = '".$sellerId."' ";
+            $query .= "AND return_condition = 'return_free_shipping'";
+            $result = $conn->query($query);
+        }
+    }
+    if(isset($_POST['carefree_return_days'])) {
+        $name = 'carefree_return';
+        $value = $_POST['carefree_return_days'];
+
+        $query = "SELECT value FROM mgkf_marketplace_seller_return_condition ";
+        $query .= "WHERE return_condition = 'carefree_return' ";
+        $query .= "AND seller_id = '".$sellerId."'";
+        $result = $conn->query($query);
+        if($result->num_rows > 0) {            
+            $query = "UPDATE mgkf_marketplace_seller_return_condition ";
+            $query .= "SET value = '".$value."' ";
+            $query .= "WHERE seller_id = '".$sellerId."' ";
+            $query .= "AND return_condition = 'carefree_return'";
+            $result = $conn->query($query);
+        }
+        else {
+            $query = "INSERT INTO mgkf_marketplace_seller_return_condition ";
+            $query .= "(seller_id, return_condition, value) ";
+            $query .= "VALUES ";
+            $query .= "('".$sellerId."', '".$name."', '".$value."')";
+            $result = $conn->query($query);
+        }
+    }
+    else {
+        $query = "SELECT value FROM mgkf_marketplace_seller_return_condition ";
+        $query .= "WHERE return_condition = 'carefree_return' ";
+        $query .= "AND seller_id = '".$sellerId."'";
+        $result = $conn->query($query);
+        if($result->num_rows > 0) {
+            $query = "DELETE FROM mgkf_marketplace_seller_return_condition ";
+            $query .= "WHERE seller_id = '".$sellerId."' ";
+            $query .= "AND return_condition = 'carefree_return'";
+            $result = $conn->query($query);
+        }
+    }
+    if(isset($_POST['return_without_new_order'])) {
+        $name = 'return_without_new_order';
+        $value = $_POST['return_shipping_for_change_value'];
+   
+        $query = "SELECT value FROM mgkf_marketplace_seller_return_condition ";
+        $query .= "WHERE return_condition = 'return_without_new_order' ";
+        $query .= "AND seller_id = '".$sellerId."'";
+        $result = $conn->query($query);
+        if($result->num_rows > 0) {      
+            $query = "UPDATE mgkf_marketplace_seller_return_condition ";
+            $query .= "SET value = '".$value."' ";
+            $query .= "WHERE seller_id = '".$sellerId."' ";
+            $query .= "AND return_condition = 'return_without_new_order'";
+            $result = $conn->query($query);
+        }
+        else {
+            $query = "INSERT INTO mgkf_marketplace_seller_return_condition ";
+            $query .= "(seller_id, return_condition, value) ";
+            $query .= "VALUES ";
+            $query .= "('".$sellerId."', '".$name."', '".$value."')";
+            $result = $conn->query($query);
+        }
+    }
+    else {
+        $query = "SELECT value FROM mgkf_marketplace_seller_return_condition ";
+        $query .= "WHERE return_condition = 'return_without_new_order' ";
+        $query .= "AND seller_id = '".$sellerId."'";
+        $result = $conn->query($query);
+        if($result->num_rows > 0) {
+            $query = "DELETE FROM mgkf_marketplace_seller_return_condition ";
+            $query .= "WHERE seller_id = '".$sellerId."' ";
+            $query .= "AND return_condition = 'return_without_new_order'";
+            $result = $conn->query($query);
+        }
+    }
+    if(isset($_POST['courier_return'])) {
+        $name = 'return_any_courier';
+        $value = $_POST['return_any_courier_value'];
+
+        if(!isset($_POST['return_any_courier'])) {
+            $query = "SELECT value FROM mgkf_marketplace_seller_return_condition ";
+            $query .= "WHERE return_condition = 'return_any_courier' ";
+            $query .= "AND seller_id = '".$sellerId."'";
+            $result = $conn->query($query);
+            if($result->num_rows > 0) {      
+                $query = "UPDATE mgkf_marketplace_seller_return_condition ";
+                $query .= "SET value = '".$value."' ";
+                $query .= "WHERE seller_id = '".$sellerId."' ";
+                $query .= "AND return_condition = 'return_any_courier'";
+                $result = $conn->query($query);
+            }
+            else {
+                $query = "INSERT INTO mgkf_marketplace_seller_return_condition ";
+                $query .= "(seller_id, return_condition, value) ";
+                $query .= "VALUES ";
+                $query .= "('".$sellerId."', '".$name."', '".$value."')";
+                $result = $conn->query($query);
+            }
+        }
+        else {
+            $query = "DELETE FROM mgkf_marketplace_seller_return_condition ";
+            $query .= "WHERE seller_id = '".$sellerId."' ";
+            $query .= "AND return_condition = 'return_any_courier'";
+            $result = $conn->query($query);
+        }
+    }
+
+    if(isset($_POST['old_condition'])) {
+        $old_condition = $_POST['old_condition'];
+        $condition = $_POST['condition'];
+    
+        $query = "UPDATE mgkf_marketplace_seller_return_condition ";
+        $query .= "SET return_condition = '" . $condition . "' ";
+        $query .= "WHERE seller_id = '".$sellerId."' ";
+        $query .= "AND return_condition = '" . $old_condition . "'";
+        $result = $conn->query($query);
+    }
+    else {
+        $condition = $_POST['condition'];
+
+        $query = "INSERT INTO mgkf_marketplace_seller_return_condition ";
+        $query .= "(seller_id, return_condition) VALUES ('".$sellerId."', '".$condition."')"; 
+        $result = $conn->query($query);
+    }    
+}
+
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+if ($customerId == 10 || $customerId == 11) { ?>
+  <h3>Store Information</h3>
+    <?php
+    $query = "SELECT * FROM mgkf_store_info";
+    $result = $conn->query($query);
+    while ($row = $result->fetch_assoc()) { ?>
+        <form class="form-horizontal" action="" method="post">
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="name">Name:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="name" name="name" value="<?php echo $row['name']; ?>">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="pwd">Address:</label>
+                <div class="col-sm-10">
+                    <textarea class="form-control" id="address" name="address" rows="2"><?php echo $row['address']; ?></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="tax_id">Tax ID:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="tax_id" name="tax_id" value="<?php echo $row['tax_id']; ?>">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="registration_number">Registration Number:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="registration_number" name="registration_number" value="<?php echo $row['registration_number']; ?>">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="bank">Bank:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="bank" name="bank" value="<?php echo $row['bank']; ?>">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="account">Account:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="account" name="account" value="<?php echo $row['account']; ?>">
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </form>
+    <?php 
+    }
+} 
+else {
+    $query_data = "SELECT * FROM mgkf_marketplace_seller ";
+    $query_data .= "WHERE customer_id = '".$customerId."'";
+    $result_data = $conn->query($query_data);
+    if($result_data->num_rows > 0) {
+        $row_data = $result_data->fetch_assoc();
+        $companyDescription = $row_data['desc'];
+        $companyEmail = $row_data['company_email'];
+        $companyPhone = $row_data['company_phone'];
+        $companyName = $row_data['store_name'];
+        $companyUrl = $row_data['store_url'];
+        $companyCountry = $row_data['country'];
+        $companyRegion = $row_data['state'];
+        $companyAddress = $row_data['address'];
+        $tradingCompanyName = $row_data['trading_company_name'];
+        $companyCui = $row_data['cui'];
+        $companyRegNumber = $row_data['registration_number'];
+        $companyBank = $row_data['bank'];
+        $companyAccount = $row_data['bank_account'];
+        $companyDelegate = $row_data['delegate'];
+        $companyDelegatePhone = $row_data['delegate_phone'];
+    }
+?>
+    <main class="main-tabs">
+        <div class="tab">
+            <div class="align-items-start flex-column flex-md-row justify-content-between justify-content-md-start tab-menu">
+                <button class="tab-menu-link active border-0 px-0 px-md-3" data-content="first">
+                    <span data-title="first">
+                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('store_information')->toHtml(); ?>
+                    </span>
+                </button>
+                <button class="tab-menu-link border-0 px-0 px-md-3" data-content="second">
+                    <span data-title="second">
+                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('transports_settings')->toHtml(); ?>
+                    </span>
+                </button>
+                <button class="tab-menu-link border-0 px-0 px-md-3" data-content="third">
+                    <span data-title="third">
+                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('return_products')->toHtml(); ?>
+                    </span>
+                </button>
+                <button class="tab-menu-link border-0 px-0 px-md-3" data-content="fourth">
+                    <span data-title="fourth">
+                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('invoice_settings')->toHtml(); ?>
+                    </span>
+                </button>
+            </div>
+            <div class="tab-bar">
+                <div class="tab-bar-content active" id="first">
+                    <div class="align-items-center d-flex justify-content-end">
+                        <a href="/ro/<?php echo $companyUrl; ?>" type="button" class="btn btn-outline-secondary">
+                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('my_store')->toHtml(); ?>
+                        </a>
+                    </div>
+                    <div class="shadow py-3 px-4 mt-3">
+                        <form method="post" action="" enctype="multipart/form-data">
+                            <input type="hidden" id="hidden" name="hidden" value="<?php echo $customerId; ?>" />
+                            <div class="row mt-2">
+                                <div class="col-md-6 col-lg-4 col-xl-3">
+                                    <label for="info-name" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('store_name')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" id="info-name" name="store_name" value="<?php if(isset($companyName)) echo $companyName; ?>" required>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="far fa-user"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-4 col-xl-3">
+                                    <label for="info-dsc" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('trading_company_name')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" id="info-dsc" name="trading_company_name" value="<?php if(isset($tradingCompanyName)) echo $tradingCompanyName; ?>" required>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="far fa-user"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-4 col-xl-3">
+                                    <label for="transport" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('origin_country')->toHtml(); ?>
+                                    </label>
+                                    <select class="form-select">
+                                        <?php 
+                                        foreach($countryDatas as $country) { 
+                                        ?>
+                                            <option value="<?php echo $country['country_id']; ?>"
+                                                <?php echo $sellerDetails->getCountry() == $country['country_id'] ? ' selected="selected"' : ''; ?>>
+                                                <?php
+                                                $countryModel = $objectModelManager->get('Magento\Directory\Model\Country');
+                                                $country = $countryModel->loadByCode($country['country_id'] );
+                                                echo $country->getName();
+                                            ?>
+                                            </option>
+                                        <?php 
+                                        } 
+                                        ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 col-lg-4 col-xl-3">
+                                    <label for="info-state" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('district')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" id="info-state" name="state" value="<?php if(isset($companyRegion)) echo $companyRegion; ?>" required>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="fas fa-globe"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-4 col-xl-3">
+                                    <label for="info-address" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('address')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" id="info-address" name="address" value="<?php if(isset($companyAddress)) echo $companyAddress; ?>" required>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="fas fa-map-pin"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-4 col-xl-3">
+                                    <label for="info-cui" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('cui')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" id="info-cui" name="cui" value="<?php if(isset($companyCui)) echo $companyCui; ?>" required>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="fas fa-money-check"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-4 col-xl-3">
+                                    <label for="info-numar-inmatriculare" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('registration_number')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" id="info-numar-inmatriculare" name="registration_number" value="<?php if(isset($companyRegNumber)) echo $companyRegNumber; ?>" required>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="fas fa-money-check"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-4 col-xl-3">
+                                    <label for="info-banc" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('bank')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" id="info-banc" name="bank" value="<?php if(isset($companyBank)) echo $companyBank; ?>" required>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="fas fa-money-check"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-4 col-xl-3">
+                                    <label for="info-cont" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('bank_account')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" id="info-cont" name="bank_account" value="<?php if(isset($companyAccount)) echo $companyAccount; ?>" required>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="far fa-user"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-4 col-xl-3">
+                                    <label for="info-reprezentant" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('delegate')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" id="info-reprezentant" name="delegate" value="<?php if(isset($companyDelegate)) echo $companyDelegate; ?>" required>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="far fa-user"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-4 col-xl-3">
+                                    <label for="info-phone-reprezentant" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('delegate_phone')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" id="info-phone-reprezentant" name="delegate_phone" value="<?php if(isset($companyDelegatePhone)) echo $companyDelegatePhone; ?>" required>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="fas fa-phone"></i>
+                                        </span>
+                                    </div>
+                                </div>                                
+                                <div class="col-md-6 col-lg-4 col-xl-3">
+                                    <label for="info-client-email" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('email_clients')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        <input type="email" class="form-control" id="info-client-email" name="company_email" value="<?php if(isset($companyEmail)) echo $companyEmail; ?>" required>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="fas fa-envelope"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-4 col-xl-3">
+                                    <label for="info-phone-client" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('phone_clients')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        <input type="phone" class="form-control" id="info-phone-client" name="company_phone" value="<?php if(isset($companyPhone)) echo $companyPhone; ?>" required>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="fas fa-phone"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-6">
+                                    <label for="info-desc-company" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('company_description')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        <textarea class="form-control" rows="3" id="info-desc-company" name="company_description" required><?php if(isset($companyDescription)) echo $companyDescription; ?></textarea>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="fas fa-building"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-sm-6 col-lg-3 mt-lg-3 mt-3">
+                                    <button type="submit" class="btn btn-primary btn-block" name="save_profile">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('save')->toHtml(); ?>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="tab-bar-content" id="second">
+                    <div class="d-flex justify-content-end align-items-center mb-3">
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#transportModal">
+                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_area_by_country')->toHtml(); ?>
+                        </button>
+                    </div>
+                    <?php
+                    $query_currency = "SELECT currency ";
+                    $query_currency .= "FROM mgkf_marketplace_seller_currency ";
+                    $query_currency .= "WHERE seller_id = '".$customerId."'";
+                    $result_currency = $conn->query($query_currency);
+                    $row_currency = $result_currency->fetch_row();
+                    $seller_currency = $row_currency[0];
+
+                    $query_transports = "SELECT * FROM mgkf_marketplace_transports ";
+                    $query_transports .= "WHERE seller_id = '".$customerId."'";
+                    $result_transports = $conn->query($query_transports);
+                    $transportsCount = $result_transports->num_rows;
+                    ?>
+                    <input type="hidden" id="transports-count" value="<?php echo $transportsCount; ?>" />
+                    <?php
+                    $i = 0;
+                    $nr = 1;
+                    while($row_transports = $result_transports->fetch_assoc()) {
+                        $transportId = $row_transports['id'];
+                        $transportCountry = $row_transports['country'];
+                        $transportCountryIso = $row_transports['iso'];
+                        $transportCashPayment = $row_transports['ramburs'];
+                        if($transportCashPayment == 1) {
+                            $transportCashOnDelivery = 'Ramburs';
+                        }
+                        $transportCardPayment = $row_transports['card'];
+                        if($transportCardPayment == 1) {
+                            $transportCard = 'Card';
+                        }
+                        $transportCourier = $row_transports['courier'];
+                        $transportDeliveryTime = $row_transports['average_delivery_time'];
+                        $transportPrice = $row_transports['price'];
+                        $transportPriceFree = $row_transports['price_free_transport'];
+                        if ($seller_currency == 'RON') {
+                            $transportPrice = $transportPrice * 4.726883;
+                            $transportPriceFree = $transportPriceFree * 4.726883;
+                        } 
+                        else if ($seller_currency == 'USD') {
+                            $transportPrice = $transportPrice * 1.121762;
+                            $transportPriceFree = $price_free_transport * 1.121762;
+                        } 
+                        else if ($seller_currency == 'EUR') {
+                            $transportPrice = $transportPrice;
+                            $transportPriceFree = $transportPriceFree;
+                        }
+                        $transportPrice = number_format($transportPrice, 2, '.', '');
+                        $transportPriceFree = number_format($transportPriceFree, 2, '.', '');
+                    ?>
+                        <div class="shadow py-3 px-3 px-md-4 mb-3">
+                            <div class="d-flex flex-column flex-md-row">
+                                <h5 class="my-0"><span class="text-uppercase">Nr: </span><?php echo $nr; ?></h5>
+                                <span class="mx-3 d-none d-md-block">|</span>
+                                <h5 class="m-0"><span class="text-uppercase"></span>
+                                    <?php echo $transportCountry; ?>
+                                </h5>
+                            </div>
+                            <div class="row mt-2 align-items-md-center">
+                                <div class="col-md-10">
+                                    <div class="row">
+                                        <div class="col-md-6 col-lg-3">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('courier')->toHtml(); ?>:
+                                                <span class="font-weight-normal">
+                                                    <?php echo $transportCourier; ?>
+                                                </span>
+                                            </p>
+                                        </div>
+                                        <div class="col-md-6 col-lg-3">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('price')->toHtml(); ?>:
+                                                <span class="font-weight-normal">
+                                                    <?php echo $transportPrice . ' ' . $seller_currency; ?>
+                                                </span>
+                                            </p>
+                                        </div>
+                                        <div class="col-md-12 col-lg-6 mt-2 mt-lg-0">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('payment_methods')->toHtml(); ?>:
+                                                <span class="font-weight-normal">
+                                                    <?php echo $transportCashOnDelivery . ' ' . $transportCard; ?>
+                                                </span>
+                                            </p>
+                                        </div>
+                                        <div class="col-md-6 mt-2">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('price_for_free_transport')->toHtml(); ?>:
+                                                <span class="font-weight-normal">
+                                                    <?php echo $transportPriceFree . ' ' . $seller_currency; ?>
+                                                </span>
+                                            </p>
+                                        </div>
+                                        <div class="col-md-6 mt-2">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('average_delivery_time')->toHtml(); ?>:
+                                                <span class="font-weight-normal">
+                                                    <?php echo $transportDeliveryTime . ' ' . $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('working_days')->toHtml(); ?>
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-2 text-md-right mt-2 mt-xl-0">
+                                    <div class="d-flex justify-content-md-end">
+                                        <button id="editTransportSettings-<?php echo $i; ?>" onclick="editTransportSettings(<?php echo $i; ?>);" class="btn-sm rounded mr-3 btn-secondary">
+                                            <i class="far fa-edit"></i>
+                                        </button>
+                                        <form method="post" action="">
+                                            <input type="hidden" name="zone_delete_id" value="<?php echo $transportId; ?>" />
+                                            <button type="submit" class="btn-sm rounded btn-secondary">
+                                                <i class="far fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div id="edit-transports-settings-block-<?php echo $i; ?>" class="return-details d-none">
+                                    <hr>
+                                    <form action="" method="post">
+                                        <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>" />
+                                        <input type="hidden" name="zone_edit" value="<?php echo $i; ?>" />
+                                        <input type="hidden" name="zone_id" value="<?php echo $transportId; ?>" />
+                                        <div class="row">
+                                            <div class="col-md-6 col-xl-4">
+                                                <label for="country" class="form-label">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('country')->toHtml(); ?>
+                                                </label>
+                                                <div class="input-group mb-4">
+                                                    <select class="form-select" name="iso" id="country-<?php echo $i; ?>" onchange="getCountry(<?php echo $i; ?>);">
+                                                        <?php 
+                                                        foreach($countryDatas as $country) {
+                                                        ?>
+                                                            <option value="<?php echo $country['country_id']; ?>"
+                                                                <?php echo $transportCountryIso == $country['country_id'] ? ' selected="selected"' : ''; ?>>
+                                                                <?php
+                                                                $countryModel = $objectModelManager->get('Magento\Directory\Model\Country');
+                                                                $country = $countryModel->loadByCode($country['country_id'] );
+                                                                echo $country->getName();
+                                                            ?>
+                                                            </option>
+                                                        <?php 
+                                                        } 
+                                                        ?>
+                                                    </select>
+                                                    <input type="hidden" name="country" id="selected-country-<?php echo $i; ?>" value="<?php echo $transportCountry; ?>" />
+                                                    <span class="input-group-text bg-transparent">
+                                                        <i class="fas fa-globe"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-xl-4">
+                                                <label for="transport" class="form-label">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('price_for_free_transport')->toHtml(); ?> (<?php echo $seller_currency; ?>)
+                                                </label>
+                                                <div class="input-group mb-2">
+                                                    <input type="text" class="form-control" name="price_free_transport" value="<?php echo $transportPriceFree; ?>">
+                                                    <span class="input-group-text bg-transparent">
+                                                        <i class="fas fa-truck"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-xl-4">
+                                                <label for="curier" class="form-label">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('courier')->toHtml(); ?>
+                                                </label>
+                                                <div class="input-group mb-4">
+                                                    <input type="text" class="form-control" name="edit_courier" value="<?php echo $transportCourier; ?>">
+                                                    <span class="input-group-text bg-transparent">
+                                                        <i class="fas fa-truck"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-xl-4">
+                                                <label for="time-delivery" class="form-label">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('average_delivery_time')->toHtml(); ?>
+                                                </label>
+                                                <div class="input-group mb-4">
+                                                    <select class="form-select" name="delivery_time">
+                                                        <option <?php if($transportDeliveryTime == '2-3') echo 'selected'; ?>>2-3</option>
+                                                        <option <?php if($transportDeliveryTime == '4-5') echo 'selected'; ?>>4-5</option>
+                                                        <option <?php if($transportDeliveryTime == '6-8') echo 'selected'; ?>>6-8</option>
+                                                        <option <?php if($transportDeliveryTime == '8-12') echo 'selected'; ?>>8-12</option>
+                                                    </select>
+                                                    <span class="input-group-text bg-transparent">
+                                                        <i class="fas fa-truck"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-xl-4">
+                                                <label for="price" class="form-label">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('price')->toHtml(); ?> (<?php echo $seller_currency; ?>)
+                                                </label>
+                                                <div class="input-group mb-4">
+                                                    <input type="text" class="form-control" name="price" value="<?php echo $transportPrice; ?>">
+                                                    <span class="input-group-text bg-transparent">
+                                                        <i class="fas fa-money-bill"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-xl-4">
+                                                <label class="form-label d-block">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('payment_methods')->toHtml(); ?>
+                                                </label>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="checkbox" name="first" <?php if($transportCashPayment == 1) echo 'checked'; ?>>
+                                                    <label class="form-check-label" for="rapm">
+                                                        Ramburs
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="checkbox" name="second" <?php if($transportCardPayment == 1) echo 'checked'; ?>>
+                                                    <label class="form-check-label" for="card">
+                                                        Card
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mt-3 mt-md-0">
+                                                <button type="submit" class="btn btn-block btn-primary px-5">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('save')->toHtml(); ?>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    <?php
+                        $i++;
+                        $nr++;
+                    }
+                    ?>
+                    <div class="modal fade" id="transportModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_area_by_country')->toHtml(); ?>
+                                    </h5>
+                                    <button type="button" class="btn-close bg-transparent" data-dismiss="modal" aria-label="Close">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form method="post" action="">
+                                        <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>" />
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label class="form-label">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('country')->toHtml(); ?>
+                                                </label>
+                                                <select class="form-select" size="2" id="add-country" onchange="getAddCountry();" multiple required>
+                                                    <?php 
+                                                    foreach($countryDatas as $country) { 
+                                                    ?>
+                                                        <option value="<?php echo $country['country_id']; ?>">
+                                                        <?php
+                                                        $countryModel = $objectModelManager->get('Magento\Directory\Model\Country');
+                                                        $country = $countryModel->loadByCode($country['country_id'] );
+                                                        echo $country->getName();
+                                                        ?>
+                                                        </option>
+                                                    <?php 
+                                                    } 
+                                                    ?>
+                                                </select>
+                                                <input type="hidden" name="countries" id="countries" />
+                                                <input type="hidden" name="iso" id="iso" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="transport-modal" class="form-label">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('price_for_free_transport')->toHtml(); ?> (<?php echo $seller_currency; ?>)
+                                                </label>
+                                                <div class="input-group mb-4">
+                                                    <input type="text" class="form-control" id="transport-modal" name="price_free_transport" required>
+                                                    <span class="input-group-text bg-transparent">
+                                                        <i class="fas fa-truck"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="curier-modal" class="form-label">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('courier')->toHtml(); ?>
+                                                </label>
+                                                <div class="input-group mb-4">
+                                                    <input type="text" class="form-control" id="curier-modal" name="courier" required>
+                                                    <span class="input-group-text bg-transparent">
+                                                        <i class="fas fa-truck"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6"> 
+                                                <label for="time-delivery-modal" class="form-label">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('average_delivery_time')->toHtml(); ?>
+                                                </label>
+                                                <div class="input-group mb-4">
+                                                    <select class="form-control" name="delivery_time" required>
+                                                        <option>2-3</option>
+                                                        <option>4-5</option>
+                                                        <option>6-8</option>
+                                                        <option>8-12</option>
+                                                    </select>
+                                                    <span class="input-group-text bg-transparent">
+                                                        <i class="fas fa-truck"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="price-modal" class="form-label">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('price')->toHtml(); ?> (<?php echo $seller_currency; ?>)
+                                                </label>
+                                                <div class="input-group mb-4">
+                                                    <input type="text" class="form-control" id="price-modal" name="price" required>
+                                                    <span class="input-group-text bg-transparent">
+                                                        <i class="fas fa-money-bill"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="curier-modal" class="form-label d-block">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('payment_methods')->toHtml(); ?>
+                                                </label>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="checkbox" name="first">
+                                                    <label class="form-check-label" for="rapm-modal">
+                                                        Ramburs
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="checkbox" name="second">
+                                                    <label class="form-check-label" for="card-modal">
+                                                        Card
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-block btn-primary mt-3 px-5">
+                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('save')->toHtml(); ?>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>            
+                <div class="tab-bar-content" id="third">
+                    <?php
+                    $query_conditions = "SELECT * FROM mgkf_marketplace_seller_return_condition ";
+                    $query_conditions .= "WHERE seller_id = '".$customerId."'";
+                    $result_conditions = $conn->query($query_conditions);
+
+                    $query_address = "SELECT * FROM mgkf_marketplace_seller_return_address ";
+                    $query_address .= "WHERE seller_id = '".$customerId."'";
+                    $result_address = $conn->query($query_address);
+
+                    $seller_currency = ucfirst(strtolower($seller_currency));
+                    ?>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <h4 class="m-0">
+                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('return_conditions')->toHtml(); ?>
+                                </h4>
+                                <button type="button" class="btn btn-primary" onclick="editConditions();">
+                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('edit')->toHtml(); ?>
+                                </button>
+                            </div>
+                            <br>
+                            <div id="conditions-block">
+                                <?php 
+                                $query = "SELECT * FROM mgkf_marketplace_seller_return_condition ";
+                                $query .= "WHERE return_condition = 'return_free_shipping' ";
+                                $query .= "AND seller_id = '".$customerId."'";
+                                $result = $conn->query($query);
+                                $count = $result->num_rows;
+                                $row = $result->fetch_assoc();
+                                $condition = $row['return_condition'];
+                                $value = $row['value'];
+                                if($count > 0) {
+                                ?>
+                                    <div class="row shadow py-3 px-4 mt-3">
+                                        <div class="col-12 d-flex">
+                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('return_free_shipping')->toHtml() . ' ' . $value . ' ' . $seller_currency; ?>
+                                        </div>
+                                    </div>
+                                <?php
+                                }
+                                $query = "SELECT * FROM mgkf_marketplace_seller_return_condition ";
+                                $query .= "WHERE return_condition = 'carefree_return' ";
+                                $query .= "AND seller_id = '".$customerId."'";
+                                $result = $conn->query($query);
+                                $count = $result->num_rows;
+                                $row = $result->fetch_assoc();
+                                $condition = $row['return_condition'];
+                                $value = $row['value'];
+                                if($count > 0) {
+                                ?>
+                                    <div class="row shadow py-3 px-4 mt-3">
+                                        <div class="col-12 d-flex">
+                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('carefree_return')->toHtml() . ' ' . $value . ' ' . $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('days')->toHtml(); ?>
+                                        </div>
+                                    </div>
+                                <?php
+                                }
+                                $query = "SELECT * FROM mgkf_marketplace_seller_return_condition ";
+                                $query .= "WHERE return_condition = 'return_without_new_order' ";
+                                $query .= "AND seller_id = '".$customerId."'";
+                                $result = $conn->query($query);
+                                $count = $result->num_rows;
+                                $row = $result->fetch_assoc();
+                                $condition = $row['return_condition'];
+                                $value = $row['value'];
+                                if($count > 0) {
+                                ?>
+                                    <div class="row shadow py-3 px-4 mt-3">
+                                        <div class="col-12 d-flex">
+                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('return_without_new_order')->toHtml() . '<br>' . $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('return_shipping_for_change')->toHtml() . ' ' . $value . ' ' . $seller_currency; ?>
+                                        </div>
+                                    </div>
+                                <?php
+                                }
+                                $query = "SELECT * FROM mgkf_marketplace_seller_return_condition ";
+                                $query .= "WHERE return_condition = 'return_any_courier' ";
+                                $query .= "AND seller_id = '".$customerId."'";
+                                $result = $conn->query($query);
+                                $count = $result->num_rows;
+                                $row = $result->fetch_assoc();
+                                $condition = $row['return_condition'];
+                                $value = $row['value'];
+                                ?>
+                                <div class="row shadow py-3 px-4 mt-3">
+                                    <div class="col-12">
+                                        <?php 
+                                        if($count > 0) {
+                                            echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('return_preffered_courier')->toHtml() . ' ' . $value . '<br>';
+                                        }
+                                        else {
+                                            echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('return_any_courier')->toHtml(); 
+                                        }
+                                        ?>
+                                    </div>                                    
+                                </div>
+                                <?php
+                                if($result_conditions->num_rows > 0) {
+                                    $count = $result_conditions->num_rows;
+                                    ?>
+                                    <input type="hidden" id="returns-count" value="<?php echo $count; ?>" />
+                                    <?php
+                                    $i = 1;
+                                    while($row_conditions = $result_conditions->fetch_assoc()) {
+                                        $returnCondition = $row_conditions['return_condition'];
+                                        if(($returnCondition != 'carefree_return') && ($returnCondition != 'return_free_shipping') && ($returnCondition != 'return_without_new_order') && ($returnCondition != 'return_any_courier')) {
+                                        ?>
+                                            <div class="row shadow py-3 px-4 mt-3">
+                                                <div class="row mt-2 align-items-md-center">
+                                                    <div class="col-xl-11">
+                                                        <div class="row flex-column">
+                                                            <div class="row">
+                                                                <div class="col-md-12">
+                                                                    <p class="m-0 font-weight-bold">
+                                                                        <span class="font-weight-normal">
+                                                                            <?php echo $returnCondition; ?>
+                                                                        </span>
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php
+                                        }
+                                    }
+                                }
+                                ?>
+                            </div>
+                            <div id="edit-conditions-block" class="d-none">              
+                                <form method="post" action="">
+                                    <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>" />
+                                    <?php 
+                                    $query = "SELECT * FROM mgkf_marketplace_seller_return_condition ";
+                                    $query .= "WHERE return_condition = 'return_free_shipping' ";
+                                    $query .= "AND seller_id = '".$customerId."'";
+                                    $result = $conn->query($query);
+                                    $count = $result->num_rows;
+                                    $row = $result->fetch_assoc();
+                                    $condition = $row['return_condition'];
+                                    $value = $row['value'];
+                                    ?>
+                                    <div class="row shadow py-3 px-4 mt-3">
+                                        <div class="col-12 d-flex">
+                                            <div class="col-1">
+                                                <input type="checkbox" class="form-check-input" name="return_free_shipping" <?php if($count > 0) echo 'checked'; ?>>
+                                            </div>
+                                            <div class="col-7">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('return_free_shipping')->toHtml(); ?> 
+                                            </div>
+                                            <div class="col-2">
+                                                <input type="text" class="form-control" name="return_free_shipping_value" <?php if($count > 0) echo 'value="'.$value.'"'; ?>>
+                                            </div>
+                                            <div class="col-2">
+                                                &nbsp;&nbsp;<?php echo $seller_currency; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php 
+                                    $query = "SELECT * FROM mgkf_marketplace_seller_return_condition ";
+                                    $query .= "WHERE return_condition = 'carefree_return' ";
+                                    $query .= "AND seller_id = '".$customerId."'";
+                                    $result = $conn->query($query);
+                                    $count = $result->num_rows;
+                                    $row = $result->fetch_assoc();
+                                    $condition = $row['return_condition'];
+                                    $value = $row['value'];
+                                    ?>
+                                    <div class="row shadow py-3 px-4 mt-3">
+                                        <div class="col-12 d-flex">
+                                            <div class="col-8">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('carefree_return')->toHtml(); ?> 
+                                            </div>
+                                            <div class="col-2">
+                                                <input type="number" min="30" class="form-control" name="carefree_return_days" <?php if($count > 0) echo 'value="'.$value.'";' ?> required>
+                                            </div>
+                                            <div class="col-2">
+                                                &nbsp;&nbsp;<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('days')->toHtml(); ?> 
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php
+                                    $query = "SELECT * FROM mgkf_marketplace_seller_return_condition ";
+                                    $query .= "WHERE return_condition = 'return_without_new_order' ";
+                                    $query .= "AND seller_id = '".$customerId."'";
+                                    $result = $conn->query($query);
+                                    $count = $result->num_rows;
+                                    $row = $result->fetch_assoc();
+                                    $condition = $row['return_condition'];
+                                    $value = $row['value'];
+                                    ?>
+                                    <div class="row shadow py-3 px-4 mt-3">
+                                        <div class="col-12 d-flex">
+                                            <div class="col-1">
+                                                <input type="checkbox" id="return-withour-new-order-check" class="form-check-input" name="return_without_new_order" onchange="returnWithoutNewOrder();" <?php if($count > 0) echo 'checked'; ?>>
+                                            </div>
+                                            <div class="col-7">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('return_without_new_order')->toHtml(); ?> 
+                                            </div>
+                                        </div>
+                                        <div class="col-12 <?php if($count == 0) { echo 'd-none'; } else { echo 'd-flex'; }?>" id="return-without-new-order">
+                                            <div class="col-8">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('return_shipping_for_change')->toHtml(); ?> 
+                                            </div>
+                                            <div class="col-2">
+                                                <input type="text" class="form-control" name="return_shipping_for_change_value" <?php if($count > 0) echo 'value="'.$value.'";' ?>>
+                                            </div>
+                                            <div class="col-1">
+                                                &nbsp;&nbsp;<?php echo $seller_currency; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php
+                                    $query = "SELECT * FROM mgkf_marketplace_seller_return_condition ";
+                                    $query .= "WHERE return_condition = 'return_any_courier' ";
+                                    $query .= "AND seller_id = '".$customerId."'";
+                                    $result = $conn->query($query);
+                                    $count = $result->num_rows;
+                                    $row = $result->fetch_assoc();
+                                    $condition = $row['return_condition'];
+                                    $value = $row['value'];
+                                    ?>
+                                    <div class="row shadow py-3 px-4 mt-3">
+                                        <div class="col-12 <?php if($count == 0) { echo 'd-none'; } else { echo 'd-flex'; }?>" id="return-any-courier">
+                                            <div class="col-6">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('return_preffered_courier')->toHtml(); ?> 
+                                            </div>
+                                            <div class="col-4">
+                                                <input type="text" class="form-control" name="return_any_courier_value" <?php if($count > 0) echo 'value="'.$value.'";' ?>>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 d-flex">
+                                            <div class="col-1">
+                                                <input type="hidden" name="courier_return" value="1" />
+                                                <input type="checkbox" id="return-any-courier-check" class="form-check-input" name="return_any_courier" onchange="returnAnyCourier();" <?php if($count < 1) echo 'checked'; ?>>
+                                            </div>
+                                            <div class="col-7">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('return_any_courier')->toHtml(); ?> 
+                                            </div>
+                                        </div>                                    
+                                    </div>
+                                    <?php
+                                    $query = "SELECT return_condition FROM mgkf_marketplace_seller_return_condition ";
+                                    $query .= "WHERE seller_id = '".$customerId."' ";
+                                    $query .= "AND return_condition NOT IN ('carefree_return', 'return_free_shipping', 'return_without_new_order', 'return_any_courier')";
+                                    $result = $conn->query($query);
+                                    if($result->num_rows > 0) {
+                                        $row = $result->fetch_assoc();
+                                        $returnCondition = $row['return_condition'];
+                                        ?>
+                                        <div class="row shadow py-3 px-4 mt-3">
+                                            <div class="row mt-2 align-items-md-center">
+                                                <div class="col-xl-11">
+                                                    <div class="row flex-column">
+                                                        <div class="row">
+                                                            <div class="col-md-12">
+                                                                <p class="m-0 font-weight-bold">
+                                                                    <span class="font-weight-normal">
+                                                                        <input type="hidden" name="old_condition" value="<?php echo $returnCondition; ?>" />
+                                                                        <textarea class="form-control" name="condition" rows="12"><?php echo $returnCondition; ?></textarea>
+                                                                    </span>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php
+                                    }
+                                    else {
+                                    ?>
+                                        <div class="shadow py-3 px-4 mt-3">
+                                            <div class="row mt-2 align-items-md-center">
+                                                <div class="col-xl-11">
+                                                    <div class="row flex-column">
+                                                        <div class="row">
+                                                            <div class="col-md-12">
+                                                                <p class="m-0 font-weight-bold">
+                                                                    <span class="font-weight-normal">
+                                                                        <textarea class="form-control" rows="12" name="condition"></textarea>
+                                                                    </span>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php
+                                    }
+                                    ?>
+                                    <br>
+                                    <div class="col-xl-4 mt-3 mt-xl-0">
+                                        <button type="submit" class="btn btn-block btn-primary px-5" name="conditions">
+                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('save')->toHtml(); ?>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 mt-4 mt-lg-0">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <h4 class="m-0">
+                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('return_address')->toHtml(); ?>
+                                </h4>
+                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#returAddress">
+                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_return_address')->toHtml(); ?>
+                                </button>
+                            </div>
+                            <?php 
+                            if($result_address->num_rows > 0) {
+                                $count = $result_address->num_rows;
+                                ?>
+                                <input type="hidden" id="return-address-count" value="<?php echo $count; ?>" />
+                                <?php
+                                $i = 1;
+                                while($row_address = $result_address->fetch_assoc()) {
+                                    $returnCompany = $row_address['company_name'];
+                                    $returnAddress = $row_address['return_address'];
+                                    $returnTransport = $row_address['return_transport'];
+                                    $returnCompany = $row_address['company_name'];
+                                    $returnCity = $row_address['city'];
+                                    $returnIsoCode = $row_address['iso'];
+                                    $returnCountry = $row_address['country'];
+                                    $returnPostCode = $row_address['postcode'];
+                                    $returnPhone = $row_address['phone'];
+                                    ?>
+                                    <div class="shadow py-3 px-4 mt-3">
+                                        <h5 class="m-0">
+                                            <span class="text-uppercase">Nr.</span> 
+                                            <?php echo $i; ?>
+                                        </h5>
+                                        <div class="row mt-2 align-items-md-center">
+                                            <div class="col-xl-11">
+                                                <div class="row flex-column">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <p class="m-0 font-weight-bold">
+                                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('nume_firma')->toHtml(); ?>:
+                                                                <span class="font-weight-normal">
+                                                                    <?php echo $returnCompany; ?>
+                                                                </span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-xl-11">
+                                                <div class="row flex-column">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <p class="m-0 font-weight-bold">
+                                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('country')->toHtml(); ?>:
+                                                                <span class="font-weight-normal">
+                                                                    <?php echo $returnCountry; ?>
+                                                                </span>
+                                                            </p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p class="m-0 font-weight-bold">
+                                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('city')->toHtml(); ?>:
+                                                                <span class="font-weight-normal">
+                                                                    <?php echo $returnCity; ?>
+                                                                </span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-xl-11">
+                                                <div class="row flex-column">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <p class="m-0 font-weight-bold">
+                                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('address')->toHtml(); ?>:
+                                                                <span class="font-weight-normal">
+                                                                    <?php echo $returnAddress; ?>
+                                                                </span>
+                                                            </p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p class="m-0 font-weight-bold">
+                                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('transport')->toHtml(); ?>:
+                                                                <span class="font-weight-normal">
+                                                                    <?php echo $returnTransport; ?>
+                                                                </span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-xl-11">
+                                                <div class="row flex-column">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <p class="m-0 font-weight-bold">
+                                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('postcode')->toHtml(); ?>:
+                                                                <span class="font-weight-normal">
+                                                                    <?php echo $returnPostCode; ?>
+                                                                </span>
+                                                            </p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p class="m-0 font-weight-bold">
+                                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('phone')->toHtml(); ?>:
+                                                                <span class="font-weight-normal">
+                                                                    <?php echo $returnPhone; ?>
+                                                                </span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-3 col-xl-1 text-md-right mt-2 mt-xl-0">
+                                                <div class="d-flex justify-content-xl-end">
+                                                    <button onclick="showEditReturnAdress(<?php echo $i; ?>);" class="btn btn-sm btn-secondary mr-3">
+                                                        <i class="far fa-edit"></i>
+                                                    </button>
+                                                    <form method="post" action="">
+                                                        <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>">
+                                                        <input type="hidden" name="address" value="<?php echo $returnAddress; ?>">
+                                                        <input type="hidden" name="transport" value="<?php echo $returnTransport; ?>">
+                                                        <button type="submit" class="btn btn-sm btn-secondary" name="delete_address">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="edit-return-address-<?php echo $i; ?>" class="d-none">
+                                            <hr>
+                                            <form method="post" action="">
+                                            <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>" />
+                                            <input type="hidden" name="old_address" value="<?php echo $returnAddress; ?>" />
+                                            <input type="hidden" name="old_transport" value="<?php echo $returnTransport; ?>" />
+                                                <div class="row align-items-end">
+                                                    <div class="col-xl-4 mb-3 mb-xl-0">
+                                                        <label for="company" class="form-label">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('nume_firma')->toHtml(); ?>
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <input type="text" class="form-control" name="company" value="<?php echo $returnCompany; ?>">
+                                                            <span class="input-group-text bg-transparent">
+                                                                <i class="far fa-user"></i>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-xl-4 mb-3 mb-xl-0">
+                                                        <label for="country" class="form-label">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('country')->toHtml(); ?>
+                                                        </label>
+                                                        <div class="input-group" name="country">
+                                                            <select class="form-select" name="country">
+                                                                <?php 
+                                                                foreach($countryDatas as $country) { 
+                                                                ?>
+                                                                    <option value="<?php echo $country['country_id']; ?>"
+                                                                        <?php echo $returnIsoCode == $country['country_id'] ? ' selected="selected"' : ''; ?>>
+                                                                        <?php
+                                                                        $countryModel = $objectModelManager->get('Magento\Directory\Model\Country');
+                                                                        $country = $countryModel->loadByCode($country['country_id']);
+                                                                        echo $country->getName();
+                                                                    ?>
+                                                                    </option>
+                                                                <?php 
+                                                                } 
+                                                                ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-xl-4 mb-3 mb-xl-0">
+                                                        <label for="transport" class="form-label">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('city')->toHtml(); ?>
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <input type="text" class="form-control" name="city" value="<?php echo $returnCity; ?>">
+                                                            <span class="input-group-text bg-transparent">
+                                                                <i class="fas fa-globe"></i>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-xl-4 mb-3 mb-xl-0">
+                                                        <label for="address" class="form-label">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('address')->toHtml(); ?>
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <input type="text" class="form-control" name="address" value="<?php echo $returnAddress; ?>">
+                                                            <span class="input-group-text bg-transparent">
+                                                                <i class="fas fa-map-marker-alt"></i>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-xl-4 mb-3 mb-xl-0">
+                                                        <label for="transport" class="form-label">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('transport')->toHtml(); ?>
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <input type="text" class="form-control" name="transport" value="<?php echo $returnTransport; ?>">
+                                                            <span class="input-group-text bg-transparent">
+                                                                <i class="fas fa-car"></i>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-xl-4 mb-3 mb-xl-0">
+                                                        <label for="transport" class="form-label">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('postcode')->toHtml(); ?>
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <input type="text" class="form-control" name="postcode" value="<?php echo $returnPostCode; ?>">
+                                                            <span class="input-group-text bg-transparent">
+                                                                <i class="fas fa-map-pin"></i>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-xl-4 mb-3 mb-xl-0">
+                                                        <label for="transport" class="form-label">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('phone')->toHtml(); ?>
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <input type="phone" class="form-control" name="phone" value="<?php echo $returnPhone; ?>">
+                                                            <span class="input-group-text bg-transparent">
+                                                                <i class="fas fa-phone"></i>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-xl-4 mb-3 mb-xl-0">
+                                                        <button type="submit" class="btn btn-block btn-primary" name="edit_address">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('save')->toHtml(); ?>
+                                                        </button>
+                                                    </div>                                               
+                                                </div>
+                                            </form>
+                                        </div>                                    
+                                    </div>
+                                <?php
+                                    $i++;
+                                }
+                            }
+                            ?>     
+                            <div class="modal fade" id="returAddress" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_return_address')->toHtml(); ?>
+                                            </h5>
+                                            <button type="button" class="btn-close bg-transparent" data-dismiss="modal" aria-label="Close">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form method="post" action="">
+                                                <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>" />
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <label class="form-label">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('nume_firma')->toHtml(); ?>
+                                                        </label>
+                                                        <div class="input-group mb-4">
+                                                            <input type="text" class="form-control" name="company" required>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <label class="form-label">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('country')->toHtml(); ?>
+                                                        </label>
+                                                        <div class="input-group mb-4">
+                                                            <select class="form-select" name="country" required>
+                                                                <option></option>
+                                                                <?php
+                                                                foreach($countryDatas as $country) { 
+                                                                ?>
+                                                                    <option value="<?php echo $country['country_id']; ?>">
+                                                                        <?php
+                                                                        $countryModel = $objectModelManager->get('Magento\Directory\Model\Country');
+                                                                        $country = $countryModel->loadByCode($country['country_id'] );
+                                                                        echo $country->getName();
+                                                                    ?>
+                                                                    </option>
+                                                                <?php 
+                                                                } 
+                                                                ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <label class="form-label">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('city')->toHtml(); ?>
+                                                        </label>
+                                                        <div class="input-group mb-4">
+                                                            <input type="text" class="form-control" name="city" required>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <label class="form-label">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('address')->toHtml(); ?>
+                                                        </label>
+                                                        <div class="input-group mb-4">
+                                                            <input type="text" class="form-control" name="address" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <label class="form-label">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('transport')->toHtml(); ?>
+                                                        </label>
+                                                        <div class="input-group mb-4">
+                                                            <input type="text" class="form-control" name="transport" required>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <label class="form-label">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('postcode')->toHtml(); ?>
+                                                        </label>
+                                                        <div class="input-group mb-4">
+                                                            <input type="text" class="form-control" name="postcode" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <label class="form-label">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('phone')->toHtml(); ?>
+                                                        </label>
+                                                        <div class="input-group mb-4">
+                                                            <input type="phone" class="form-control" name="phone" required>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <button type="submit" class="btn btn-block btn-primary mt-3 px-5" name="add_address">
+                                                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('save')->toHtml(); ?>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>                  
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-bar-content" id="fourth">
+                    <?php 
+                    $query = "SELECT enable_invoices FROM mgkf_marketplace_seller ";
+                    $query .= "WHERE customer_id = '".$customerId."'";
+                    $result = $conn->query($query);
+                    while($row = $result->fetch_assoc()) {
+                        
+                    }
+                    $query_invoice_settings = "SELECT enable_invoices, seria, invoice_nr, tva_level ";
+                    $query_invoice_settings .= "FROM mgkf_marketplace_seller ";
+                    $query_invoice_settings .= "WHERE customer_id = '".$customerId."'";
+                    $result_invoice_settings = $conn->query($query_invoice_settings);
+                    $row_invoice_settings = $result_invoice_settings->fetch_assoc();
+                    if($row_invoice_settings['enable_invoices'] == 1) {
+                        $display = 1;
+                    } 
+                    else {
+                        $display = 0;
+                    }
+                    $seria = $row_invoice_settings['seria'];
+                    $invoiceNr = $row_invoice_settings['invoice_nr'];
+                    $tvaLevel = $row_invoice_settings['tva_level'];
+
+                    $query_currency = "SELECT currency ";
+                    $query_currency .= "FROM mgkf_marketplace_seller_currency ";
+                    $query_currency .= "WHERE seller_id = '".$customerId."'";
+                    $result_currency = $conn->query($query_currency);
+                    $row_currency = $result_currency->fetch_row();
+                    $seller_currency = $row_currency[0];
+                    ?>
+                    <div class="shadow py-3 px-4">
+                        <form action="" method="post">
+                            <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>" />
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="transport" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('series')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" name="seria" value="<?php if(isset($seria)) echo $seria; ?>" required>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="fas fa-money-check"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="transport" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('invoice_nr')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" name="invoice_nr" value="<?php if(isset($invoiceNr)) echo $invoiceNr; ?>" required>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="fas fa-file-invoice"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="transport" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('vat_percent')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" name="tva_level" value="<?php if(isset($tvaLevel)) echo $tvaLevel; ?>" required>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="fas fa-percentage"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="transport" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('my_currency')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        <select class="form-control" name="currency_settings" required>
+                                            <?php if ($seller_currency == 'RON') { ?>
+                                                <option selected><?php echo $seller_currency; ?></option>
+                                                <option>EUR</option>
+                                                <option>USD</option>
+                                            <?php } else if ($seller_currency == 'EUR') { ?>
+                                                <option selected><?php echo $seller_currency; ?></option>
+                                                <option>RON</option>
+                                                <option>USD</option>
+                                            <?php
+                                            } else { ?>
+                                                <option selected><?php echo $seller_currency; ?></option>
+                                                <option>EUR</option>
+                                                <option>RON</option>
+                                            <?php
+                                            }
+                                            ?>
+                                        </select>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="fas fa-money-bill-wave-alt"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mt-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" <?php if($display == 1) echo 'checked'; ?>>
+                                        <label class="form-check-label" for="activare-facturare">
+                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('enable_invoices')->toHtml(); ?>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" id="hidden" name="seller_hidden" value="<?php echo $customerId; ?>">
+                            <input type="hidden" name="invoice_settings" value="<?php echo $customerId; ?>" />
+                            <button type="submit" class="btn btn-block btn-primary mt-3 px-5">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('save')->toHtml(); ?>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+<?php 
+}
+?>
+<script>
+// Tabs Action
+const tabLink = document.querySelectorAll(".tab-menu-link");
+const tabContent = document.querySelectorAll(".tab-bar-content");
+
+// conditii de retur
+var showEditCondition = document.querySelector('#showEditCard');
+
+// addres retur
+var showEditTour = document.querySelector('#showEditTour');
+var editTourBox = document.querySelector('#edit-tour');
+
+// tab action
+tabLink.forEach((el) => {
+    el.addEventListener("click", activeTab);
+});
+
+// tour toggle
+showEditTour.addEventListener('click', function() {
+    editTourBox.classList.toggle('d-none');
+})
+
+function activeTab(el) {
+    const btnTarget = el.currentTarget;
+    const content = btnTarget.dataset.content;
+
+    tabContent.forEach((el) => {
+        el.classList.remove("active");
+    });
+
+    tabLink.forEach((el) => {
+        el.classList.remove("active");
+    });
+
+    document.querySelector("#" + content).classList.add("active");
+    btnTarget.classList.add("active");
+}
+function editTransportSettings(k) {
+    var transports_count = document.getElementById("transports-count").value;
+    for(var i=0; i<=transports_count; i++) {
+        if(document.getElementById("edit-transports-settings-block-"+i)) {
+            document.getElementById("edit-transports-settings-block-"+i).classList.add("d-none");
+        }
+    }
+    document.getElementById("edit-transports-settings-block-"+k).classList.remove("d-none");
+}
+function getCountry(k) {
+    var select = document.getElementById("country-"+k);
+    var selected = select.options[select.selectedIndex].text;
+    document.getElementById("selected-country-"+k).value = selected;
+}
+function getAddCountry() {
+    var selected = [];
+    var iso = [];
+    for(var option of document.getElementById("add-country").options) {
+        if(option.selected) {
+            selected.push(option.text);
+            iso.push(option.value);
+        }
+    }
+    document.getElementById("countries").value = selected;
+    document.getElementById("iso").value = iso;
+}
+function showEditReturnAdress(k) {
+    var count = document.getElementById("return-address-count").value;
+    for(var i=0; i<=count; i++) {
+        if(document.getElementById("edit-return-address-"+i)) {
+            document.getElementById("edit-return-address-"+i).classList.add("d-none");
+        }
+    }
+    document.getElementById("edit-return-address-"+k).classList.remove("d-none");
+}
+function returnWithoutNewOrder() {
+    if(document.getElementById("return-withour-new-order-check").checked) {
+        document.getElementById("return-without-new-order").classList.remove("d-none");
+        document.getElementById("return-without-new-order").classList.add("d-flex");
+    }
+    else {
+        document.getElementById("return-without-new-order").classList.add("d-none");
+        document.getElementById("return-without-new-order").classList.remove("d-flex");
+    }
+}
+function returnAnyCourier() {
+    if(document.getElementById("return-any-courier-check").checked) {
+        document.getElementById("return-any-courier").classList.add("d-none");
+        document.getElementById("return-any-courier").classList.remove("d-flex");
+    }
+    else {
+        document.getElementById("return-any-courier").classList.remove("d-none");
+        document.getElementById("return-any-courier").classList.add("d-flex");
+    }
+}
+function editConditions() {
+    document.getElementById("conditions-block").classList.add("d-none");
+    document.getElementById("edit-conditions-block").classList.remove("d-none");
+}
+</script>
+<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyBW4vLsNZoKFMFMPUR4C0ZuKtaaDDEajos&libraries=places"></script>
+<script>
+var placeSearch, autocomplete;
+function initialize() {
+    // Create the autocomplete object, restricting the search
+    // to geographical location types.
+    autocomplete = new google.maps.places.Autocomplete(
+        /** @type {HTMLInputElement} */
+        (document.getElementById('autocomplete')), {
+        types: ['geocode']
+        });
+
+    google.maps.event.addDomListener(document.getElementById('autocomplete'), 'focus', geolocate);
+}
+function geolocate() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+        var geolocation = new google.maps.LatLng(
+            position.coords.latitude, position.coords.longitude);
+        var circle = new google.maps.Circle({
+            center: geolocation,
+            radius: position.coords.accuracy
+        });
+        autocomplete.setBounds(circle.getBounds());
+        });
+    }
+}
+initialize();
+</script>

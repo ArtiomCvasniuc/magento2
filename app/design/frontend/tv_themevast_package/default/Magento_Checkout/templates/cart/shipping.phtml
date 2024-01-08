@@ -1,0 +1,957 @@
+<?php
+/**
+ * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+if (file_exists("conf/conf.php")) 
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer ();
+if ($customerSession->isLoggedIn ()) {
+    $customerId = $customerSession->getId ();
+    $customerGroupId = $customerDatas->getGroupId ();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId ();
+    $status = $helper->sellerStatus( $customerId);
+}
+
+$query = "SELECT country_id, city, postcode ";
+$query .= "FROM mgkf_customer_address_entity ";
+$query .= "WHERE parent_id = $customerId ";
+$query .= "LIMIT 0,1";
+$result = $conn->query($query);
+$row = $result->fetch_assoc();
+$country = $row['country_id'];
+$city = $row['city'];
+$postcode = $row['postcode'];
+
+$query_shipping = "SELECT * FROM mgkf_marketplace_transports ";
+$query_shipping .= "WHERE iso LIKE '%$country%' ";
+$query_shipping .= "AND seller_id = 2 ";
+$query_shipping .= "LIMIT 0,1";
+$result_shipping = $conn->query($query_shipping);
+$row_shipping = $result_shipping->fetch_assoc();
+$country_shipping = $row_shipping['country'];
+$price_shipping = $row_shipping['price'] * 4.726883;
+$price_shipping = number_format($price_shipping, 2, '.', '');
+$price_free_shipping = $row_shipping['price_free_transport'];
+$price_free_shipping = $row_shipping['price_free_transport'] * 4.726883;
+$price_free_shipping = number_format($price_free_shipping, 2, '.', '');
+
+$query = "SELECT country_id, city ";
+$query .= "FROM mgkf_customer_address_entity ";
+$query .= "WHERE parent_id = '$customerId'";
+$result = $conn->query($query);
+
+$query_1 = "SELECT store_name ";
+$query_1 .= "FROM mgkf_marketplace_seller ";
+$query_1 .= "WHERE customer_id = 2";
+$result_1 = $conn->query($query_1);
+$row = $result_1->fetch_assoc();
+$store_1 = $row['store_name'];
+
+$query_2 = "SELECT store_name ";
+$query_2 .= "FROM mgkf_marketplace_seller ";
+$query_2 .= "WHERE customer_id = 7";
+$result_2 = $conn->query($query_2);
+$row = $result_2->fetch_assoc();
+$store_2 = $row['store_name'];
+
+$query_price_1 = "SELECT price, price_free_transport ";
+$query_price_1 .= "FROM mgkf_marketplace_transports ";
+$query_price_1 .= "WHERE seller_id = 2 AND iso = 'RO'";
+$result_price_1 = $conn->query($query_price_1);
+$row_price_1 = $result_price_1->fetch_assoc();
+$price_shipping_1 = $row_price_1['price'] * 4.726883;
+$price_shipping_1 = number_format($price_shipping_1, 2, '.', '');
+$price_free_shipping_1 = $row_price_1['price_free_transport'] * 4.726883;
+$price_free_shipping_1 = number_format($price_free_shipping_1, 2, '.', '');
+
+$query_price_2 = "SELECT price, price_free_transport ";
+$query_price_2 .= "FROM mgkf_marketplace_transports ";
+$query_price_2 .= "WHERE seller_id = 2 AND iso = 'DE'";
+$result_price_2 = $conn->query($query_price_2);
+$row_price_2 = $result_price_2->fetch_assoc();
+$price_shipping_2 = $row_price_2['price'] * 4.726883;
+$price_shipping_2 = number_format($price_shipping_2, 2, '.', '');
+$price_free_shipping_2 = $row_price_2['price_free_transport'] * 4.726883;
+$price_free_shipping_2 = number_format($price_free_shipping_2, 2, '.', '');
+
+$query_price_3 = "SELECT price, price_free_transport ";
+$query_price_3 .= "FROM mgkf_marketplace_transports ";
+$query_price_3 .= "WHERE seller_id = 7 AND iso = 'RO'";
+$result_price_3 = $conn->query($query_price_3);
+$row_price_3 = $result_price_3->fetch_assoc();
+$price_shipping_3 = $row_price_3['price'] * 4.726883;
+$price_shipping_3 = number_format($price_shipping_3, 2, '.', '');
+$price_free_shipping_3 = $row_price_3['price_free_transport'] * 4.726883;
+$price_free_shipping_3 = number_format($price_free_shipping_3, 2, '.', '');
+
+$query_price_4 = "SELECT price, price_free_transport ";
+$query_price_4 .= "FROM mgkf_marketplace_transports ";
+$query_price_4 .= "WHERE seller_id = 7 AND iso = 'DE'";
+$result_price_4 = $conn->query($query_price_4);
+$row_price_4 = $result_price_4->fetch_assoc();
+$price_shipping_4 = $row_price_4['price'] * 4.726883;
+$price_shipping_4 = number_format($price_shipping_4, 2, '.', '');
+$price_free_shipping_4 = $row_price_4['price_free_transport'] * 4.726883;
+$price_free_shipping_4 = number_format($price_free_shipping_4, 2, '.', '');
+?>
+<?php /** @var $block \Magento\Checkout\Block\Cart\Shipping */ ?>
+
+<div id="block-shipping" class="block shipping" data-mage-init='{"collapsible":{"openedState": "active", "saveState": true}}'>
+    <div style="display:none;" class="title" data-role="title">
+        <strong id="block-shipping-heading" role="heading" aria-level="2">
+            <?php /* @escapeNotVerified */ echo $block->getQuote()->isVirtual() ? __('Estimate Tax') : __('Estimate Shipping and Tax') ?>
+        </strong>
+    </div>
+    <br>
+    <div>
+        <div class="field">
+            <select class="form-control" name="customer_address" id="customer_address" onchange="check_address();">
+                <?php
+                while($row = $result->fetch_assoc()) {
+                    $country = $row['country_id'];
+                    $city = $row['city'];
+
+                    if($country == "AF") $country = "Afghanistan";
+                    if($country == "AL") $country = "Albania";
+                    if($country == "DZ") $country = "Algeria";
+                    if($country == "AS") $country = "American Samoa";
+                    if($country == "AD") $country = "Andorra"; 
+                    if($country == "AO") $country = "Angola"; 
+                    if($country == "AI") $country = "Anguilla"; 
+                    if($country == "AG") $country = "Antigua and Barbuda"; 
+                    if($country == "AR") $country = "Argentina"; 
+                    if($country == "AM") $country = "Armenia"; 
+                    if($country == "AW") $country = "Aruba"; 
+                    if($country == "AU") $country = "Australia"; 
+                    if($country == "AT") $country = "Austria"; 
+                    if($country == "AZ") $country = "Azerbaijan"; 
+                    if($country == "BS") $country = "Bahamas"; 
+                    if($country == "BH") $country = "Bahrain"; 
+                    if($country == "BD") $country = "Bangladesh"; 
+                    if($country == "BB") $country = "Barbados"; 
+                    if($country == "BY") $country = "Belarus"; 
+                    if($country == "BE") $country = "Belgium"; 
+                    if($country == "BZ") $country = "Belize"; 
+                    if($country == "BJ") $country = "Benin"; 
+                    if($country == "BM") $country = "Bermuda"; 
+                    if($country == "BT") $country = "Bhutan"; 
+                    if($country == "BO") $country = "Bolivia"; 
+                    if($country == "BA") $country = "Bosnia and Herzegovina"; 
+                    if($country == "BW") $country = "Botswana"; 
+                    if($country == "BV") $country = "Bouvet Island"; 
+                    if($country == "BR") $country = "Brazil"; 
+                    if($country == "BN") $country = "Brunei"; 
+                    if($country == "BG") $country = "Bulgaria"; 
+                    if($country == "BF") $country = "Burkina Faso"; 
+                    if($country == "BI") $country = "Burundi"; 
+                    if($country == "KH") $country = "Cambodia"; 
+                    if($country == "CM") $country = "Cameroon"; 
+                    if($country == "CA") $country = "Canada";
+                    if($country == "CV") $country = "Cape Verde"; 
+                    if($country == "KY") $country = "Cayman Islands"; 
+                    if($country == "CF") $country = "Central African Republic"; 
+                    if($country == "TD") $country = "Chad"; 
+                    if($country == "CL") $country = "Chile"; 
+                    if($country == "CN") $country = "China"; 
+                    if($country == "CO") $country = "Colombia"; 
+                    if($country == "KM") $country = "Comoros"; 
+                    if($country == "CR") $country = "Costa Rica"; 
+                    if($country == "CI") $country = "Côte d’Ivoire"; 
+                    if($country == "HR") $country = "Croatia"; 
+                    if($country == "CU") $country = "Cuba"; 
+                    if($country == "CY") $country = "Cyprus"; 
+                    if($country == "CZ") $country = "Czech Republic"; 
+                    if($country == "DK") $country = "Denmark"; 
+                    if($country == "DJ") $country = "Djibouti"; 
+                    if($country == "DM") $country = "Dominica"; 
+                    if($country == "DO") $country = "Dominican Republic"; 
+                    if($country == "EC") $country = "Ecuador"; 
+                    if($country == "EG") $country = "Egypt"; 
+                    if($country == "SV") $country = "El Salvador"; 
+                    if($country == "GQ") $country = "Equatorial Guinea"; 
+                    if($country == "EE") $country = "Estonia"; 
+                    if($country == "ET") $country = "Ethiopia"; 
+                    if($country == "FO") $country = "Faroe Islands"; 
+                    if($country == "FJ") $country = "Fiji"; 
+                    if($country == "FI") $country = "Finland"; 
+                    if($country == "FR") $country = "France"; 
+                    if($country == "GA") $country = "Gabon"; 
+                    if($country == "GM") $country = "Gambia"; 
+                    if($country == "GE") $country = "Georgia"; 
+                    if($country == "DE") $country = "Germania"; 
+                    if($country == "GH") $country = "Ghana"; 
+                    if($country == "GI") $country = "Gibraltar"; 
+                    if($country == "GR") $country = "Greece"; 
+                    if($country == "GP") $country = "Guadeloupe"; 
+                    if($country == "GT") $country = "Guatemala"; 
+                    if($country == "GN") $country = "Guinea"; 
+                    if($country == "GW") $country = "Guinea-Bissau"; 
+                    if($country == "HN") $country = "Honduras"; 
+                    if($country == "HK") $country = "Hong Kong SAR China"; 
+                    if($country == "HU") $country = "Hungary"; 
+                    if($country == "IS") $country = "Iceland"; 
+                    if($country == "IN") $country = "India"; 
+                    if($country == "ID") $country = "Indonesia"; 
+                    if($country == "IR") $country = "Iran"; 
+                    if($country == "IQ") $country = "Iraq"; 
+                    if($country == "IE") $country = "Ireland"; 
+                    if($country == "IL") $country = "Israel"; 
+                    if($country == "IT") $country = "Italy"; 
+                    if($country == "JM") $country = "Jamaica"; 
+                    if($country == "JP") $country = "Japan"; 
+                    if($country == "JO") $country = "Jordan"; 
+                    if($country == "KZ") $country = "Kazakhstan"; 
+                    if($country == "KE") $country = "Kenya"; 
+                    if($country == "KW") $country = "Kuwait"; 
+                    if($country == "KG") $country = "Kyrgyzstan"; 
+                    if($country == "LA") $country = "Laos"; 
+                    if($country == "LV") $country = "Latvia"; 
+                    if($country == "LB") $country = "Lebanon"; 
+                    if($country == "LS") $country = "Lesotho"; 
+                    if($country == "LR") $country = "Liberia"; 
+                    if($country == "LY") $country = "Libya"; 
+                    if($country == "LI") $country = "Liechtenstein"; 
+                    if($country == "LT") $country = "Lithuania"; 
+                    if($country == "LU") $country = "Luxembourg"; 
+                    if($country == "MK") $country = "Macedonia"; 
+                    if($country == "MG") $country = "Madagascar"; 
+                    if($country == "MW") $country = "Malawi"; 
+                    if($country == "MY") $country = "Malaysia"; 
+                    if($country == "MV") $country = "Maldives"; 
+                    if($country == "ML") $country = "Mali"; 
+                    if($country == "MT") $country = "Malta"; 
+                    if($country == "MH") $country = "Marshall Islands"; 
+                    if($country == "MQ") $country = "Martinique"; 
+                    if($country == "MR") $country = "Mauritania"; 
+                    if($country == "MX") $country = "Mexico"; 
+                    if($country == "MD") $country = "Moldova"; 
+                    if($country == "MC") $country = "Monaco"; 
+                    if($country == "MN") $country = "Mongolia"; 
+                    if($country == "ME") $country = "Montenegro"; 
+                    if($country == "MA") $country = "Morocco"; 
+                    if($country == "MZ") $country = "Mozambique"; 
+                    if($country == "NA") $country = "Namibia"; 
+                    if($country == "NP") $country = "Nepal"; 
+                    if($country == "NL") $country = "Netherlands"; 
+                    if($country == "NC") $country = "New Caledonia"; 
+                    if($country == "NZ") $country = "New Zealand"; 
+                    if($country == "NI") $country = "Nicaragua"; 
+                    if($country == "NE") $country = "Niger"; 
+                    if($country == "NG") $country = "Nigeria"; 
+                    if($country == "KP") $country = "North Korea"; 
+                    if($country == "NO") $country = "Norway"; 
+                    if($country == "OM") $country = "Oman"; 
+                    if($country == "PK") $country = "Pakistan"; 
+                    if($country == "PS") $country = "Palestinian Territories"; 
+                    if($country == "PA") $country = "Panama";
+                    if($country == "PG") $country = "Papua New Guinea"; 
+                    if($country == "PY") $country = "Paraguay"; 
+                    if($country == "PE") $country = "Peru"; 
+                    if($country == "PH") $country = "Philippines"; 
+                    if($country == "PL") $country = "Poland"; 
+                    if($country == "PT") $country = "Portugal"; 
+                    if($country == "QA") $country = "Qatar"; 
+                    if($country == "RO") $country = "Romania"; 
+                    if($country == "RU") $country = "Russia"; 
+                    if($country == "RW") $country = "Rwanda"; 
+                    if($country == "MF") $country = "Saint Martin"; 
+                    if($country == "WS") $country = "Samoa"; 
+                    if($country == "SM") $country = "San Marino"; 
+                    if($country == "SA") $country = "Saudi Arabia"; 
+                    if($country == "SN") $country = "Senegal"; 
+                    if($country == "RS") $country = "Serbia"; 
+                    if($country == "SC") $country = "Seychelles"; 
+                    if($country == "SL") $country = "Sierra Leone"; 
+                    if($country == "SG") $country = "Singapore"; 
+                    if($country == "SK") $country = "Slovakia"; 
+                    if($country == "SI") $country = "Slovenia"; 
+                    if($country == "SB") $country = "Solomon Islands"; 
+                    if($country == "SO") $country = "Somalia"; 
+                    if($country == "ZA") $country = "South Africa"; 
+                    if($country == "GS") $country = "South Georgia and the South Sandwich Islands"; 
+                    if($country == "KR") $country = "South Korea"; 
+                    if($country == "ES") $country = "Spain"; 
+                    if($country == "LK") $country = "Sri Lanka"; 
+                    if($country == "SD") $country = "Sudan"; 
+                    if($country == "SR") $country = "Suriname"; 
+                    if($country == "SZ") $country = "Swaziland"; 
+                    if($country == "SE") $country = "Sweden"; 
+                    if($country == "CH") $country = "Switzerland"; 
+                    if($country == "SY") $country = "Syria"; 
+                    if($country == "TW") $country = "Taiwan"; 
+                    if($country == "TJ") $country = "Tajikistan"; 
+                    if($country == "TZ") $country = "Tanzania"; 
+                    if($country == "TH") $country = "Thailand"; 
+                    if($country == "TG") $country = "Togo"; 
+                    if($country == "TT") $country = "Trinidad and Tobago"; 
+                    if($country == "TN") $country = "Tunisia"; 
+                    if($country == "TR") $country = "Turkey"; 
+                    if($country == "TM") $country = "Turkmenistan"; 
+                    if($country == "UG") $country = "Uganda"; 
+                    if($country == "UA") $country = "Ukraine"; 
+                    if($country == "AE") $country = "United Arab Emirates"; 
+                    if($country == "GB") $country = "United Kingdom"; 
+                    if($country == "US") $country = "United States"; 
+                    if($country == "UY") $country = "Uruguay"; 
+                    if($country == "VA") $country = "Vatican City"; 
+                    if($country == "VE") $country = "Venezuela"; 
+                    if($country == "VN") $country = "Vietnam"; 
+                    if($country == "YE") $country = "Yemen"; 
+                    if($country == "ZM") $country = "Zambia"; 
+                    if($country == "ZW") $country = "Zimbabwe";
+                ?>
+                    <option>
+                        <?php echo $city . ', &nbsp;' . $country; ?>
+                    </option>
+                <?php
+                }
+                ?>
+            </select>
+            <input type="hidden" name="selected_address" id="selected_address" />
+        </div>
+        <br>
+        <div id="not_possible_to_ship_store_2" style="display:none;">
+            <span class="warning_message">
+                Magazinul "<?php echo $store_1; ?>" nu poate livra produse in tara "TARA"
+                (produsele acestui magazin nu vor fi in comanda Dvs)
+            </span>
+            <br>
+            <button class="btn btn-default" id="yes" onclick="shipping_ok();">
+                Ok
+            </button>
+            <button class="btn btn-default" id="no" onclick="shipping_cancel();">
+                Cancel
+            </button>
+        </div>
+        <div id="not_possible_to_ship_store_7" style="display:none;">
+            <span class="warning_message">
+                Magazinul  "<?php echo $store_2; ?>" nu poate livra produse in tara Germania
+                (produsele acestui magazin nu vor fi in comanda Dvs)
+            </span>
+            <br>
+            <button class="btn btn-default" id="yes" onclick="shipping_ok();">
+                Ok
+            </button>
+            <button class="btn btn-default" id="no" onclick="shipping_cancel();">
+                Cancel
+            </button>
+        </div>
+        <br><br>
+        <table class="totals">
+            <tbody>
+                <tr class="total_products">
+                    <th><span class="data" >Cost Produse</span></th>
+                    <td><span class="data" id="grand_total"></td>
+                </tr>
+                <tr class="shipping" id="shipping_price_block">              
+                    <th><span class="data" >Cost livrare</span></th>
+                    <td><span class="data" id="shipping_price"></td>
+                    <td style="display:none;"><span id="shipping_not_selected"></span></td>
+                    <td style="display:none;"><span id="shipping_price_seller_2"></span></td>
+                    <td style="display:none;"><span id="shipping_price_seller_7"></span></td>
+                </tr>
+                <tr class="grand totals">                    
+                    <th><span class="data" >Total</span></th>
+                    <td><span class="data" id="total"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="block-summary" data-bind="scope:'block-summary'" class="content" data-role="content" aria-labelledby="block-shipping-heading"></div>
+</div>
+<script>
+var i = 0;
+var parent = document.getElementById("fieldset estimate");
+var nodesSameClass = parent.getElementsByClassName("select");
+for (i=0; i < nodesSameClass.length; i++) {
+    nodesSameClass[i].setAttribute("id", "select_"+i);
+}
+function check_address() {
+    var e = document.getElementById("customer_address");
+    var text = e.options[e.selectedIndex].text;
+    
+    var input = document.getElementById("selected_address");
+    input.value = text;
+
+    var price_shipping_1 = "<?php echo $price_shipping_1; ?>";
+    var price_free_shipping_1 = "<?php echo $price_free_shipping_1; ?>";
+    var price_shipping_2 = "<?php echo $price_shipping_2; ?>"; 
+    var price_free_shipping_2 = "<?php echo $price_free_shipping_2; ?>";
+    var price_shipping_3 = "<?php echo $price_shipping_3; ?>";
+    var price_free_shipping_3 = "<?php echo $price_free_shipping_3; ?>";
+    var price_shipping_4 = "<?php echo $price_shipping_4; ?>"; 
+    var price_free_shipping_4 = "<?php echo $price_free_shipping_4; ?>";
+
+    if(text.includes("Romania")) {
+        document.getElementById("seller_2_shipping_price_0").value = price_shipping_1;
+        document.getElementById("seller_2_free_shipping_price_0").value = price_free_shipping_1;
+
+        document.getElementById("seller_7_shipping_price_0").value = price_shipping_3;
+        document.getElementById("seller_7_free_shipping_price_0").value = price_free_shipping_3;
+
+        var total_seller_2 = 0;
+        if(document.getElementById("seller_2_product_price_0")) {
+            str = document.getElementById("seller_2_product_price_0").value;
+            var price = str.match(/\d+(?:\,\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_2 = price;
+        }
+        if(document.getElementById("seller_2_product_price_1")) {
+            str = document.getElementById("seller_2_product_price_1").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_2 = total_seller_2 + price;
+        }
+        if(document.getElementById("seller_2_product_price_2")) {
+            str = document.getElementById("seller_2_product_price_2").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_2 = total_seller_2 + price;
+        }
+        if(document.getElementById("seller_2_product_price_3")) {
+            str = document.getElementById("seller_2_product_price_3").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_2 = total_seller_2 + price;
+        }
+        if(document.getElementById("seller_2_product_price_4")) {
+            str = document.getElementById("seller_2_product_price_4").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_2 = total_seller_2 + price;
+        }
+        if(document.getElementById("seller_2_product_price_5")) {
+            str = document.getElementById("seller_2_product_price_5").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_2 = total_seller_2 + price;
+        }
+        var seller_2_shipping_price = 0;
+        var seller_2_free_shipping_price = 0;
+        if(document.getElementById("seller_2_shipping_price_0")) {
+            seller_2_shipping_price = document.getElementById("seller_2_shipping_price_0").value;
+            seller_2_free_shipping_price = document.getElementById("seller_2_free_shipping_price_0").value;
+        }
+        total_seller_2 = total_seller_2.toFixed(2);
+        if(total_seller_2 > seller_2_free_shipping_price) {
+            price_shipping = 0.00;
+        }
+        else {
+            price_shipping = seller_2_shipping_price;
+        }
+
+        var total_seller_7 = 0;
+        if(document.getElementById("seller_7_product_price_0")) {
+            str = document.getElementById("seller_7_product_price_0").value;
+            var price = str.match(/\d+(?:\,\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_7 = price;
+        }
+        if(document.getElementById("seller_7_product_price_1")) {
+            str = document.getElementById("seller_7_product_price_1").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_7 = total_seller_7 + price;
+        }
+        if(document.getElementById("seller_7_product_price_2")) {
+            str = document.getElementById("seller_7_product_price_2").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_7 = total_seller_7 + price;
+        }
+        if(document.getElementById("seller_7_product_price_3")) {
+            str = document.getElementById("seller_7_product_price_3").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_7 = total_seller_7 + price;
+        }
+        if(document.getElementById("seller_7_product_price_4")) {
+            str = document.getElementById("seller_7_product_price_4").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_7 = total_seller_7 + price;
+        }
+        if(document.getElementById("seller_7_product_price_5")) {
+            str = document.getElementById("seller_7_product_price_5").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_7 = total_seller_7 + price;
+        }
+        var seller_7_shipping_price = 0;
+        var seller_7_free_shipping_price = 0;
+        if(document.getElementById("seller_7_shipping_price_0")) {
+            seller_7_shipping_price = document.getElementById("seller_7_shipping_price_0").value;
+            seller_7_free_shipping_price = document.getElementById("seller_7_free_shipping_price_0").value;
+        }
+        if(total_seller_7 > seller_7_free_shipping_price) {
+            price_shipping = price_shipping + 0.00;
+        }
+        else {
+            price_shipping = +price_shipping + +seller_7_shipping_price;
+        }
+        price_shipping_unform = price_shipping;
+        price_shipping = price_shipping.toFixed(2) + ' RON';
+
+        if(document.getElementById("price3")) {
+            var str = document.getElementById("price3").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = price;
+        }
+        if(document.getElementById("price6")) {
+            var str = document.getElementById("price6").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price; 
+        }
+        if(document.getElementById("price9")) {
+            var str = document.getElementById("price9").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price; 
+        }
+        if(document.getElementById("price12")) {
+            var str = document.getElementById("price12").innerHTML;        
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price; 
+        }
+        if(document.getElementById("price15")) {
+            var str = document.getElementById("price15").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price;
+        }
+        if(document.getElementById("price18")) {
+            var str = document.getElementById("price18").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price;
+        }
+        if(document.getElementById("price21")) {
+            var str = document.getElementById("price21").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price;
+        }
+        if(document.getElementById("price24")) {
+            var str = document.getElementById("price24").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price;
+        }
+        if(document.getElementById("price27")) {
+            var str = document.getElementById("price27").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price;
+        }
+        if(document.getElementById("price30")) {
+            var str = document.getElementById("price30").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price;
+        }
+
+        grand_total_price = grand_total;
+        grand_total = grand_total.toFixed(2) + ' RON';
+        var grand_total_value = document.getElementById("grand_total");
+        grand_total_value.innerText = grand_total;
+
+        if(document.getElementById("mini_cart_price")) {
+            document.getElementById("mini_cart_price").innerText = grand_total;
+            document.getElementById("mini_cart_total").value = grand_total;
+        }
+
+        document.getElementById("shipping_price").innerHTML = price_shipping;
+
+        var total = grand_total_price + price_shipping_unform;
+        total = total.toFixed(2) + ' RON';
+        document.getElementById("total").innerText = total;
+        document.getElementById("shipping_price_seller_2").innerText = seller_2_shipping_price;
+        document.getElementById("shipping_price_seller_7").innerText = seller_7_shipping_price;
+        document.getElementById("shipping_not_selected").innerText = seller_2_shipping_price + ', ' + seller_7_shipping_price;
+
+        update();
+    }
+    if(text.includes("Germania")) {
+        document.getElementById("seller_2_shipping_price_0").value = price_shipping_2;
+        document.getElementById("seller_2_free_shipping_price_0").value = price_free_shipping_2;
+
+        document.getElementById("seller_7_shipping_price_0").value = price_shipping_4;
+        document.getElementById("seller_7_free_shipping_price_0").value = price_free_shipping_4;
+
+        var total_seller_2 = 0;
+        if(document.getElementById("seller_2_product_price_0")) {
+            str = document.getElementById("seller_2_product_price_0").value;
+            var price = str.match(/\d+(?:\,\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_2 = price;
+        }
+        if(document.getElementById("seller_2_product_price_1")) {
+            str = document.getElementById("seller_2_product_price_1").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_2 = total_seller_2 + price;
+        }
+        if(document.getElementById("seller_2_product_price_2")) {
+            str = document.getElementById("seller_2_product_price_2").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_2 = total_seller_2 + price;
+        }
+        if(document.getElementById("seller_2_product_price_3")) {
+            str = document.getElementById("seller_2_product_price_3").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_2 = total_seller_2 + price;
+        }
+        if(document.getElementById("seller_2_product_price_4")) {
+            str = document.getElementById("seller_2_product_price_4").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_2 = total_seller_2 + price;
+        }
+        if(document.getElementById("seller_2_product_price_5")) {
+            str = document.getElementById("seller_2_product_price_5").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_2 = total_seller_2 + price;
+        }
+        var seller_2_shipping_price = 0;
+        var seller_2_free_shipping_price = 0;
+        if(document.getElementById("seller_2_shipping_price_0")) {
+            seller_2_shipping_price = document.getElementById("seller_2_shipping_price_0").value;
+            seller_2_free_shipping_price = document.getElementById("seller_2_free_shipping_price_0").value;
+        }
+        total_seller_2 = total_seller_2.toFixed(2);
+        if(total_seller_2 > seller_2_free_shipping_price) {
+            price_shipping = 0.00;
+        }
+        else {
+            price_shipping = seller_2_shipping_price;
+        }
+
+        var total_seller_7 = 0;
+        if(document.getElementById("seller_7_product_price_0")) {
+            str = document.getElementById("seller_7_product_price_0").value;
+            var price = str.match(/\d+(?:\,\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_7 = price;
+        }
+        if(document.getElementById("seller_7_product_price_1")) {
+            str = document.getElementById("seller_7_product_price_1").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_7 = total_seller_7 + price;
+        }
+        if(document.getElementById("seller_7_product_price_2")) {
+            str = document.getElementById("seller_7_product_price_2").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_7 = total_seller_7 + price;
+        }
+        if(document.getElementById("seller_7_product_price_3")) {
+            str = document.getElementById("seller_7_product_price_3").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_7 = total_seller_7 + price;
+        }
+        if(document.getElementById("seller_7_product_price_4")) {
+            str = document.getElementById("seller_7_product_price_4").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_7 = total_seller_7 + price;
+        }
+        if(document.getElementById("seller_7_product_price_5")) {
+            str = document.getElementById("seller_7_product_price_5").value;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/\./g, '');
+            price = price.replace(/,/g, '.');
+            price = Number(price);
+
+            total_seller_7 = total_seller_7 + price;
+        }
+        var seller_7_shipping_price = 0;
+        var seller_7_free_shipping_price = 0;
+        if(document.getElementById("seller_7_shipping_price_0")) {
+            seller_7_shipping_price = document.getElementById("seller_7_shipping_price_0").value;
+            seller_7_free_shipping_price = document.getElementById("seller_7_free_shipping_price_0").value;
+        }
+        if(total_seller_7 > seller_7_free_shipping_price) {
+            price_shipping = price_shipping + 0.00;
+        }
+        else {
+            price_shipping = +price_shipping + +seller_7_shipping_price;
+        }
+        price_shipping_unform = price_shipping;
+
+        if(document.getElementById("price3")) {
+            var str = document.getElementById("price3").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = price;
+        }
+        if(document.getElementById("price6")) {
+            var str = document.getElementById("price6").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price; 
+        }
+        if(document.getElementById("price9")) {
+            var str = document.getElementById("price9").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price; 
+        }
+        if(document.getElementById("price12")) {
+            var str = document.getElementById("price12").innerHTML;        
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price; 
+        }
+        if(document.getElementById("price15")) {
+            var str = document.getElementById("price15").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price;
+        }
+        if(document.getElementById("price18")) {
+            var str = document.getElementById("price18").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price;
+        }
+        if(document.getElementById("price21")) {
+            var str = document.getElementById("price21").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price;
+        }
+        if(document.getElementById("price24")) {
+            var str = document.getElementById("price24").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price;
+        }
+        if(document.getElementById("price27")) {
+            var str = document.getElementById("price27").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price;
+        }
+        if(document.getElementById("price30")) {
+            var str = document.getElementById("price30").innerHTML;
+            var price = str.match(/\d+(?:\.\d+)?/g);
+            price = price.toLocaleString('de-DE');
+            price = price.replace(/,/g, '.');
+
+            grand_total = +grand_total + +price;
+        }
+
+        grand_total_price = grand_total;
+        grand_total = grand_total.toFixed(2) + ' RON';
+        var grand_total_value = document.getElementById("grand_total");
+        grand_total_value.innerText = grand_total;
+
+        if(document.getElementById("mini_cart_price")) {
+            document.getElementById("mini_cart_price").innerText = grand_total;
+            document.getElementById("mini_cart_total").value = grand_total;
+        }
+
+        if(price_shipping == 0) {
+            price_shipping = '0.00';
+        }
+        else {
+            price_shipping = price_shipping.replace("000", "00");
+        }
+
+        document.getElementById("shipping_price").innerHTML = price_shipping;
+        document.getElementById("shipping_price").innerHTML += " RON";
+
+        var total = +grand_total_price + +price_shipping_unform;
+        document.getElementById("total").innerText = total;
+        document.getElementById("total").innerHTML += " RON";
+        document.getElementById("shipping_price_seller_2").innerText = seller_2_shipping_price;
+        document.getElementById("shipping_price_seller_7").innerText = seller_7_shipping_price;
+
+    }
+    if(document.getElementById("seller_7_shipping_price_0").value == '0.00') {
+        document.getElementById("not_possible_to_ship_store_7").style.display = "block";
+    }
+    else {
+        document.getElementById("not_possible_to_ship_store_7").style.display = "none";
+    }
+    update();
+}
+function shipping_cancel() {
+    if(document.getElementById("not_possible_to_ship_store_2").style.display == "block") {
+        document.getElementById("not_possible_to_ship_store_2").style.display = "none";
+    }
+    if(document.getElementById("not_possible_to_ship_store_7").style.display == "block") {
+        document.getElementById("not_possible_to_ship_store_7").style.display = "none";
+    }
+    document.getElementById("customer_address").options.selectedIndex = 0;
+}
+function shipping_ok() {
+    var seller_2_shipping_price = document.getElementById("seller_2_shipping_price_0").value;
+
+    document.getElementById("grand_total").innerHTML = total_seller_2 + ' RON';
+    document.getElementById("shipping_price").innerHTML = seller_2_shipping_price + ' RON';
+
+    var grand_total = document.getElementById("grand_total").innerHTML;
+    var shipping_price = document.getElementById("shipping_price").innerHTML;
+
+    grand_total = grand_total.replace(" RON", "");
+    shipping_price = shipping_price.replace(" RON", "");
+
+    total = +grand_total + +shipping_price;
+    total = total.toFixed(2);
+    total = total + " RON";
+
+    document.getElementById("total").innerHTML = total;
+    document.getElementById("mini_cart_price").innerHTML = grand_total + ' RON';
+    update();
+}
+</script>

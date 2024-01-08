@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+		<add id="Themevast_Blog::elements" title="Blogs" module="Themevast_Blog" sortOrder="0" parent="Themevast_Themevast::themevast" resource="Themevast_Blog::elements"/>
+		<add id="Themevast_Blog::post" title="Posts" module="Themevast_Blog" parent="Themevast_Blog::elements" sortOrder="10" action="blog/post/" resource="Themevast_Blog::post"/>
+
+        <add id="Themevast_Blog::category" title="Categories" module="Themevast_Blog" parent="Themevast_Blog::elements" sortOrder="20" action="blog/category/" resource="Themevast_Blog::category"/>
+		
+		<add id="Themevast_Blog::config_blog" title="Blogs setting" module="Themevast_Blog" sortOrder="30" parent="Themevast_Blog::elements" resource="Themevast_Blog::config_blog" action="adminhtml/system_config/edit/section/tvblog" />
+    </menu>
+</config>

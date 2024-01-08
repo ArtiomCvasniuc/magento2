@@ -1,0 +1,29 @@
+<?xml version="1.0"?>    
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Magento\Customer\Block\Account\Dashboard\Address" type="Tukan\Checkout\Plugin\Block\Account\Dashboard\Address" />
+
+    <type name="Magento\Customer\Model\Metadata\AddressMetadata">
+        <plugin name="saveCustomAddressAttributes" type="Tukan\Checkout\Plugin\SaveCustomAddressAttributes" sortOrder="0" disabled="false" />
+    </type>
+    <type name="Magento\Checkout\Block\Checkout\LayoutProcessor">
+        <plugin disabled="false" name="Tukan_Checkout_BillingLayoutProcessor" sortOrder="99" type="Tukan\Checkout\Plugin\Block\Checkout\LayoutProcessor" />
+    </type>
+    <type name="Magento\Quote\Model\BillingAddressManagement">
+        <plugin disabled="false"
+            name="Tukan_Checkout_Plugin_Magento_Quote_Model_BillingAddressManagement"
+            sortOrder="10"
+            type="Tukan\Checkout\Plugin\Magento\Quote\Model\BillingAddressManagement" />
+    </type>
+    <type name="Magento\Quote\Model\Quote\Address\BillingAddressPersister">
+        <plugin disabled="false"
+            name="Tukan_Checkoout_BillingAddressSave"
+            sortOrder="10"
+            type="Tukan\Checkout\Plugin\Magento\Quote\Model\Quote\Address\BillingAddressPersister" />
+    </type>
+    <type name="Magento\Quote\Model\ShippingAddressManagement">
+        <plugin disabled="false"
+            name="Tukan_Checkout_Plugin_Magento_Quote_Model_ShippingAddressManagement"
+            sortOrder="10"
+            type="Tukan\Checkout\Plugin\Magento\Quote\Model\ShippingAddressManagement" />
+    </type>
+</config>

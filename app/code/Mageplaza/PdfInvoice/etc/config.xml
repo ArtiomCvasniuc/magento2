@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_PdfInvoice
+ * @copyright   Copyright (c) Mageplaza (http://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <pdfinvoice>
+            <general>
+                <enabled>1</enabled>
+                <business_information>
+                    <logo_width>220</logo_width>
+                    <logo_height>85</logo_height>
+                </business_information>
+            </general>
+            <order>
+                <enable>1</enable>
+                <template>template1</template>
+                <print>2</print>
+                <button_top>0</button_top>
+            </order>
+            <invoice>
+                <enable>1</enable>
+                <template>template1</template>
+                <print>2</print>
+                <orderGrid_button>0</orderGrid_button>
+                <note><![CDATA[<strong>Please always include your invoice number when making any payment!</strong></br></br>
+                        <p>In case of check payment. Please mail the check to the following address <i>123 youraddress</i></p>
+                        <p>For question/concerning regarding this invoice,please contact  <i>youremail@example.com</i></p>]]>
+                </note>
+            </invoice>
+            <shipment>
+                <enable>1</enable>
+                <template>template1</template>
+                <print>2</print>
+                <orderGrid_button>0</orderGrid_button>
+            </shipment>
+            <creditmemo>
+                <enable>1</enable>
+                <template>template1</template>
+                <print>2</print>
+                <orderGrid_button>0</orderGrid_button>
+            </creditmemo>
+            <design>
+                <heading_color>#0099e5</heading_color>
+                <page_number>1</page_number>
+                <page_size>A4</page_size>
+            </design>
+            <template>
+                <template1>Template 1</template1>
+                <template2>Template 2</template2>
+                <template3>Template 3</template3>
+                <templateforA5>Template for A5</templateforA5>
+            </template>
+        </pdfinvoice>
+    </default>
+</config>

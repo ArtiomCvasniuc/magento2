@@ -1,0 +1,28 @@
+<?php
+/**
+ * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+/** @var $block \Magento\Checkout\Block\Cart\Item\Renderer\Actions\Remove */
+?>
+<a href="#" title="<?php echo $block->escapeHtml(__('Remove item')); ?>" class="action action-delete">
+    <span>
+        <?php /* @escapeNotVerified */ echo __('Remove item')?>
+    </span>
+</a>
+<script>
+var i = 0;
+var parent = document.getElementById("shopping-cart-table");
+var nodesSameClass = parent.getElementsByClassName("cart item");
+for (i=0; i < nodesSameClass.length; i++) {
+    nodesSameClass[i].setAttribute("id", "product_cart_item_"+i);
+}
+var nodesSameClass2 = parent.getElementsByClassName("action action-delete");
+for (i=0; i < nodesSameClass2.length; i++) {
+    nodesSameClass2[i].setAttribute("id", i);
+    nodesSameClass2[i].setAttribute("onclick", "remove("+i+")");
+}
+</script>

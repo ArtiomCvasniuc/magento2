@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_SpecialPromotions
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="specialpromotions" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Special Promotions</label>
+            <tab>mageplaza</tab>
+            <resource>Mageplaza_SpecialPromotions::configuration</resource>
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>If No, all the rules of Special Promotions will not be applied.</comment>
+                </field>
+                <field id="discount_detail" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Display Discount Details</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>If Yes, Discount amount will be broken down (by each rule) and display at collapsible format.</comment>
+                </field>
+                <field id="maximum_discount_type" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                    <label>Max. Discount Base</label>
+                    <source_model>Mageplaza\SpecialPromotions\Model\Config\Source\MaxDiscountType</source_model>
+                    <comment>Select the base for the maximum discount of the whole cart.</comment>
+                </field>
+                <field id="maximum_discount" translate="label comment" type="text" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="0">
+                    <label>Max. Discount Amount</label>
+                    <validate>validate-greater-than-zero validate-number required-entry</validate>
+                    <depends>
+                        <field id="maximum_discount_type" separator=",">1,2</field>
+                    </depends>
+                </field>
+            </group>
+<!--            <group id="cart_hint" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">-->
+<!--                <label>Cart Hint Message</label>-->
+<!--                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">-->
+<!--                    <label>Enable</label>-->
+<!--                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>-->
+<!--                    <comment>If Yes, hints will be displayed to notify customers about promotions.</comment>-->
+<!--                </field>-->
+<!--                <field id="upsell" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">-->
+<!--                    <label>Upsell Cart Hint</label>-->
+<!--                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>-->
+<!--                    <comment>If Yes, the hint motivating to buy more to get sales will be displayed.</comment>-->
+<!--                    <depends>-->
+<!--                        <field id="enabled">1</field>-->
+<!--                    </depends>-->
+<!--                </field>-->
+<!--                <field id="coupon" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">-->
+<!--                    <label>Display When Invalid Coupons</label>-->
+<!--                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>-->
+<!--                    <comment>If Yes, cart hints will be displayed when customers fill in invalid coupons.</comment>-->
+<!--                    <depends>-->
+<!--                        <field id="enabled">1</field>-->
+<!--                    </depends>-->
+<!--                </field>-->
+<!--            </group>-->
+            <group id="develop" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Developer Mode</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Developer Mode</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>If Yes, the details of discounts for each cart items will be displayed at the frontend.</comment>
+                </field>
+                <field id="whitelist_ip" translate="label comment" type="textarea" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="0">
+                    <label>Whitelist IP(s)</label>
+                    <comment><![CDATA[Enter the IP addresses accessible to Developer Mode. You can enter multiple IP addresses which are separated by commas (,).<br/>If leave blank, the discount details are visible to any IPs.<br />eg : 123.123.0.*, 10.22.*.*, 10.22.*.0-10.22.*.123]]></comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

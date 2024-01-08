@@ -1,0 +1,44 @@
+<?php
+/**
+ * @author Amasty Team
+ * @copyright Copyright (c) 2020 Amasty (https://www.amasty.com)
+ * @package Amasty_AdvancedReview
+ */
+?>
+<td class="label">
+    <label><?= $block->escapeHtml(__('Sorting Order')) ?></label>
+</td>
+<td class="value">
+    <table class="amasty-advanced-review" id="amasty-advanced-review" data-am-js="amasty-advanced-review">
+        <?php foreach ($block->getPositions() as $key => $index): ?>
+            <tr class="table-row">
+                <td class="item-position amcontent">
+                    <?= $block->escapeHtml($index) ?>
+                    <div class="draggable"></div>
+                    <input type="hidden"
+                           name="<?= $block->escapeHtml($block->getNamePrefix($key)) ?>"
+                           value="<?= $block->escapeHtml(__($index)) ?>">
+                </td>
+            </tr>
+        <?php endforeach ?>
+    </table>
+    <p class="note">
+        <span><?= $block->escapeHtml(__('Drag and drop sorting options in the order you want them to appear for the customers.')) ?></span>
+    </p>
+    <p class="note">
+        <span><?= $block->escapeHtml(__('First option will be automatically considered as default.')) ?></span>
+    </p>
+</td>
+<script>
+    require([
+        'jquery',
+        'collapsable'
+    ], function ($) {
+        $('[data-am-js="amasty-advanced-review"]').sortable({
+            axis: 'y',
+            handle: '.item-position',
+            items: 'tr',
+            tolerance: 'pointer'
+        });
+    });
+</script>

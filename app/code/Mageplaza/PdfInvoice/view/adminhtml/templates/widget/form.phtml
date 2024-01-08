@@ -1,0 +1,52 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_PdfInvoice
+ * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @license     http://mageplaza.com/LICENSE.txt
+ */
+
+// @codingStandardsIgnoreFile
+
+/** @var $block \Magento\Backend\Block\Widget\Form */
+?>
+<?php /* @todo replace .form-inline with better class name */ ?>
+<?php /* ToDo UI: check if we need this wrapper in the process of global forms refactoring */ ?>
+<div class="entry-edit form-inline" id="mageplaza-pdfinvoice">
+    <?= /** @noEscape */ $block->getFormHtml() ?>
+    <form target="mp-iframe" method="post" action="<?php /* @noEscape */echo $block->getPreviewTemplateUrl() ?>" style="display:none" id="mp-custom-submit">
+        <input type="hidden" name="templateType" value="<?php /* @noEscape */echo $block->getTemplateType() ?>"/>
+        <textarea name="templateHtml" id="pdf-html"></textarea>
+        <textarea name="templateCss" id="pdf-css"></textarea>
+        <input type="submit" name="submit" id="mp-submit"/>
+        <input name="form_key" id="mp-form-key" type="hidden">
+    </form>
+</div>
+<?= /** @noEscape */ $block->getChildHtml('form_after') ?>
+
+<script type="text/x-magento-init">
+    {
+        "#mageplaza-pdfinvoice": {
+            "Mageplaza_PdfInvoice/js/view/pdfinvoice":{
+                "loadTemplateUrl": "<?= /** @noEscape */ $block->getLoadTemplateUrl() ?>",
+                "previewTemplateUrl": "<?= /** @noEscape */ $block->getPreviewTemplateUrl() ?>",
+                "templateType" : "<?= /** @noEscape */ $block->getTemplateType() ?>"
+            }
+        }
+    }
+</script>
+
+

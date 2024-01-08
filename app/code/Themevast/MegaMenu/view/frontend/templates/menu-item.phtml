@@ -1,0 +1,139 @@
+<?php
+$item = $this->getData('current_item');
+$content = $item->content;
+$hasChildren = isset($item->children);
+$itemType = $item->item_type;
+$depth = (int)$item->depth;
+$style = (isset($content->style)&&($content->style!=''))?'style="'.$content->style.'"':'';
+$this->setItemId(0);
+
+$url = $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
+$uri = $_SERVER['REQUEST_URI'];
+?>
+<li class="level0 pl-lg-0 px-3 py-2 px-lg-0 py-lg-0 border-bottom-small mb-0" <?php echo $style ?>>
+<?php if($itemType == 'link') { ?>
+    <a class="align-items-center d-flex d-lg-block justify-content-between menu-link" href="<?php echo $content->url ?>"><?php echo $this->getIcon($content) ?> 
+        <span>
+            <span>
+                <?php
+                if($uri == '' || $uri == '/' || $uri == '/en/' || $uri == '/en' || $uri == '/uk/' || $uri == '/uk' || (strpos($url, 'en') !== false) || (strpos($uri, 'uk') !== false)) {
+                    if($content->label == 'Femei') {
+                        $content->label = 'Women';
+                    }
+                    if($content->label == 'Barbati') {
+                        $content->label = 'Men';
+                    }
+                    if($content->label == 'Copii') {
+                        $content->label = 'Kids';
+                    }
+                }
+                if($uri == '/ro/' || $uri == '/ro' || (strpos($url, 'ro') !== false) || (strpos($url, '/ro/') !== false)) {
+                    if($content->label == 'Femei') {
+                        $content->label = 'Femei';
+                    }
+                    if($content->label == 'Barbati') {
+                        $content->label = 'Bărbați';
+                    }
+                    if($content->label == 'Copii') {
+                        $content->label = 'Copii';
+                    }
+                }
+                echo $content->label            
+                ?>
+            </span>
+        </span>
+        <i class="fal fa-angle-down"></i>
+    </a>
+    <?php if($hasChildren) { ?>
+    <ul class="groupmenu-drop px-lg-3 py-lg-2">
+        <?php         
+            echo $this->getMenuHtml($item->children);
+        ?>
+    </ul>
+    <?php } ?>
+    <?php } elseif($itemType == 'text') { ?>
+	<?php
+        $text = $content->content;
+		$layout = explode(',',$content->layout);
+		$totalPart = array_sum($layout);
+	?>
+    <?php if($content->background) { ?>
+	<img class="groupdrop-banner-pos" src="<?php echo $content->background ?>" style="<?php echo $this->getBackgroundStyle($content) ?>" />
+	<?php } ?>
+    <div class="<?php echo $content->class ?> groupmenu-drop-content container <?php echo ($content->width_class)?'groupmenu-width-'.$content->width_class:'' ?>" style=" <?php echo $content->style ?>">
+        	<?php if($totalPart > 1) { ?>
+        	<div class="row">
+            <?php foreach($layout as $key => $column) { ?>
+            	<div class="col-12 col-lg-2 px-0 px-lg-3"><?php echo $text[$key] ?></div>
+            <?php } ?>
+            </div>
+            <?php } else { ?>
+            	<?php echo $text ?>
+            <?php } ?>
+    </div>
+    <?php } elseif($itemType == 'tab_container') { ?>
+	<?php if(isset($content->background) && $content->background) { ?>
+		<img class="groupdrop-banner-pos" src="<?php echo $content->background ?>" style="<?php echo $this->getBackgroundStyle($content) ?>" />
+        <?php } ?>
+		<div class="no-dropdown menu-tabs <?php echo ($content->tab_type == 0)?'tv-horizontal-tabs':'tv-vertical-tabs' ?> <?php echo ($content->width_class)?'groupmenu-width-'.$content->width_class:'' ?>" style=" <?php echo $content->style ?>">
+       		<?php if($hasChildren) { ?>
+            <ul class="groupmenu-nondrop">
+                <?php echo $this->getMenuHtml($item->children); ?>
+            </ul>
+            <?php } ?> 
+        </div>
+<?php } elseif($itemType == 'tab_item') { ?>
+	<div class="tv-link-wrap"><a class="tv-tab-link" href="<?php echo $content->url ?>"><?php echo $this->getIcon($content) ?> <?php echo $content->label ?></a></div>
+        <div class="tv-tab-pane">
+            <?php
+                $text = $content->content;
+                $layout = explode(',',$content->layout);
+                $totalPart = array_sum($layout);
+            ?>
+            <?php if($content->background) { ?>
+            <img class="groupdrop-banner-pos" src="<?php echo $content->background ?>" style="<?php echo $this->getBackgroundStyle($content) ?>" />
+            <?php } ?>
+            <div class="<?php echo $content->class ?> groupmenu-drop-content">
+                <?php if($totalPart > 1) { ?>
+                <div class="row">
+                <?php foreach($layout as $key => $column) { ?>
+                    <div class="col-sm-<?php echo (int)$column*(12/(int)$totalPart); ?>"><?php echo $text[$key] ?></div>
+                <?php } ?>
+                </div>
+                <?php } else { ?>
+                    <?php echo $text ?>
+                <?php } ?>
+            </div>
+			<?php if($hasChildren) { ?>
+            <ul class="groupmenu-nondrop">
+                <?php echo $this->getMenuHtml($item->children); ?>
+            </ul>
+            <?php } ?>
+        </div>
+<?php } elseif($itemType == 'category') { ?>
+	<?php if($content->label) { ?>
+	<a class="<?php echo ($depth == 0)?'menu-link':'groupdrop-title' ?>" href="<?php echo $content->url ?>"><?php echo $this->getIcon($content) ?> <span><span><?php echo $content->label ?></span></span></a>
+    <?php } ?>
+	<ul class="cat-tree groupmenu-drop">
+	 <?php
+        	echo $this->getCategoryTree()->setData('parent_id',$content->category)
+				->setData('level',$depth)
+				->getHtml('', 'submenu', 0) ?>
+	</ul>
+<?php } elseif($itemType == 'row') { ?>
+	<?php if($content->background) { ?>
+	<img class="groupdrop-banner-pos" src="<?php echo $content->background ?>" style="<?php echo $this->getBackgroundStyle($content) ?>" />
+    <?php } ?>
+	<?php if($hasChildren) { ?>
+	<ul class="groupmenu-nondrop">
+		<?php echo $this->getMenuHtml($item->children); ?>
+	</ul>
+    <?php } ?>
+<?php } elseif($itemType == 'col') { ?>
+	<?php if($hasChildren) { ?>
+	<ul class="groupmenu-nondrop">
+		<?php echo $this->getMenuHtml($item->children); ?>
+	</ul>
+    <?php } ?>
+<?php } ?>
+</li>

@@ -1,0 +1,106 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_PdfInvoice
+ * @copyright   Copyright (c) Mageplaza (http://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+use Mageplaza\PdfInvoice\Model\Source\Type;
+
+if (!$block->isEnable()) {
+    return $this;
+}
+
+$showCustomPrintOrder = $block->getHelperConfig()->canShowCustomPrint(Type::ORDER, $block->getCurrentStoreId());
+$labelOrder = __('Print PDF Order');
+if ($showCustomPrintOrder == 1) {
+    $labelOrder = __('Print Order');
+}
+
+switch ($block->getRequest()->getFullActionName()) {
+    case 'sales_order_invoice':
+        $urls = $block->getInvoiceUrls();
+        $showCustomPrint = $block->getHelperConfig()->canShowCustomPrint(Type::INVOICE, $block->getCurrentStoreId());
+        $label = $showCustomPrint == 1 ? __('Print Invoice') : __('Print PDF Invoice');
+        $labels = $showCustomPrint == 1 ? __('Print All Invoices') : __('Print All PDF Invoices');
+        $printAllUrl = $block->getPrintAllForInvoice();
+        break;
+    case 'sales_order_shipment':
+        $urls = $block->getShipmentUrls();
+        $showCustomPrint = $block->getHelperConfig()->canShowCustomPrint(Type::SHIPMENT, $block->getCurrentStoreId());
+        $label = $showCustomPrint == 1 ? __('Print Shipment') : __('Print PDF Shipment');
+        $labels = $showCustomPrint == 1 ? __('Print All Shipments') : __('Print All PDF Shipments');
+        $printAllUrl = $block->getPrintAllForShipment();
+        break;
+    case 'sales_order_creditmemo':
+        $urls = $block->getCreditmemoUrls();
+        $showCustomPrint = $block->getHelperConfig()->canShowCustomPrint(Type::CREDIT_MEMO, $block->getCurrentStoreId());
+        $label = $showCustomPrint == 1 ? __('Print Refund') : __('Print PDF Refund');
+        $labels = $showCustomPrint == 1 ? __('Print All Refunds') : __('Print All PDF Refunds');
+        $printAllUrl = $block->getPrintAllForCreditmemo();
+        break;
+    default:
+        $urls = $showCustomPrint = $printAllUrl = 0;
+        $label = $labels = '';
+}
+?>
+<script type="text/javascript">
+    require(['jquery'], function ($) {
+        $(document).ready(function () {
+            var urls = <?= /** @noEscape */ $urls ?> ;
+            var label = '<?= /** @noEscape */ $label ?>';
+            var labels = '<?= /** @noEscape */ $labels ?>';
+            var printAllUrl = '<?= /** @noEscape */ $printAllUrl ?>';
+            var orderUrl = '<?= /** @noEscape */ $block->getOrderUrl() ?>';
+            var labelOrder = '<?= /** @noEscape */ $labelOrder ?>';
+            var showCustomPrintOrder = <?= /** @noEscape */ $showCustomPrintOrder ?> ;
+            var showCustomPrint = <?= /** @noEscape */ $showCustomPrint ?> ;
+            if (showCustomPrintOrder) {
+                $('<a href="' + orderUrl + '" class="mp-order" style ="display:block;float:right;margin-right: 35px"><span>' + labelOrder + '</span></a>').insertAfter($('.order-actions-toolbar .action.print'));
+                if (showCustomPrintOrder == 1) {
+                    $('.order-actions-toolbar .action.print').hide();
+                }
+            }
+            if (showCustomPrint) {
+                if (showCustomPrint == 1) {
+                    $('.order-details-items>.actions-toolbar>a').hide();
+                }
+                $('<a href="' + printAllUrl + '" class="action print" style="margin-left:10px;"><span>' + labels + '</span></a>').insertAfter($('.order-details-items>.actions-toolbar>a.print'));
+                if (typeof urls == 'object') {
+                    $(".order-title a").each(function (index) {
+                        var href = $(this).attr('href');
+                        var self = this;
+                        var BreakException = {};
+                        try {
+                            Object.keys(urls).forEach(function (key) {
+                                if (urls[key] == href) {
+                                    $('<a href="' + key + '" class="action print"><span>' + label + '</span></a>').insertAfter($(self))
+                                    if (showCustomPrint == 1) {
+                                        $(self).hide();
+                                    }
+                                    throw BreakException;
+                                }
+                            });
+                        } catch (e) {
+                            if (e !== BreakException) throw e;
+                        }
+                    });
+                }
+            }
+        });
+    });
+</script>

@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Config/etc/system_file.xsd">
+    <system>
+        <section id="bestsellerproduct" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Bestseller Product</label>
+            <tab>themevast</tab>
+			<resource>Themevast_BestsellerProduct::themevast_bestseller</resource>
+            <group id="bestsellerproduct_config" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Bestseller Config</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="0"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="auto" translate="label comment" type="select" sortOrder="10"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Auto slide:</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="title" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Title:</label>
+                    <comment>Block Title</comment>
+                </field>
+				<field id="speed" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Slideshow Speed:</label>
+                    <comment>Timer Title</comment>
+                </field>				
+				<field id="show_price" translate="label comment" type="select" sortOrder="40"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Price:</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>			
+				<field id="addtocart" translate="label comment" type="select" sortOrder="50"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Add to cart:</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>		
+				<field id="addtowishlist" translate="label comment" type="select" sortOrder="60"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Add to Wishlist:</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>	
+				<field id="addtocompare" translate="label comment" type="select" sortOrder="70"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Add to Compare:</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="review" translate="label comment" type="select" sortOrder="80"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Review Rating:</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="description" translate="label comment" type="select" sortOrder="90"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Short Description:</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="maxlength" translate="label comment" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Short Description Max Length:</label>
+                    <comment>Empty for display all short description.</comment>
+                </field>
+				<field id="qty" translate="label comment" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Qty of Product:</label>
+                </field>
+				<field id="row_show" translate="label comment" type="text" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Number Rows Show:</label>
+                </field>
+				<field id="next_back" translate="label comment" type="select" sortOrder="114"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Next/Back control:</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+			<group id="tvcustom" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+				
+			</group>
+        </section>
+    </system>
+</config>

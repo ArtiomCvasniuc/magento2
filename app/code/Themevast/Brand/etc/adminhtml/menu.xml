@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+		<add id="Themevast_Brand::brand_brand" title="Brand" module="Themevast_Brand" sortOrder="0" parent="Themevast_Themevast::themevast" resource="Themevast_Brand::brand_brand"/>
+        <add id="Themevast_Brand::brand_manager" title="Manage Brands" module="Themevast_Brand" sortOrder="20" parent="Themevast_Brand::brand_brand" action="brand/brand" resource="Themevast_Brand::brand_manager"/>
+        <add id="Themevast_Brand::brand_setting" title="Settings" module="Themevast_Brand" sortOrder="30" parent="Themevast_Brand::brand_brand" action="adminhtml/system_config/edit/section/brand_setting" resource="Themevast_Brand::brand_setting"/>
+    </menu>
+</config>

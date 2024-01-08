@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Config/etc/system_file.xsd">
+    <system>
+		<section id="themevast_quickview" translate="label" type="text" sortOrder="500" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Quick View Setting</label>
+            <tab>themevast</tab>
+			<resource>Themevast_QuickView::themevast_quick_view</resource>
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General</label>
+				<field id="enabled" translate="label comment" type="select" sortOrder="0"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="enabledTab" translate="label comment" type="select" sortOrder="0"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Tab</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="enabledTagTab" translate="label comment" type="button" sortOrder="0"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable 'Product Tags' Tab</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="enabledReviewTab" translate="label comment" type="select" sortOrder="0"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable 'Product Review' Tab</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+					<comment>Set to 'Yes', if you want to overwrite blocks.</comment>
+                </field>
+            </group>
+            <group id="main_image" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Main Image</label>
+				<field id="image_width" translate="label comment" type="text" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Width of Thumbnail</label>
+                </field>
+				<field id="image_height" translate="label comment" type="text" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Height of Thumbnail:</label>
+                </field>
+            </group>
+            <group id="moreview" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>More View</label>
+				<field id="enabled" translate="label comment" type="select" sortOrder="0"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="image_width" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Width of Thumbnail</label>
+                </field>
+				<field id="image_height" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Height of Thumbnail:</label>
+                </field>
+				<field id="autoplay" translate="label comment" type="select" sortOrder="50"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="orientation" translate="label comment" type="select" sortOrder="50"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable</label>
+                    <source_model>Themevast\QuickView\Model\Gallery\Orientation</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

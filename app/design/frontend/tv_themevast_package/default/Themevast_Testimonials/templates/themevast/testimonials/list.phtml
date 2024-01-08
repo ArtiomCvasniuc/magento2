@@ -1,0 +1,103 @@
+<?php
+$testimonials = $block->getCollection();
+$helperImage = $this->helper('Themevast\Testimonials\Helper\Image');
+$helperData = $this->helper('Themevast\Testimonials\Helper\Data');
+$allRating = $block->getAllRating();
+if($block->isAllowCustomerSubmit()) {
+	if($block->isAllowGuestSubmit())
+		$urlNew = $block->getNewUrl();
+	else {
+		if($this->checkLogin())
+			$urlNew = $block->getNewUrl();
+		else
+			$urlNew = $this->getUrl('customer/account/login');
+	}
+	$showSubmit = true;
+} else {
+	$showSubmit = false;
+}
+?>
+<?php if($helperData->isEnabled()) { ?>
+<div class="testimonials-content">
+	<?php if ($block->getPagerHtml()) { ?>
+        <div class="testimonials-toolbar toolbar">
+            <?php echo $block->getPagerHtml(); ?>
+        </div>
+    <?php } ?>
+	<?php if ($testimonials && count($testimonials)) { ?>
+        <?php foreach ($testimonials as $_testimonial) { ?>
+            <div class="row">
+                <div id="testimonial-avatar">
+					<?php 
+					$website='#'; 
+					if($_testimonial['website']) { ?>
+						<?php $website = $_testimonial['website'];?>
+					<?php } ?>
+					<?php if($_testimonial['avatar']) { ?>
+					<?php $link = $helperImage->resize($_testimonial['avatar'],120,120);?>
+                    <a href="<?php echo $website ?>">
+                       <img alt="<?php echo $_testimonial['name']; ?>" src="<?php echo $link ?>" title="<?php echo $block->escapeHtml($_testimonial['name']) ?>"/>
+                    </a>
+					<?php } else { ?>
+						 <a href="<?php echo $website ?>">
+							<img alt="<?php echo $_testimonial['name']; ?>" src="<?php echo $this->getViewFileUrl('Themevast_Testimonials::images/default-avatar.jpg') ?>" title="<?php echo $block->escapeHtml($_testimonial['name']) ?>"/>
+						 </a>
+					<?php } ?>
+                </div>
+				<div class="testimonial-author">
+					<?php echo $_testimonial['name']; ?>
+				</div>
+				<div class="testimonial-email">
+					<?php echo $_testimonial['email']; ?>
+				</div>
+				<?php if($_testimonial['website']) { ?>
+					<div class="testimonial-website">
+						<a href ="<?php echo $_testimonial['website']; ?>" title="<?php echo $_testimonial['name']; ?>"></a>
+					</div>
+				<?php } ?>
+				<div class="testimonial-address">
+					<?php echo $_testimonial['address']; ?>
+				</div>
+				<div class="testimonial-job">
+					<?php echo $_testimonial['job']; ?>
+				</div>
+				<div class="testimonial-date">
+					<?php echo $_testimonial['created_time'] ?>
+				</div>
+				<?php echo $block->getFilterTestimonials($_testimonial['testimonial']); ?>
+				<div class="testimonial-rat">
+					<?php if ($_testimonial['rating']) { ?>
+						<div class="rating-summary">
+							 <span class="rating-title">
+							 	<span>
+								 	<?php echo __('Rating') ?>
+								</span>
+							</span>
+							 <div class="rating-result" title="<?php echo $allRating[$_testimonial['rating']]?>">
+								<span style="width: <?php echo $_testimonial['rating'] / 5 * 100 ?>%;"></span>
+							 </div>
+						</div>
+					<?php } ?>
+				</div>
+            </div>
+		<?php } ?>
+	<?php } else { ?>
+        <div class="message info empty">
+			<span>
+				<?php echo __('Testimonials records not available.'); ?>
+			</span>
+        </div>
+    <?php } ?>
+	<?php if($showSubmit) { ?>
+		<div class="testimonial-new">
+			<a href="<?php echo $urlNew; ?>" title="<?php echo __('Submit Your Testimonial'); ?>">
+				<button class="action primary">
+					<span>
+						<?php echo __('Submit Your Testimonial'); ?>
+					</span>
+				</button>
+			</a>
+		</div>
+	<?php } ?>
+</div>
+<?php } ?>

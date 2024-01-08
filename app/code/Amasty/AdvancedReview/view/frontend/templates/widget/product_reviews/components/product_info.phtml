@@ -1,0 +1,29 @@
+<?php
+/**
+ * @author Amasty Team
+ * @copyright Copyright (c) 2020 Amasty (https://www.amasty.com)
+ * @package Amasty_AdvancedReview
+ */
+
+/** @var \Amasty\AdvancedReview\Block\Widget\ProductReviews\ProductInfo $block */
+
+$advancedHelper = $block->getAdvancedHelper();
+$displayedCollection = $block->getReviewsCollection();
+?>
+<div class="amreview-info-wrapper" data-amreview-js="review-container">
+    <a class="amreview-name" href="<?= $block->escapeUrl($block->getProductUrl()) ?>" title="<?= $block->escapeHtml(__('See All Reviews')); ?>">
+        <?= $block->escapeHtml($block->getProductName()) ?>
+    </a>
+    <?= /* @noEscape */ $block->getProductImage() ?>
+    <?= /* @noEscape */ $block->getReviewsSummaryHtml($block->getProduct(), $displayedCollection) ?>
+    <?php if($advancedHelper->isAllowGuest()) { ?>
+        <button id="amreview-form-<?= $block->escapeHtml($block->getProduct()->getId()) ?>" class="action primary amreview-button" title="<?= $block->escapeHtml(__('Review Now')); ?>">
+            <?= $block->escapeHtml(__('Review Now')); ?>
+        </button>
+        <?php if($displayedCollection->count()) { ?>
+            <a class="amreview-button -see-all" title="<?= $block->escapeHtml(__('See All Reviews')); ?>" href="<?= $block->escapeUrl($block->getProductUrl() . '#reviews') ?>">
+                <?= $block->escapeHtml(__('See All Reviews')); ?>
+            </a>
+        <?php } ?>
+    <?php } ?>
+</div>

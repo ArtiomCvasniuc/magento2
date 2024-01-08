@@ -1,0 +1,140 @@
+<?php
+
+/**
+ * Copyright © 2016 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+/** @var \Magento\Customer\Block\Account\Dashboard\Info $block */
+?>
+<?php
+if (file_exists("conf/conf.php"))
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+if (isset($_POST['name'])) {
+    $name = $_POST['name'];
+    $name = explode(' ', trim($name));
+    $firstname = $name[0];
+    $lastname = $name[1];
+    $email = $_POST['email'];
+    $phone = $_POST['phone'];
+    $entity_id = $_POST['entity_id'];
+
+    $query = "UPDATE mgkf_customer_grid_flat ";
+    $query .= "SET billing_telephone = '" . $phone . "' ";
+    $query .= "WHERE entity_id = '" . $entity_id . "'";
+    $result = $conn->query($query);
+
+    $query = "UPDATE mgkf_customer_entity ";
+    $query .= "SET email = '" . $email . "', ";
+    $query .= "firstname = '" . $firstname . "', ";
+    $query .= "lastname = '" . $lastname . "' ";
+    $query .= "WHERE entity_id = '" . $entity_id . "'";
+    $result = $conn->query($query);
+}
+
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+
+$query = "SELECT billing_telephone ";
+$query .= "FROM mgkf_customer_grid_flat ";
+$query .= "WHERE entity_id = $customerId;";
+// $result = $conn->query($query);
+// $row = $result->fetch_row();
+// $phone = $row[0];
+$phone = 'phone';
+?>
+<div class="row mt-3">
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="shadow p-3 rounded">
+            <h4 class="font-weight-bold m-0">
+                <?php /* @escapeNotVerified */ echo __('Datele Mele') ?>
+            </h4>
+            <hr class="my-2">
+            <div>
+                <p class="m-0">
+                    Dl. <?php echo $block->escapeHtml($block->getName()) ?>
+                </p>
+                <p class="m-0">
+                    <?php echo $block->escapeHtml($block->getCustomer()->getEmail()) ?>
+                </p>
+                <p class="m-0">
+                    <?php echo '<a href="tel:' . $phone . '">' . $phone . '</a>'; ?>
+                </p>
+                <div class="mt-1">
+                   <div class="align-items-center d-flex justify-content-between">
+                    <a onclick="edit_personal_data();" class="btn btn-sm btn-dark px-4 text-white">
+                       <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('edit')->toHtml(); ?>
+                   </a>
+                     <a href="<?php /* @escapeNotVerified */ echo $block->getChangePasswordUrl() ?>" class="btn-link">
+                                   <?php /* @escapeNotVerified */ echo __('Change Password') ?>
+                     </a>
+                   </div>
+                    <div id="edit_personal_data" class="mt-3" style="display:none;">
+                        <form method="post" action="">
+                            <div class="form-group mb-2">
+                                <label class="mb-1"><?php echo 'Nume & Prenume'; ?></label>
+                                <input class="form-control rounded shadow-none" name="name" type="text" value="<?php echo $block->escapeHtml($block->getName()) ?>" />
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="mb-1"><?php echo 'Email'; ?></label>
+                                <input class="form-control rounded shadow-none" name="email" type="email" value="<?php echo $block->escapeHtml($block->getCustomer()->getEmail()) ?>" />
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="mb-1"><?php echo 'Telefon'; ?></label>
+                                <input class="form-control rounded shadow-none" name="phone" type="text" value="<?php echo $phone; ?>" />
+                                <input type="hidden" name="entity_id" value="<?php echo $customerId; ?>" />
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block mt-3" name="submit"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('save')->toHtml(); ?></button>
+                        </form>
+                    </div>
+                </div>
+                <?php if ($block->isNewsletterEnabled()) { ?>
+                    <div class="box box-newsletter" style="display:none;">
+                        <strong class="box-title">
+                            <span>
+                                <?php /* @escapeNotVerified */ echo __('Newsletters') ?>
+                            </span>
+                        </strong>
+                        <div class="box-content">
+                            <p>
+                                <?php if ($block->getIsSubscribed()) { ?>
+                                    <?php /* @escapeNotVerified */ echo __('You subscribe to "General Subscription".') ?>
+                                <?php } else { ?>
+                                    <?php /* @escapeNotVerified */ echo __('You don\'t subscribe to our newsletter.') ?>
+                                <?php } ?>
+                            </p>
+                            <?php /* Extensions placeholder */ ?>
+                            <?php echo $block->getChildHtml('customer.account.dashboard.info.extra') ?>
+                        </div>
+                        <div class="box-actions">
+                            <a class="action edit" href="<?php /* @escapeNotVerified */ echo $block->getUrl('newsletter/manage') ?>"><span><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('edit')->toHtml(); ?></span></a>
+                        </div>
+                    </div>
+                <?php } ?>
+            </div>
+
+        </div>
+
+    </div>
+    <script>
+        function edit_personal_data() {
+            document.getElementById("edit_personal_data").classList.toggle('d-block');
+        }
+    </script>

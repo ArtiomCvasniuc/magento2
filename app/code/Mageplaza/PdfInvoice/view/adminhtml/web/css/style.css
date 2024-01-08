@@ -1,0 +1,146 @@
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_PdfInvoice
+ * @copyright   Copyright (c) Mageplaza (http://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+.CodeMirror.cm-s-default {
+    border: 1px solid #ddd;
+    height: 842px;
+    margin-top: 1px;
+}
+
+#template_styles {
+    height: 200px;
+}
+
+.mp-active, .mp-active:hover {
+    background: white;
+}
+
+.field-template_html button {
+    padding: 10px 38px;
+    border: none;
+    background: #f8f8f8;
+}
+
+.field-template_html button:hover {
+    background: #f8f8f8;
+}
+
+.field-default_template .admin__field-control {
+    position: relative;
+}
+
+.field-default_template .admin__field-note {
+    width: 500px;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+@media screen and (max-width: 1300px) {
+    .field-default_template .admin__field-note {
+        top: 110px;
+    }
+}
+
+#iframe {
+    margin: 0;
+    width: 100%;
+    height: 842px;
+    border: 1px solid #ddd;
+    display: none;
+}
+
+.admin__field.field.field-load_template {
+    margin-bottom: 350px !important;
+}
+
+.admin__scope-old .fieldset > .legend {
+    border: none;
+}
+
+div#container {
+    float: none;
+    width: 100%
+}
+
+.page-layout-admin-2columns-left .page-columns .side-col {
+    display: none;
+}
+
+#default_template-note img {
+    border: 1px solid #131313;
+}
+
+#preview_change:before, .mp-caret:before, .mp-caret:after {
+    -webkit-font-smoothing: antialiased;
+    font-family: 'Admin Icons';
+    line-height: 1;
+    speak: none;
+    font-size: 12px;
+}
+
+#preview_change:before {
+    content: '\e60f';
+    margin-right: 5px;
+}
+
+.mp-caret:before {
+    content: '\e629';
+}
+
+.mp-caret:after {
+    content: '\e62a';
+}
+
+.mp-tab {
+    border: 1px solid #ddd;
+    margin-top: 0px;
+    background: #f8f8f8;
+    position: relative;
+    top: 2px;
+    border-radius: 3px 3px 0px 0px;
+}
+
+#template_html_bt, #preview_change {
+    position: relative;
+    z-index: 99;
+
+}
+
+#template_html_bt.active {
+    background: white !important;
+    border-right: 1px solid #ddd;
+    top: 1px;
+}
+
+#preview_change.active {
+    background: white !important;
+    border-right: 1px solid #ddd;
+    border-left: 1px solid #ddd;
+    top: 1px;
+}
+
+.mp-bt-r {
+    float: right;
+    font-size: 12px;
+    padding: 10px 10px;
+    border: none;
+    background: #f8f8f8;
+}

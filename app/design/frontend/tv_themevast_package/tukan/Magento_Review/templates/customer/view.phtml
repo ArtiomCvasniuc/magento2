@@ -1,0 +1,67 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+/** @var \Magento\Review\Block\Customer\View $block */
+
+$product = $block->getProductData();
+?>
+<?php if ($product->getId()) { ?>
+<div class="customer-review view">
+    <div class="product-details">
+        <div class="product-media">
+            <a class="product-photo" href="<?= $block->escapeUrl($product->getProductUrl()) ?>">
+                <?php /* customer_account_product_review_page */ ?>
+                <?= $block->getImage($block->getProductData(), 'customer_account_product_review_page')->toHtml() ?>
+            </a>
+        </div>
+        <div class="product-info">
+            <h2 class="product-name"><?= $block->escapeHtml($product->getName()) ?></h2>
+            <?php if ($block->getRating() && $block->getRating()->getSize()) { ?>
+                <span class="rating-average-label">
+                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('average_customer_rating')->toHtml(); ?>
+                </span>
+                <?= $block->getReviewsSummaryHtml($product) ?>
+            <?php } ?>
+        </div>
+    </div>
+    <div class="review-details">
+        <?php if ($block->getRating() && $block->getRating()->getSize()) { ?>
+            <div class="title">
+                <strong>
+                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('your_review')->toHtml(); ?>
+                </strong>
+            </div>
+            <div class="customer-review-rating">
+                <?php foreach ($block->getRating() as $_rating) { ?>
+                    <?php if ($_rating->getPercent()) { ?>
+                        <?php $rating = ceil($_rating->getPercent()) ?>
+                        <div class="rating-summary item">
+                            <span class="rating-label"><span><?= $block->escapeHtml($_rating->getRatingCode()) ?></span></span>
+                            <div class="rating-result" title="<?= /* @noEscape */ $rating ?>%">
+                                <span style="width:<?= /* @noEscape */ $rating ?>%">
+                                    <span><?= /* @noEscape */ $rating ?>%</span>
+                                </span>
+                            </div>
+                        </div>
+                    <?php } ?>
+                <?php } ?>
+            </div>
+        <?php } ?>
+        <div class="review-title"><?= $block->escapeHtml($block->getReviewData()->getTitle()) ?></div>
+        <div class="review-content"><?= nl2br($block->escapeHtml($block->getReviewData()->getDetail())) ?></div>
+        <div class="review-date">
+            <?= $block->escapeHtml(__('Submitted on %1', '<time class="date">' . $block->dateFormat($block->getReviewData()->getCreatedAt()) . '</time>'), ['time']) ?>
+        </div>
+    </div>
+</div>
+<div class="actions-toolbar">
+    <div class="secondary">
+        <a class="action back" href="<?= $block->escapeUrl($block->getBackUrl()) ?>"><span><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('back_to_my_reviews')->toHtml(); ?></span></a>
+    </div>
+</div>
+<?php } ?>

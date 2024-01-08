@@ -1,0 +1,26 @@
+<?php
+/**
+ * Copyright © 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+?>
+<div class="newsletter-wrap">
+    <form class="form subscribe" novalidate action="<?php /* @escapeNotVerified */ echo $block->getFormActionUrl() ?>" method="post" data-mage-init='{"validation": {"errorClass": "mage-error"}}' id="newsletter-validate-detail">
+        <p><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('sign_up_text')->toHtml();?></p>
+        <div class="newsletter">
+            <div class="control">
+                <div class="actions">
+                    <input name="email" type="email" id="newsletter" placeholder="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('your_email_here')->toHtml();?>" data-validate="{required:true, 'validate-email':true}"/>
+                    <button class="action subscribe primary" title="<?php /* @escapeNotVerified */ echo __('sign up') ?>" type="submit">
+                        <span>
+                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('sign_up')->toHtml();?>
+                        </span>
+                    </button> 
+                </div>        
+            </div>
+        </div>
+    </form>
+</div>

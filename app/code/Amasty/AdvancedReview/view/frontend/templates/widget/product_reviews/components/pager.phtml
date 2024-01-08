@@ -1,0 +1,78 @@
+<?php
+/**
+ * @author Amasty Team
+ * @copyright Copyright (c) 2020 Amasty (https://www.amasty.com)
+ * @package Amasty_AdvancedReview
+ */
+?>
+<?php
+/**
+ * @see \Amasty\AdvancedReview\Block\Widget\ProductReviews\Pager
+ */
+?>
+<?php if ($block->getCollection()->getSize() && $block->getLastPageNum() > 1) { ?>
+    <ul class="amreview-pages-items pages"
+        aria-labelledby="paging-label"
+        data-amreview-js="amreviews-pages-<?= $block->escapeHtml($block->getProductId()); ?>">
+        <?php if (!$block->isFirstPage()) { ?>
+            <li class="amreview-item item pages-item-previous">
+                <?php $text = $block->getAnchorTextForPrevious() ? $block->getAnchorTextForPrevious() : ''; ?>
+                <a class="<?= $block->escapeHtmlAttr($text ? 'link ' : 'action ') ?> previous"
+                   href="<?= $block->escapeUrl($block->getPreviousPageUrl()); ?>"
+                   title="<?= $block->escapeHtmlAttr($text ? $text : __('Previous')) ?>">
+                </a>
+            </li>
+        <?php } ?>
+        <?php if ($block->canShowFirst()) { ?>
+            <li class="amreview-item item">
+                <a class="page first" href="<?= $block->escapeUrl($block->getFirstPageUrl()); ?>">1</a>
+            </li>
+        <?php } ?>
+        <?php if ($block->canShowPreviousJump()) { ?>
+            <li class="amreview-item item">
+                <a class="page previous jump" href="<?= $block->escapeUrl($block->getPreviousJumpUrl()); ?>">...</a>
+            </li>
+        <?php } ?>
+        <?php foreach ($block->getFramePages() as $page) { ?>
+            <?php if ($block->isPageCurrent($page)) { ?>
+                <li class="amreview-item item -current">
+                    <?= $block->escapeHtml($page); ?>
+                </li>
+            <?php } else { ?>
+                <li class="amreview-item item">
+                    <a href="<?= $block->escapeUrl($block->getPageUrl($page)); ?>" class="page">
+                        <?= $block->escapeHtml($page) ?>
+                    </a>
+                </li>
+            <?php } ?>
+        <?php } ?>
+        <?php if ($block->canShowNextJump()) { ?>
+            <li class="amreview-item item">
+                <a class="page next jump" href="<?= $block->escapeUrl($block->getNextJumpUrl()) ?>">...</a>
+            </li>
+        <?php } ?>
+        <?php if ($block->canShowLast()) { ?>
+            <li class="amreview-item item">
+                <a class="page last" href="<?= $block->escapeUrl($block->getLastPageUrl()) ?>">
+                    <?= $block->escapeHtml($block->getLastPageNum()) ?>
+                </a>
+            </li>
+        <?php } ?>
+        <?php if (!$block->isLastPage()) { ?>
+            <li class="amreview-item item pages-item-next">
+                <?php $text = $block->getAnchorTextForNext() ? $block->getAnchorTextForNext() : ''; ?>
+                <a class="<?= /* @noEscape */ $text ? 'link ' : 'action ' ?> next" href="<?= $block->escapeUrl($block->getNextPageUrl()) ?>" title="<?= $block->escapeHtmlAttr($text ? $text : __('Next')) ?>"></a>
+            </li>
+        <?php } ?>
+    </ul>
+    <script type="text/x-magento-init">
+        {
+            "[data-amreview-js=amreviews-pages-<?= $block->escapeHtml($block->getProductId()) ?>]": {
+                "amProductReviews": {
+                    "data": <?= /* @noEscape */ $block->getJsonData() ?>,
+                    "productId": <?= $block->escapeHtml($block->getProductId()) ?>
+                }
+            }
+        }
+    </script>
+<?php } ?>

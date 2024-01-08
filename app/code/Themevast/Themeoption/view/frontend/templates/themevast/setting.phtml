@@ -1,0 +1,32 @@
+/**
+ * Setting Themevast Change:
+ * <?php echo date("Y-m-d H:i:s"); ?>
+ */
+<?php
+	$_setting = $this->getConfig("themeoption_setting",$this->_coreRegistry->registry('tv_setting_cssgen_store'));
+    $_helper  =  $this->helper('Themevast\Themeoption\Helper\Data');
+?>
+<?php if(isset($_setting['general']['is_custom']) && $_setting['general']['is_custom']==1):?>
+	<?php if(isset($_setting['general']['main_color']) && $_setting['general']['main_color']):?>
+		@maincolor: <?php echo (strlen($_setting['general']['main_color']) == 6) ? "#".$_setting['general']['main_color']:$_setting['general']['main_color']; ?>;
+	<?php endif;?>
+	<?php if(isset($_setting['general']['main_color_hover']) && $_setting['general']['main_color_hover']):?>
+		@maincolor2: <?php echo (strlen($_setting['general']['main_color_hover']) == 6) ? "#".$_setting['general']['main_color_hover']:$_setting['general']['main_color_hover']; ?>;
+	<?php endif;?>
+	<?php if(isset($_setting['general']['border_color']) && $_setting['general']['border_color']):?>
+		@bordercolor: <?php echo (strlen($_setting['general']['border_color']) == 6) ? "#".$_setting['general']['border_color']:$_setting['general']['border_color']; ?>;
+	<?php endif;?>
+<?php endif;?>
+
+<?php if(isset($_setting['font']['is_custom']) && $_setting['font']['is_custom']==1):?>
+	<?php  if(isset($_setting['font']['font_size']) && $_setting['font']['font_size']): ?>
+		@fontsize:<?php echo $_setting['font']['font_size']; ?>;
+	<?php endif;?>
+	<?php  if(isset($_setting['font']['font_family']) && $_setting['font']['font_family'] == 'google'): ?>
+		@fontfamily: <?php echo $_setting['font']['google_font_family']; ?>;
+	<?php elseif(isset($_setting['font']['font_family']) && $_setting['font']['font_family'] == 'custom'):?>
+		@fontfamily: <?php echo $_setting['font']['custom_font_family']; ?>;
+	<?php else:?>
+		@fontfamily: <?php echo $_setting['font']['font_family']; ?>;
+	<?php endif;?>
+<?php endif;?>

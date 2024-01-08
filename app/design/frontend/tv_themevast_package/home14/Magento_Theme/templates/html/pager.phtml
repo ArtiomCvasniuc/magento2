@@ -1,0 +1,24 @@
+<?php
+/**
+ * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+?>
+<?php
+/**
+ * Pager template
+ *
+ * @see \Magento\Theme\Block\Html\Pager
+ */
+?>
+<?php if ($block->getCollection()->getSize()) { ?>
+    <?php if ($block->getUseContainer()) { ?>
+        <div class="pager">
+    <?php } ?>
+    <?php if ($block->getUseContainer()) { ?>
+        </div>
+    <?php } ?>
+<?php } ?>

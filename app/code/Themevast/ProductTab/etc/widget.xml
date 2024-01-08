@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widgets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../../../Magento/Widget/etc/widget.xsd">
+    <widget id="producttab_tab_list" class="Themevast\ProductTab\Block\ProductTabWidget" is_email_compatible="true"
+            placeholder_image="Magento_CatalogWidget::images/products_list.png" ttl="86400">
+        <label translate="true">Themevast : Product Tab </label>
+        <description translate="true">List of Tab Products</description>
+        <parameters>
+            <parameter name="title" xsi:type="text" required="false" visible="true">
+                <label translate="true">Title</label>
+            </parameter>
+			<parameter name="identify" xsi:type="text" required="true" visible="true">
+                <label translate="true">Identify</label>
+            </parameter>
+			<parameter name="tab_id" xsi:type="multiselect" source_model="Themevast\ProductTab\Model\Config\Source\Type" visible="true" required="true" >
+                <label translate="true">Tab Show</label>
+            </parameter>
+			<parameter name="tab_preload" xsi:type="select" source_model="Themevast\ProductTab\Model\Config\Source\Type" visible="true" required="true" >
+                <label translate="true">Tab Active</label>
+            </parameter>
+			<parameter name="row" xsi:type="text" required="true" visible="true">
+                <label translate="true">Number of Rows to be showed on slide</label>
+				<value>1</value>
+            </parameter>
+			<parameter name="items" xsi:type="text" required="true" visible="true">
+                <label translate="true">Number of items showed on slide</label>
+				<value>6</value>
+            </parameter>
+			<parameter name="speed" xsi:type="text" required="true" visible="true">
+                <label translate="true">Slide Speeds</label>
+				<value>1000</value>
+            </parameter>
+			<parameter name="qty" xsi:type="text" required="true" visible="true">
+                <label translate="true">Number of products was allowed on site</label>
+				<value>12</value>
+            </parameter>
+			<parameter name="navigation" xsi:type="select"  visible="true" required="false">
+				<label translate="true">Navigation</label>
+				<options>
+                    <option name="yes" value="1" selected="true">
+                        <label translate="true">Yes</label>
+                    </option>
+					 <option name="no" value="0" >
+                        <label translate="true">No</label>
+                    </option>
+                </options>
+			</parameter>
+			<parameter name="pagination" xsi:type="select"  visible="true" required="false">
+				<label translate="true">Pagination</label>
+				<options>
+                    <option name="yes" value="1" >
+                        <label translate="true">Yes</label>
+                    </option>
+					 <option name="no" value="0" selected="true">
+                        <label translate="true">No</label>
+                    </option>
+                </options>
+			</parameter>
+			<parameter name="auto" xsi:type="select"  visible="true" required="false">
+				<label translate="true">Auto Slide</label>
+				<options>
+                    <option name="yes" value="1" >
+                        <label translate="true">Yes</label>
+                    </option>
+					 <option name="no" value="0" selected="true">
+                        <label translate="true">No</label>
+                    </option>
+                </options>
+			</parameter>
+			<parameter name="wishlist" xsi:type="select" visible="true">
+				<label translate="true">Show Wishlist</label>
+				<options>
+                    <option name="yes" value="1" selected="true">
+                        <label translate="true">Yes</label>
+                    </option>
+					 <option name="no" value="0" >
+                        <label translate="true">No</label>
+                    </option>
+                </options>
+			</parameter>
+			<parameter name="addtocart" xsi:type="select" visible="true">
+				<label translate="true">Show Addtocart</label>
+				<options>
+                    <option name="yes" value="1" selected="true">
+                        <label translate="true">Yes</label>
+                    </option>
+					 <option name="no" value="0" >
+                        <label translate="true">No</label>
+                    </option>
+                </options>
+			</parameter>
+			<parameter name="compare" xsi:type="select" visible="true" >
+				<label translate="true">Show Compare</label>
+				<options>
+                    <option name="yes" value="1" selected="true">
+                        <label translate="true">Yes</label>
+                    </option>
+					 <option name="no" value="0" >
+                        <label translate="true">No</label>
+                    </option>
+                </options>
+			</parameter>
+			<parameter name="res_heading1" xsi:type="conditions" visible="true" class="Magento\Config\Block\System\Config\Form\Field\Heading">
+				<label translate="true">For devices have screen width from 1200px up to greater.</label>
+			</parameter>
+			<parameter name="tv_column1" xsi:type="text" visible="true" required="true" >
+                <label translate="true">Column</label>
+				<value>5</value>
+            </parameter>
+			<parameter name="res_heading2" xsi:type="conditions" visible="true"  class="Magento\Config\Block\System\Config\Form\Field\Heading">
+				<label translate="true">For devices have screen width from 992px up to 1199px.</label>
+			</parameter>
+			<parameter name="tv_column2" xsi:type="text" visible="true" required="true" >
+                <label translate="true">Column</label>
+				<value>4</value>
+            </parameter>
+			<parameter name="res_heading3" xsi:type="conditions" visible="true"  class="Magento\Config\Block\System\Config\Form\Field\Heading">
+				<label translate="true">For devices have screen width from 768px up to 991px.</label>
+			</parameter>
+			<parameter name="tv_column3" xsi:type="text" visible="true" required="true" >
+                <label translate="true">Column</label>
+				<value>3</value>
+            </parameter>
+				<parameter name="res_heading4" xsi:type="conditions" visible="true" class="Magento\Config\Block\System\Config\Form\Field\Heading">
+				<label translate="true">For devices have screen width from 480px up to 767px.</label>
+			</parameter>
+			<parameter name="tv_column4" xsi:type="text" visible="true" required="true" >
+                <label translate="true">Column</label>
+				<value>2</value>
+            </parameter>
+				<parameter name="res_heading5" xsi:type="conditions" visible="true" class="Magento\Config\Block\System\Config\Form\Field\Heading">
+				<label translate="true">For devices have screen width less than or equal 479px</label>
+			</parameter>
+			<parameter name="tv_column5" xsi:type="text"  visible="true" required="true" >
+                <label translate="true">Column</label>
+				<value>1</value>
+            </parameter>
+			<parameter name="template" xsi:type="select" required="true" visible="true">
+                <label translate="true">Template</label>
+                <options>
+                    <option name="default" value="producttab/tab.phtml" selected="true">
+                        <label translate="true">Products Grid Template</label>
+                    </option>
+                </options>
+            </parameter>   
+        </parameters>
+        <containers>
+            <container name="content">
+                <template name="grid" value="default" />
+            </container>
+            <container name="content.top">
+                <template name="grid" value="default" />
+            </container>
+            <container name="content.bottom">
+                <template name="grid" value="default" />
+            </container>
+        </containers>
+    </widget>
+</widgets>

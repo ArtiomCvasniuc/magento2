@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+    </head>
+    <body>
+        <referenceBlock name="top.links">
+            <block class="Magento\Framework\View\Element\Html\Link" name="testimonials.top.link" after="register-link">
+                <arguments>
+                    <argument name="label" xsi:type="string" translate="true">Testimonials</argument>
+                    <argument name="path" xsi:type="string" translate="false">testimonials</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+		<referenceBlock name="footer_links">
+            <block class="Magento\Framework\View\Element\Html\Link\Current" ifconfig="testimonials_setting/group_testimonial_general/config_enable" name="testimonials.footer.link">
+                <arguments>
+                    <argument name="label" xsi:type="string" translate="true">Testimonials</argument>
+                    <argument name="path" xsi:type="string">testimonials</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+    </body>
+</page>

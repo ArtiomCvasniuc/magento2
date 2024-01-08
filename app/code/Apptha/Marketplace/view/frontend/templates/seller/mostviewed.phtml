@@ -1,0 +1,92 @@
+<?php
+
+/**
+ * Apptha
+ * NOTICE OF LICENSE
+ * This source file is subject to the EULA
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://www.apptha.com/LICENSE.txt
+ * ==============================================================
+ * MAGENTO EDITION USAGE NOTICE
+ * ==============================================================
+ * This package designed for Magento COMMUNITY edition
+ * Apptha does not guarantee correct work of this extension
+ * on any other Magento edition except Magento COMMUNITY edition.
+ * Apptha does not provide extension support in case of
+ * incorrect edition usage.
+ * ==============================================================
+ *
+ * @category Apptha
+ * @package Apptha_Marketplace
+ * @version 1.2
+ * @author Apptha Team <developers@contus.in>
+ * @copyright Copyright (c) 2017 Apptha. (http://www.apptha.com)
+ * @license http://www.apptha.com/LICENSE.txt
+ */
+?>
+<div class="mt-5 h-100">
+  <h3 class="font-weight-bold">
+    <?php echo $block->getLayout()
+    ->createBlock('Magento\Cms\Block\Block')
+    ->setBlockId('most_viewed_products')
+    ->toHtml(); ?>
+  </h3>
+ <div class="shadow p-3 rounded mh-82">
+  <div class="row">
+   <div class="col-7">
+   <h5 class="m-0">
+     <?php echo $block->getLayout()
+    ->createBlock('Magento\Cms\Block\Block')
+    ->setBlockId('product_name')
+    ->toHtml(); ?>
+ </h5>
+    </div>
+    <div class="col-5">
+      <h5 class="m-0">
+    <?php echo $block->getLayout()
+    ->createBlock('Magento\Cms\Block\Block')
+    ->setBlockId('nr_of_views')
+    ->toHtml(); ?>
+    </h5>
+       </div>
+    </div>
+    <hr>
+    <?php
+try
+{
+    $items = $this->getMostViewedCollection();
+    $count = count($items->getData());
+    $count = '0';
+    $items = $items->getData();
+    foreach ($items as $item)
+    {
+        $product_id = $item['entity_id'];
+        $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+        $product = $helper->loadProduct($product_id);
+        if ($count <= '4')
+        {
+            $productName = $product->getName();
+            $productViews = $item['views'];
+?>
+              <div class="row">
+                <div class="col-7 py-2 text-capitalize"><?php echo $productName; ?></div>
+                <div class="col-5 py-2 text-capitalize"><?php echo $productViews; ?></div>
+              </div>
+          <?php $count = $count + 1;
+        }
+    }
+}
+catch(Exception $e)
+{ ?>
+          <div class="row">
+            <div class="col-12 py-2">
+              <?php echo __('No Records were Found'); ?>
+            </div>
+          </div>
+        <?php
+}
+?>
+ </div>
+  <div class="toolbar-bottom"></div>
+</div>

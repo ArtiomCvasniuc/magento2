@@ -1,0 +1,134 @@
+<?php
+/**
+ * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+/* @var $block \Magento\Catalog\Block\Product\AbstractProduct */
+?>
+
+<?php
+switch ($type = $block->getType()) {
+    case 'crosssell':
+        /** @var \Magento\Catalog\Block\Product\ProductList\Crosssell $block */
+        if ($exist = $block->getItemCount()) {
+            $type = 'crosssell';
+            $class = $type;
+            $image = 'cart_cross_sell_products';
+            $title = __('Crosssell Products');
+            $items = $block->getItems();
+            $showAddTo = true;
+            $showCart = true;
+            $templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::SHORT_VIEW;
+            $description = false;
+            $canItemsAddToCart = false;
+        }
+    break;
+    case 'other':
+    break;
+}
+?>
+<?php if ($exist) { ?>
+<div class="crosssell-products">
+    <div class="title-product-heading crosssell-heading">
+        <h2>
+            <?php echo $title; ?>
+            <span class="b-title_separator">
+                <span></span>
+            </span>
+        </h2>
+    </div>
+    <div class="block-content content" aria-labelledby="block-<?php echo $class?>-heading">
+        <div class="product-grid">
+            <div id="crosssell_product_slider" class="owl-carousel">
+                <?php $iterator = 1; ?>
+                <?php 
+                    $i = 0;
+                    $rows = 1;
+                ?>
+                <?php foreach ($items as $_item) { ?>
+                <?php $available = ''; ?>
+                <?php if (!$_item->isComposite() && $_item->isSaleable() && $type == 'related') { ?>
+                    <?php if (!$_item->getRequiredOptions()) { ?>
+                        <?php $available = 'related-available'; ?>
+                    <?php } ?>
+                <?php }?>
+            <?php
+                $productImage = $block->getImage($_item, $image);
+            ?>  
+                <?php if ($i++%$rows==0) { ?>
+                    <div class="products-item">
+                <?php } ?>
+                    <div class="product-item">
+                        <div class="item-inner"> 
+                            <div class="product-photo">
+                                <a href="<?php /* @escapeNotVerified */ echo $_item->getProductUrl() ?>" class="product photo product-item-photo" tabindex="-1">
+                                    <?php $productImageThumb = $block->getImage($_item, 'category_page_grid-1');?>
+                                    <span class="image0 image-switch">
+                                        <?php echo $productImage->toHtml(); ?>
+                                    </span>
+                                    <span class="image1 image-switch">
+                                        <?php echo $productImageThumb->toHtml(); ?>
+                                    </span>
+                                </a>
+                            </div>
+                            <div class="product-info clearfix">
+                                <h3 class="product-name">
+                                    <a class="product-item-link" title="<?php echo $block->escapeHtml($_item->getName()) ?>" href="<?php echo $block->getProductUrl($_item) ?>">
+                                        <?php echo $block->escapeHtml($_item->getName()) ?>
+                                    </a>
+                                </h3>
+                                <?php echo $block->getProductPrice($_item); ?> 
+                            </div>
+                        </div>
+                    </div> 
+                <?php if($i%$rows==0 || $i == count($items)) { ?> 
+                </div> 
+                <?php } ?>
+                <?php } ?>
+            </div>
+        </div>
+    </div>
+</div>
+<?php } ?>
+<script type="text/javascript">
+    require([
+        'jquery',
+        'mage/mage',
+        'themevast/owl'
+    ], function ($) {
+        'use strict';
+
+        jQuery("#crosssell_product_slider").owlCarousel({
+            autoplay :false,
+            items : 4,
+            smartSpeed : 500,
+            dotsSpeed : 500,
+            rewindSpeed : 500,
+            nav : true,
+            autoplayHoverPause : true,
+            dots : false,
+            scrollPerPage:true,
+            margin: 30,
+            responsive: {
+            0: {
+                items: 1,
+            },
+            480: {
+                items:2,
+            },
+            768: {
+                items:3,
+            },
+            991: {
+                items:3,
+            },                      
+            1200: {
+                items:4,
+            }
+         }
+        });
+    });
+</script>

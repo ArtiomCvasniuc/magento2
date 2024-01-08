@@ -1,0 +1,169 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category   Mageplaza
+ * @package    Mageplaza_PdfInvoice
+ * @copyright   Copyright (c) Mageplaza (http://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+// @codingStandardsIgnoreFile
+
+?>
+<?php $_order = $block->getOrder();
+$flag = 0;
+$itemCount = count($_order->getAllItems());
+?>
+<?php $isBarcode = $block->getItemBarcode() ?>
+<?php if ($_order): ?>
+    <?php $_items = $_order->getAllItems() ?>
+    <div classs="table">
+        <div class="mp-row mp-heading">
+            <div class="mp-item">
+                <span><?= /* @noEscape */
+                    __('Items') ?><span>
+            </div>
+            <div class="mp-qty">
+                <span> <?= /* @noEscape */
+                    __('Qty') ?></span>
+            </div>
+            <div class="mp-price">
+                <span><?= /* @noEscape */
+                    __('Price') ?></span>
+            </div>
+            <div class="mp-subtotal">
+                <span><?= /* @noEscape */
+                    __('Subtotal') ?></span>
+            </div>
+        </div>
+        <?php $i = 0 ?>
+        <?php foreach ($_items as $_item): ?>
+            <?php
+            $block->setItem($_item);
+            $indexKey = $i % 2 == 0 ? "odd" : "even";
+            if ($block->isBundleItem()) {
+                echo $block->renderBundleItem($_item, $_order, $block->getOrderType(), $indexKey, $isBarcode, 'bundleitem_a5.phtml');
+                $i++;
+                continue;
+            }
+            if ($_item->getParentItem()) {
+                continue;
+            }
+
+            $i++;
+            ?>
+            <div class="mp-row <?= /** @noEscape */ $indexKey ?>" style="border-bottom: 1px solid #ddd;">
+                <div class="mp-item">
+                    <p class="product-name"><?= $block->escapeHtml($_item->getName()) ?></p>
+                    <p class="sku"><?= /* @noEscape */
+                        __('SKU: %1', $block->escapeHtml($block->getSku($_item))) ?></p>
+                    <?php if ($block->getItemOptions()): ?>
+                        <p>
+                            <?php $c = 0 ?>
+                            <?php foreach ($block->getItemOptions() as $option): ?>
+                                <strong><em><?= /* @noEscape */
+                                    $option['label'] ?>: </em></strong><?= /* @noEscape */
+                                nl2br($option['value']) ?>
+                                <?php $c += 1;
+                                if ($c < count($block->getItemOptions()))
+                                    echo '; ' ?>
+                            <?php endforeach ?>
+                        </p>
+                    <?php endif ?>
+                    <?php $addInfoBlock = $block->getProductAdditionalInformationBlock() ?>
+                    <?php if ($addInfoBlock) : ?>
+                        <?= $addInfoBlock->setItem($_item->getOrderItem())->toHtml() ?>
+                    <?php endif ?>
+                    <?= $block->escapeHtml($_item->getDescription()) ?>
+                    <?php if ($isBarcode): ?>
+                        <p>
+                            <barcode code="<?= $block->escapeHtml($block->getSku($_item)) ?>" type="C39E" size="0.8"
+                                     height="0.7"/>
+                        </p>
+                    <?php endif ?>
+                </div>
+                <div class="mp-qty">
+                    <span><?= /* @noEscape */
+                        $_item->getQtyOrdered() * 1 ?></span>
+                </div>
+                <div class="mp-price">
+                    <?php if ($block->displayPriceExclTax() || $block->displayBothPrices()): ?>
+                        <?php if ($block->displayBothPrices()): ?>
+                            <span class="label"><?= /* @noEscape */
+                                __('Excl. Tax') ?>:</span>
+                        <?php endif ?>
+                        <?= /* @noEscape */
+                        $_order->formatPrice($_item->getPrice()) ?>
+                    <?php endif ?>
+
+                    <?php if ($block->displayPriceInclTax() || $block->displayBothPrices()): ?>
+                        <?php if ($block->displayBothPrices()): ?>
+                            <br/><span class="label"><?= /* @noEscape */
+                                __('Incl. Tax') ?>:</span>
+                        <?php endif ?>
+                        <?= /* @noEscape */
+                        $_order->formatPrice($_item->getPriceInclTax()) ?>
+                    <?php endif ?>
+                </div>
+                <div class="mp-subtotal">
+                    <?php if ($block->displayPriceExclTax() || $block->displayBothPrices()): ?>
+                        <?php if ($block->displayBothPrices()): ?>
+                            <span class="label"><?= /* @noEscape */
+                                __('Excl. Tax') ?>:</span>
+                        <?php endif ?>
+                        <?= /* @noEscape */
+                        $_order->formatPrice($_item->getRowTotal()) ?>
+                    <?php endif ?>
+
+                    <?php if ($block->displayPriceInclTax() || $block->displayBothPrices()): ?>
+                        <?php if ($block->displayBothPrices()): ?>
+                            <br/><span class="label"><?= /* @noEscape */
+                                __('Incl. Tax') ?>:</span>
+                        <?php endif ?>
+                        <?php $_incl = $this->helper('Magento\Checkout\Helper\Data')->getSubtotalInclTax($_item) ?>
+                        <?= /* @noEscape */
+                        $_order->formatPrice($_incl) ?>
+                    <?php endif ?>
+                </div>
+            </div>
+            <div class="clr"></div>
+        <?php endforeach ?>
+    </div>
+    <div class="order-totals">
+        <?= $block->getChildHtml('order_totals') ?>
+    </div>
+
+    <?php if ($this->helper('Magento\GiftMessage\Helper\Message')->isMessagesAllowed('order', $_order, $_order->getStore()) && $_order->getGiftMessageId()): ?>
+        <?php $_giftMessage = $this->helper('Magento\GiftMessage\Helper\Message')->getGiftMessage($_order->getGiftMessageId()) ?>
+        <?php if ($_giftMessage): ?>
+            <br/>
+            <table class="message-gift">
+                <tr>
+                    <td>
+                        <h3><?= /* @noEscape */
+                            __('Gift Message for this Order') ?></h3>
+                        <strong><?= /* @noEscape */
+                            __('From:') ?></strong> <?= $block->escapeHtml($_giftMessage->getSender()) ?>
+                        <br/><strong><?= /* @noEscape */
+                            __('To:') ?></strong> <?= $block->escapeHtml($_giftMessage->getRecipient()) ?>
+                        <br/><strong><?= /* @noEscape */
+                            __('Message:') ?></strong>
+                        <br/><?= $block->escapeHtml($_giftMessage->getMessage()) ?>
+                    </td>
+                </tr>
+            </table>
+        <?php endif ?>
+    <?php endif ?>
+<?php endif ?>

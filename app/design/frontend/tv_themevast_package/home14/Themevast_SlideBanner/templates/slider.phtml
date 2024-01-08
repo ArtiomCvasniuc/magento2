@@ -1,0 +1,73 @@
+<?php
+/**
+ * Copyright © 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+if($banners = $block->getBannerCollection()):
+	$slider = $block->getSlider();
+	$sliderId = $block->getSliderId(); 
+	$sliderSetting = $slider->getSliderSetting();
+?>
+<div class="wrapper_slider slider_<?php echo $sliderId; ?>">
+	
+	<div class="owl-carousel">
+		<?php foreach($banners as $banner){	?>
+			<div class="banner_item">
+			<?php
+			$html = $block->getImageElement($banner->getSlideImage());
+			if($link = $banner->getSlideLink())
+				$html = '<a href="'. $link .'">' . $html . '</a>' ; 
+			echo $html;
+			?>
+			</div>
+		<?php } ?>
+	</div>
+	
+</div>
+<script>
+	require([
+		'jquery',
+		'mage/mage',
+		'themevast/owl'
+	], function ($) {
+		'use strict';
+
+		jQuery(".slider_<?php echo $sliderId; ?> .owl-carousel").owlCarousel(
+			{
+			items:<?php echo $sliderSetting['items']?>,
+			autoplay : 	<?php echo $sliderSetting['autoPlay'] ? 'true' : 'false'; ?>,
+			nav:<?php echo $sliderSetting['navigation'] ? 'true' : 'false'; ?>,
+			autoplayHoverPause:<?php echo $sliderSetting['stopOnHover'] ? 'true' : 'false'; ?>,
+			dots:<?php echo $sliderSetting['pagination'] ? 'true' : 'false'; ?>,
+			dotsSpeed:<?php echo $sliderSetting['paginationSpeed']?>,
+			smartSpeed:<?php echo $sliderSetting['slideSpeed']?>,
+			animateIn: 'fadeIn',
+            animateOut: 'fadeOut',
+            loop: true,
+			responsive:{
+				0:{
+					items:1,
+					/* nav:true */
+				},
+				1199:{
+					items:<?php echo $sliderSetting['itemsDesktop']?>,
+				},
+				980:{
+					items:<?php echo $sliderSetting['itemsDesktopSmall']?>,
+					/* nav:true,
+					loop:false */
+				},
+				768:{
+					items:<?php echo $sliderSetting['itemsTablet']?>,
+					/* nav:true,
+					loop:false */
+				}
+			}
+			
+			}
+		);
+	});
+</script>
+<?php endif; ?>

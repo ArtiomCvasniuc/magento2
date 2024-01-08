@@ -1,0 +1,233 @@
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_QuickCart
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+.mpquickcart .modal-content .minicart-wrapper .block-minicart {
+    width: 100%;
+    display: block;
+    position: unset;
+    border: unset;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    height: 100%;
+}
+
+.mpquickcart .modal-content .minicart-wrapper {
+    display: block;
+    position: unset;
+    float: unset !important;
+    width: unset !important;
+    margin: 0;
+    height: 100%;
+}
+
+.modal-slide.mpquickcart {
+    width: 450px;
+    right: 0;
+    left: unset;
+    max-width: 100%;
+}
+
+.mpquickcart._inner-scroll._show ~ .modals-overlay {
+    background-color: transparent;
+}
+
+body._has-modal.mpquickcart-has-modal {
+    overflow: unset;
+}
+
+.mpquickcart .modal-title {
+    font-weight: 700;
+    font-size: 24px;
+    margin-bottom: 0;
+}
+
+.mpquickcart .minicart-wrapper .block-minicart .block-title {
+    display: block;
+    margin: 15px 0;
+}
+
+.mpquickcart .minicart-items-wrapper {
+    margin: 0;
+    padding: 0 15px 15px 0;
+    overflow-y: hidden;
+    border: none;
+    height: unset !important;
+}
+
+.mpquickcart .minicart-items .product-item {
+    padding: 15px 0;
+}
+
+.mpquickcart .block-minicart .block-content > .actions > .primary {
+    margin: 0;
+}
+
+.mpquickcart .action-close {
+    top: 11px;
+    right: 11px;
+}
+
+.mpquickcart .block-items {
+    height: 45%;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    border-top: 1px solid #cccccc;
+    border-bottom: 1px solid #cccccc;
+}
+
+@media only screen and (max-height: 640px) {
+    .mpquickcart .block-items {
+        height: 39%;
+    }
+}
+
+@media only screen and (max-height: 568px) {
+    .mpquickcart .block-items {
+        height: 26%;
+    }
+}
+
+.mpquickcart .block-footer {
+    height: 45%;
+    position: relative;
+}
+
+.mpquickcart .block-footer .cart-totals {
+    max-height: 55%;
+    overflow-y: auto;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+@media only screen and (max-height: 736px) {
+    .mpquickcart .block-footer .cart-totals {
+        max-height: 40%;
+    }
+}
+
+.mpquickcart .table-totals {
+    border-radius: 4px;
+}
+
+.mpquickcart .cart-discount {
+    width: 100%;
+    padding-right: 0;
+    float: none;
+    margin: 15px 0;
+    border-bottom: none;
+}
+
+.mpquickcart .actions-toolbar .primary .action {
+    margin: 0;
+}
+
+.mpquickcart .cart-discount .actions-toolbar {
+    padding-left: 10px;
+}
+
+.mpquickcart .actions-toolbar .primary {
+    float: right;
+}
+
+.mpquickcart .block-minicart .block-footer > .actions {
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    max-height: 15%;
+}
+
+@media only screen and (max-width: 360px) {
+    .mpquickcart .block-minicart .block-footer > .actions {
+        margin: 0 0 20px;
+        position: unset;
+    }
+}
+
+.mpquickcart .button-action {
+    font-size: 20px;
+    line-height: 20px;
+    color: #757575;
+    vertical-align: text-top;
+    display: inline-block;
+    margin: 0 5px;
+}
+
+.mpquickcart .minicart-items .item-qty {
+    margin: 0;
+}
+
+.mpquickcart .minicart-items .product-item-name {
+    margin-right: 15%;
+}
+
+.mpquickcart .block-minicart .block-content > .actions > .primary .action.primary {
+    width: 48%;
+    display: inline-block;
+}
+
+.mpquickcart #top-cart-btn-checkout {
+    float: right;
+}
+
+.mpquickcart .block-minicart .block-content > .actions > .primary .action.viewcart {
+    color: #fff;
+    text-decoration: none;
+    text-align: center;
+}
+
+#mpquickcart-coupon-form .fieldset {
+    margin-bottom: 0;
+}
+
+.mpquickcart-icon-wrapper {
+    background-color: inherit;
+    right: 10px;
+    top: 10px;
+    z-index: 2;
+}
+
+.mpquickcart .modal-content {
+    height: 100% !important;
+}
+
+.mpquickcart .button-action:before {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 18px;
+    line-height: 20px;
+    color: #757575;
+    font-family: 'luma-icons';
+    vertical-align: text-top;
+    display: inline-block;
+    font-weight: normal;
+    overflow: hidden;
+    speak: none;
+    text-align: center;
+}
+
+.mpquickcart .button-action.minus:before {
+    content: '\e617';
+}
+
+.mpquickcart .button-action.plus:before {
+    content: '\e608';
+}

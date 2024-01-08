@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
+    <template id="testimonials_setting_group_testimonial_email_configuration_config_email_template_posting" label="New Testimonial Notification Email Template" file="new_testimonial_notification.html" type="html" module="Themevast_Testimonials" area="frontend"/>
+    <template id="testimonials_setting_group_testimonial_email_configuration_config_email_template_approving" label="Approved Testimonial Notification Email Template" file="approved_testimonial_notification.html" type="html" module="Themevast_Testimonials" area="frontend"/>
+</config>

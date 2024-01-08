@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2016 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+		<referenceContainer name="page.top">
+		</referenceContainer>
+		<referenceContainer name="page.top">
+			<referenceContainer name="content.top.home" label="content top home">
+				<block class="Magento\Framework\View\Element\Template" name="top_home" template="Magento_Cms::top-home.phtml"/>
+			</referenceContainer>
+		</referenceContainer>
+		<referenceContainer name="footer-container" remove="true" />
+		<referenceContainer name="columns" remove="true" />
+		<referenceContainer name="columns.top" remove="true" />
+    </body>
+</page>

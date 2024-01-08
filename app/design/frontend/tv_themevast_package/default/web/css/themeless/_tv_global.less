@@ -1,0 +1,271 @@
+/**
+ * Copyright © 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+ body { background: @bkg; font-family: @bdf; font-size: 14px; color: #666;    line-height: 1.6; max-width: 1920px; margin: 0 auto; overflow-x: hidden;}
+ .p-fix {
+    overflow: hidden;
+ }
+ .page-wrapper {
+    min-height: unset !important;
+ }
+ 
+.page.messages{
+    .messages {
+        margin: 0;
+        width: 100%;
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        z-index: 99;
+        .success{
+            font-size: 13px;
+            margin: 0;
+        }
+    }
+    .message.error {
+        margin-bottom: 0;
+        font-size: 13px;
+    }
+    .message.notice {
+        font-size: 13px;
+        margin: 0;
+    }
+}
+.message.notice {
+    font-size: 13px;
+}
+.message.error {
+    font-size: 13px;
+}
+
+ .bundle-actions .action.primary, 
+ .bundle-options-container .block-bundle-summary .box-tocart .action.primary, 
+ .product-info-main .box-tocart .action.tocart, 
+ .product-options-bottom .box-tocart .action.tocart, 
+ .cart-container .checkout-methods-items .action.primary, 
+ .block-minicart .block-content > .actions > .primary .action.primary, 
+ .methods-shipping .actions-toolbar .action.primary, 
+ .block-authentication .action.action-register, 
+ .block-authentication .action.action-login, 
+ .checkout-payment-method .payment-method-content > .actions-toolbar > .primary .action.primary, 
+ .form-address-edit .actions-toolbar .action.primary, 
+.cart-summary .actions-toolbar >.primary button,
+ .multicheckout .action.primary {
+    font-size: 13px;
+    text-transform: uppercase;
+    line-height: 1.5;
+    padding: 7px 25px; 
+ }
+.block-collapsible-nav .content {
+    background: none;
+    padding: 0;
+}
+.block-collapsible-nav {
+    margin: 0;
+}
+ .block-cart-failed .action.continue, 
+ .cart-container .form-cart .action.continue,
+ button, .cart.table-wrapper .actions-toolbar > 
+ .action, .cart.table-wrapper .action-gift,
+ .action.primary, 
+ .review-form .action.submit.primary, 
+ .primary .action.primary, 
+ .actions .action.primary, 
+ .checkout.action.primary, .btn,
+.cart-summary .actions-toolbar >.primary button,
+ .actions.update {
+    font-size: 14px;
+    font-weight: 400;
+    text-transform: uppercase;
+    color: #333;
+    background-color: #eee;
+    padding: 8px 20px;
+    line-height: 24px;
+    .transition(0.5s);
+    .border-radius(0);
+    border: 0;
+    margin: 0;
+    &:hover {
+        background: @maincolor;
+        box-shadow: none;
+        border: 0;
+        color: #fff;
+    }
+    &:before{
+        line-height: 22px !important;
+    }
+ }
+ .cart.table-wrapper .actions-toolbar > .action.action-delete {
+    float: right;
+ }
+.cart-container .checkout-methods-items .action.primary {
+    padding: 12px 20px;
+    background: @maincolor;
+    color: #fff;
+    &:hover {
+        background: #333;
+    }
+ }
+ .abs-shopping-cart-items .action.continue:before, 
+ .block-cart-failed .action.continue:before, 
+ .cart-container .form-cart .action.continue:before{
+    display: none;
+ }
+
+ .cart-summary .block > .title:after, 
+ .paypal-review-discount .block > .title:after{
+    top: -10px;
+ }
+ .cart-totals .amount, .opc-block-summary .table-totals .amount,
+ .cart-totals .mark, .opc-block-summary .table-totals .mark{
+    border-top: 0;
+    background: #fff;
+    padding: 12px;
+ }
+ .fieldset {
+    .field {
+        .checkbox {
+            float: left;
+            margin: 0 10px 0 0;
+        }
+    }
+ }
+
+ .price-box {
+    margin: 0;
+    .price {
+        font-size: 16px;
+        color: #333;    
+        font-weight: 600;            
+    }
+    .special-price {
+        display: inline-block;
+        .price {
+            color: #333;
+        }
+    }
+    .old-price{
+        .price{
+            font-family: @bdf;
+            font-size: 14px;
+            color: #aaa;
+            font-weight: normal;
+        }
+    }
+}
+
+.price-box .price-label{ display: none;}
+.label { color: #555; }
+
+.product-ratting{
+    display: inline-block;
+}
+.rating-summary{
+    .rating-result{
+        margin-left: 0;
+        width: 78px;
+        &:before{
+            font-family: FontAwesome;
+            content: '\f006' '\f006' '\f006' '\f006' '\f006';
+            font-size: 13px;
+            height: 13px;
+            letter-spacing: 4px;
+            line-height: 1;
+            top: 0px;
+            color: #f3cd1e;
+        }
+        span{
+            &:before{
+                color: #f3cd1e;
+                font-family: FontAwesome;
+                content: '\f005' '\f005' '\f005' '\f005' '\f005';
+                font-size: 13px;
+                height: 13px;
+                line-height: 1;
+                letter-spacing: 4px;
+            }
+            span{
+                display: none;
+            }
+        }
+    }
+}
+.product-reviews-summary{
+    .reviews-actions{
+        font-size: 13px;
+        margin-left: 10px;
+        padding-left: 10px;
+    }
+}
+.block-authentication .block-title,
+.opc-wrapper .step-title, 
+.opc-block-shipping-information .shipping-information-title, 
+.opc-block-summary > .title,
+ .checkout-agreements-items .checkout-agreements-item-title,
+ .column.main .cart-summary .block > .title strong, 
+ .column.main .paypal-review-discount .block > .title strong {
+    font-size: 20px;
+    text-transform: uppercase;
+    font-weight: normal;
+ }
+
+ .abs-margin-for-forms-desktop, 
+ .fieldset .legend, 
+ .column:not(.sidebar-main) form .actions-toolbar, 
+ .column:not(.sidebar-additional) form .actions-toolbar, 
+ .login-container .fieldset:after{
+    margin-left: 0;
+    font-size: 13px;
+    text-transform: uppercase;
+ }
+ .fieldset > .field > .label, .fieldset > .fields > .field > .label { font-weight: normal;}
+ .block-collapsible-nav .item.current a, .block-collapsible-nav .item.current strong{
+    border-color: @maincolor;
+ }
+ .abs-account-blocks .block-title > strong, 
+ .block-compare .block-title > strong, 
+ .block-giftregistry-results .block-title > strong, 
+ .block-giftregistry-shared-items .block-title > strong, 
+ .block-wishlist-search-results .block-title > strong, 
+ .block-reorder .block-title > strong, .widget .block-title > strong, 
+ .block-wishlist .block-title > strong, 
+ .account .column.main .block:not(.widget) .block-title > strong, 
+ .multicheckout .block-title > strong, .paypal-review .block .block-title > strong, 
+ .magento-rma-guest-returns .column.main .block:not(.widget) .block-title > strong, 
+ [class^="sales-guest-"] .column.main .block:not(.widget) .block-title > strong, 
+ .sales-guest-view .column.main .block:not(.widget) .block-title > strong{
+    font-size: 18px;
+    text-transform: uppercase;
+    font-family: @titlefont;
+ }
+ .block-reorder{
+    .product-item, .product-list-item{
+        padding-left: 0;
+    }
+ }
+ .navigation, .breadcrumbs, 
+ .page-header .header.panel, 
+ .header.content, 
+ .footer.content, 
+ .page-wrapper > .widget, .page-wrapper > .page-bottom, .block.category.event, .top-container, .page-main { max-width: 100%;}
+
+.block-addresses-list .items.addresses .item.actions .action,
+.account .data.table .col.actions .action,
+[class^="sales-guest-"] .data.table .col.actions .action,
+.sales-guest-view .data.table .col.actions .action,
+.block .box-actions .action {
+  &:after {
+        content: "";
+      display: inline-block;
+      height: 12px;
+      margin: 0 10px;
+      border-left: 1px solid #a6a6a6;
+      vertical-align: -1px;
+  }
+  &:last-child {
+    &:after {
+        display: none;
+    }
+  }
+}

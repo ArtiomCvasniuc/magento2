@@ -1,0 +1,866 @@
+<?php
+
+/**
+ * Apptha
+ * NOTICE OF LICENSE
+ * This source file is subject to the EULA
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://www.apptha.com/LICENSE.txt
+ * ==============================================================
+ * MAGENTO EDITION USAGE NOTICE
+ * ==============================================================
+ * This package designed for Magento COMMUNITY edition
+ * Apptha does not guarantee correct work of this extension
+ * on any other Magento edition except Magento COMMUNITY edition.
+ * Apptha does not provide extension support in case of
+ * incorrect edition usage.
+ * ==============================================================
+ *
+ * @category Apptha
+ * @package Apptha_Marketplace
+ * @version 1.2
+ * @author Apptha Team <developers@contus.in>
+ * @copyright Copyright (c) 2017 Apptha. (http://www.apptha.com)
+ * @license http://www.apptha.com/LICENSE.txt
+ */
+?>
+<?php
+if (file_exists("conf/conf.php"))
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+if (isset($_POST['submit-review'])) {
+    $seller_id = $_POST['seller_id'];
+    $rating = $_POST['ratings'];
+    $nickname = $_POST['nickname'];
+    $title = $_POST['title'];
+    $description = $_POST['detail'];
+
+    if (isset($_POST['is_recommended'])) {
+        $is_recommended = $_POST['is_recommended'];
+
+        $query = "INSERT INTO mgkf_seller_review (seller_id, rating, nickname, summary, description, is_recommended)";
+        $query .= "VALUES ('" . $seller_id . "', '" . $rating . "', '" . $nickname . "', '" . $title . "', '" . $description . "', '" . $is_recommended . "')";
+        $result = $conn->query($query);
+    } else {
+        $query = "INSERT INTO mgkf_seller_review (seller_id, rating, nickname, summary, description)";
+        $query .= "VALUES ('" . $seller_id . "', '" . $rating . "', '" . $nickname . "', '" . $title . "', '" . $description . "')";
+        $result = $conn->query($query);
+    }
+}
+
+$objectModelManager = \Magento\Framework\App\ObjectManager::getInstance();
+$customerId = $block->getRequest()->getParam('id');
+$sellerDatas = $objectModelManager->get('Apptha\Marketplace\Model\Seller');
+$sellerDetails = $sellerDatas->load($customerId, 'customer_id');
+$customerObj = $objectModelManager->create('Magento\Customer\Model\Customer')->load($customerId);
+$logoName = $sellerDetails->getLogoName();
+$bannerName = $sellerDetails->getBannerName();
+$sellerContact = $sellerDetails->getContact();
+$sellerStoreName = $sellerDetails->getStoreName();
+$sellerEmail = $customerObj->getEmail();
+$sellerDesc = $sellerDetails->getDesc();
+$sellerFacebookId = $sellerDetails->getFacebookId();
+$sellerTwitterId = $sellerDetails->getTwitterId();
+$sellerGoogleId = $sellerDetails->getGoogleId();
+$sellerLinkedId = $sellerDetails->getLinkedId();
+$sellerState = $sellerDetails->getState();
+$sellerCountry = $sellerDetails->getCountry();
+$logoImage = $objectModelManager->get('Magento\Store\Model\StoreManagerInterface')->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . 'Marketplace/Seller/Resized';
+$bannerImage = $objectModelManager->get('Magento\Store\Model\StoreManagerInterface')->getStore()->getBaseUrl(Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . 'Marketplace/Sellerbanner/Resized';
+
+$query = "SELECT * ";
+$query .= "FROM mgkf_marketplace_seller ";
+$query .= "WHERE customer_id = '" . $customerId . "'";
+$result = $conn->query($query);
+$row = $result->fetch_assoc();
+
+$query_count = "SELECT COUNT(id) as count ";
+$query_count .= "FROM mgkf_seller_review ";
+$query_count .= "WHERE seller_id = '" . $customerId . "'";
+$result_count = $conn->query($query_count);
+$row_count = $result_count->fetch_assoc();
+$count_total = $row_count['count'];
+
+$query_count_recommended = "SELECT COUNT(id) as count ";
+$query_count_recommended .= "FROM mgkf_seller_review ";
+$query_count_recommended .= "WHERE is_recommended = 1 ";
+$query_count_recommended .= "AND seller_id = '" . $customerId . "'";
+$result_count_recommended = $conn->query($query_count_recommended);
+$row_count_recommended = $result_count_recommended->fetch_assoc();
+$count_recommended = $row_count_recommended['count'];
+$recommended = round(($count_recommended / $count_total) * 100);
+?>
+<div class="align-items-center mt-3 row">
+    <div class="col-12 col-md-4 col-lg-5 col-xl-7">
+        <h3 class="font-weight-bold m-0">
+            <?php echo ucfirst($sellerStoreName); ?>
+        </h3>
+    </div>
+    <div class="col-12 col-md-8 col-lg-7 col-xl-5 mt-3 mt-md-0">
+        <div class="row">
+            <div class="col-12 col-sm-6 col-md-7 text-md-right px-lg-0">
+                <?php if ($row['company_email'] != '') { ?>
+                    <div class="info_email">
+                        <a class="btn btn-dark" href="mailto:<?php echo $row['company_email']; ?>">
+                            <i class="fal fa-envelope"></i>
+                            <?php echo $row['company_email']; ?>
+                        </a>
+                    </div>
+                <?php } ?>
+            </div>
+            <div class="col-12 col-sm-6 col-md-5 text-md-right mt-3 mt-sm-0"><?php if ($row['company_phone'] != '') { ?>
+                    <div class="info_phone">
+                        <a class="btn btn-java" href="tel:<?php echo $row['company_phone']; ?>">
+                            <i class="fal fa-mobile"></i>
+                            <?php echo $row['company_phone']; ?>
+                        </a>
+                    </div>
+                <?php } ?></div>
+        </div>
+    </div>
+</div>
+<?php if ($sellerDesc) { ?>
+    <div class="mt-3">
+        <p>
+            <?php echo strip_tags($sellerDesc); ?>
+        </p>
+    </div>
+<?php } ?>
+<div class="mt-4" id="customer-reviews">
+    <h3 class="font-weight-bold" id="review-info">
+        <?= /* @noEscape */ __('Customer Reviews') ?>
+    </h3>
+    <div class="border rounded p-3">
+        <div class="row" data-amreview-js="review-container">
+            <div class="amreview-summary-info col-12 col-md-6 col-lg-4">
+                <p class="amreview-summary" id="amreview-current">
+                    5
+                </p>
+                <div class="amreview-rating-wrapper">
+                    <div class="amstars-rating-container" title="5 stars">
+                        <p class="amstars-stars" style="width:100%" id="amstars-stars">
+                            <span class="hidden">100%</span>
+                        </p>
+                    </div>
+                    <p class="amreview-count" id="amreview-current-count">3 reviews</p>
+                </div>
+                <p class="amreview-percent-block" data-amreview-js="percent">
+                    <span class="amreview-value"><?php echo $recommended . '%'; ?></span>
+                    <span class="amreview-desc"><?php echo __('of customers recommend this product'); ?></span>
+                </p>
+            </div>
+            <div class="amreview-summary-details m-0 col-12 col-md-6 col-lg-4" data-amreview-js="summary-details">
+                <a class="amreview-label" onclick="show_reviews(5);">
+                    <?php
+                    $query_rating = "SELECT COUNT(id) as count, rating ";
+                    $query_rating .= "FROM mgkf_seller_review ";
+                    $query_rating .= "WHERE seller_id = '" . $customerId . "' ";
+                    $query_rating .= "AND rating = 100";
+                    $result_rating_100 = $conn->query($query_rating);
+                    $row_rating_100 = $result_rating_100->fetch_assoc();
+                    $count = $row_rating_100['count'];
+                    $rating = $row_rating_100['rating'];
+                    $percentage = round(($count / $count_total) * 100);
+                    if ($percentage == '0.00') {
+                        $percentage = '0';
+                    }
+                    ?>
+                    <input type="hidden" id="amreview-count-5" value="<?php echo $count; ?>" />
+                    <p class="amreview-stars"><?php echo __('5 stars'); ?></p>
+                    <div class="amreview-bar">
+                        <div class="amreview-bar -active" id="amreview-bar-5" style="width:<?php echo $percentage; ?>%"></div>
+                    </div>
+                    <p class="amreview-text"><?php echo $percentage . '%' . ' (' . $count . ')' ?></p>
+                </a>
+                <a class="amreview-label" onclick="show_reviews(4);">
+                    <?php
+                    $query_rating = "SELECT COUNT(id) as count, rating ";
+                    $query_rating .= "FROM mgkf_seller_review ";
+                    $query_rating .= "WHERE seller_id = '" . $customerId . "' ";
+                    $query_rating .= "AND rating = 80";
+                    $result_rating_80 = $conn->query($query_rating);
+                    $row_rating_80 = $result_rating_80->fetch_assoc();
+                    $count = $row_rating_80['count'];
+                    $rating = $row_rating_80['rating'];
+                    $percentage = round(($count / $count_total) * 100);
+                    if ($percentage == '0.00') {
+                        $percentage = '0';
+                    }
+                    ?>
+                    <input type="hidden" id="amreview-count-4" value="<?php echo $count; ?>" />
+                    <p class="amreview-stars"><?php echo __('4 stars'); ?></p>
+                    <div class="amreview-bar">
+                        <div class="amreview-bar" id="amreview-bar-4" style="width:<?php echo $percentage; ?>%"></div>
+                    </div>
+                    <p class="amreview-text"><?php echo $percentage . '%' . ' (' . $count . ')' ?></p>
+                </a>
+                <a class="amreview-label" onclick="show_reviews(3);">
+                    <?php
+                    $query_rating = "SELECT COUNT(id) as count, rating ";
+                    $query_rating .= "FROM mgkf_seller_review ";
+                    $query_rating .= "WHERE seller_id = '" . $customerId . "' ";
+                    $query_rating .= "AND rating = 60";
+                    $result_rating_60 = $conn->query($query_rating);
+                    $row_rating_60 = $result_rating_60->fetch_assoc();
+                    $count = $row_rating_60['count'];
+                    $rating = $row_rating_60['rating'];
+                    $percentage = round(($count / $count_total) * 100);
+                    if ($percentage == '0.00') {
+                        $percentage = '0';
+                    }
+                    ?>
+                    <input type="hidden" id="amreview-count-3" value="<?php echo $count; ?>" />
+                    <p class="amreview-stars"><?php echo __('3 stars'); ?></p>
+                    <div class="amreview-bar">
+                        <div class="amreview-bar" id="amreview-bar-3" style="width:<?php echo $percentage; ?>%"></div>
+                    </div>
+                    <p class="amreview-text"><?php echo $percentage . '%' . ' (' . $count . ')' ?></p>
+                </a>
+                <a class="amreview-label" onclick="show_reviews(2);">
+                    <?php
+                    $query_rating = "SELECT COUNT(id) as count, rating ";
+                    $query_rating .= "FROM mgkf_seller_review ";
+                    $query_rating .= "WHERE seller_id = '" . $customerId . "' ";
+                    $query_rating .= "AND rating = 40";
+                    $result_rating_40 = $conn->query($query_rating);
+                    $row_rating_40 = $result_rating_40->fetch_assoc();
+                    $count = $row_rating_40['count'];
+                    $rating = $row_rating_40['rating'];
+                    $percentage = round(($count / $count_total) * 100);
+                    if ($percentage == '0.00') {
+                        $percentage = '0';
+                    }
+                    ?>
+                    <input type="hidden" id="amreview-count-2" value="<?php echo $count; ?>" />
+                    <p class="amreview-stars"><?php echo __('2 stars'); ?></p>
+                    <div class="amreview-bar">
+                        <div class="amreview-bar" id="amreview-bar-2" style="width:<?php echo $percentage; ?>%"></div>
+                    </div>
+                    <p class="amreview-text"><?php echo $percentage . '%' . ' (' . $count . ')' ?></p>
+                </a>
+                <a class="amreview-label" onclick="show_reviews(1);">
+                    <?php
+                    $query_rating = "SELECT COUNT(id) as count, rating ";
+                    $query_rating .= "FROM mgkf_seller_review ";
+                    $query_rating .= "WHERE seller_id = '" . $customerId . "' ";
+                    $query_rating .= "AND rating = 20";
+                    $result_rating_20 = $conn->query($query_rating);
+                    $row_rating_20 = $result_rating_20->fetch_assoc();
+                    $count = $row_rating_20['count'];
+                    $rating = $row_rating_20['rating'];
+                    $percentage = round(($count / $count_total) * 100);
+                    if ($percentage == '0.00') {
+                        $percentage = '0';
+                    }
+                    ?>
+                    <input type="hidden" id="amreview-count-1" value="<?php echo $count; ?>" />
+                    <p class="amreview-stars"><?php echo __('1 star'); ?></p>
+                    <div class="amreview-bar">
+                        <div class="amreview-bar" id="amreview-bar-1" style="width:<?php echo $percentage; ?>%"></div>
+                    </div>
+                    <p class="amreview-text"><?php echo $percentage . '%' . ' (' . $count . ')' ?></p>
+                </a>
+            </div>
+            <div class="col-12 col-lg-4 mt-3 mt-lg-0 text-lg-right" id="amreview-add-new">
+                <a onclick="show_add_review_form();" title="<?php echo __('Write a review'); ?>" class="btn btn-java btn-lg">
+                    <?php echo __('Write a review'); ?>
+                </a>
+                <p class="amreview-label w-50 ml-lg-auto mt-1">
+                    <?php echo __('Share your thoughts with other customers'); ?>
+                </p>
+            </div>
+        </div>
+        <div class="amreview-submit-form rounded mx-n3 mb-n3 rounded-bottom p-3" id="add-review-form" style="display:none;">
+            <div class="row position-relative">
+                <i class="fal fa-times p-3 close-review-block" onclick="hide_reviews_block();"></i>
+                <div class="col-12 col-sm-8 col-lg-5 mx-auto">
+                    <form action="" method="post" class="review-form">
+                        <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>" />
+                        <div data-hasrequired>
+                            <div>
+                                <h3 class="font-weight-bold"><?php echo __('Add a review'); ?></h3>
+                                <p><?php echo __('Your email address will not be published. Required fields are marked *'); ?></p>
+                            </div>
+                            <span id="input-message-box"></span>
+                            <div class="control">
+                                <div class="nested" id="product-review-table">
+                                    <div class="field choise review-field-rating">
+                                        <label class="mb-2" id="Rating_rating_label">
+                                            <?php echo __('Rating'); ?>
+                                        </label>
+                                        <div class="control review-control-vote">
+                                            <input type="radio" name="ratings" id="Rating_1" value="20" class="radio" />
+                                            <label class="rating-1" for="Rating_1" title="<?php echo __('1 star'); ?>" id="Rating_1_label">
+                                                <span>
+                                                    <?php echo __('1 star'); ?>
+                                                </span>
+                                            </label>
+                                            <input type="radio" name="ratings" id="Rating_2" value="40" class="radio" />
+                                            <label class="rating-2" for="Rating_2" title="<?php echo __('2 stars'); ?>" id="Rating_2_label">
+                                                <span>
+                                                    <?php echo __('2 stars'); ?>
+                                                </span>
+                                            </label>
+                                            <input type="radio" name="ratings" id="Rating_3" value="60" class="radio" />
+                                            <label class="rating-3" for="Rating_3" title="<?php echo __('3 stars'); ?>" id="Rating_3_label">
+                                                <span>
+                                                    <?php echo __('3 stars'); ?>
+                                                </span>
+                                            </label>
+                                            <input type="radio" name="ratings" id="Rating_4" value="80" class="radio" />
+                                            <label class="rating-4" for="Rating_4" title="<?php echo __('4 stars'); ?>" id="Rating_4_label">
+                                                <span>
+                                                    <?php echo __('4 stars'); ?>
+                                                </span>
+                                            </label>
+                                            <input type="radio" name="ratings" id="Rating_5" value="100" class="radio" />
+                                            <label class="rating-5" for="Rating_5" title="<?php echo __('5 stars'); ?>" id="Rating_5_label">
+                                                <span>
+                                                    <?php echo __('5 stars'); ?>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field review-field-nickname required">
+                            <label for="nickname_field" class="mb-1">
+                                <?php echo __('Nickname'); ?>
+                            </label>
+                            <div class="control">
+                                <input type="text" name="nickname" id="nickname_field" class="shadow-none form-control rounded" />
+                            </div>
+                        </div>
+                        <div class="field review-field-summary required">
+                            <label for="summary_field" class="mb-1">
+                                <?php echo __('Summary'); ?>
+                            </label>
+                            <div class="control">
+                                <input type="text" name="title" id="summary_field" class="shadow-none form-control rounded" />
+                            </div>
+                        </div>
+                        <div class="field review-field-text required">
+                            <label for="review_field" class="mb-1">
+                                <?php echo __('Review'); ?>
+                            </label>
+                            <div class="control">
+                                <textarea name="detail" id="review_field" class="form-control" cols="45" rows="8"></textarea>
+                            </div>
+                        </div>
+                        <div class="custom-control custom-checkbox p-0 mt-3">
+                            <input type="checkbox" class="custom-control-input" id="is_recommended" name="is_recommended" value="1">
+                            <label class="custom-control-label" for="is_recommended"><?php echo __('I recommend this product'); ?></label>
+                        </div>
+                        <div class="primary actions-primary mt-3">
+                            <button type="submit" class="btn btn-primary btn-lg" name="submit-review">
+                                <span>
+                                    <?php echo __('Submit Review'); ?>
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p class="h3 font-weight-bold mt-3">
+        <?php echo __('Top customer reviews'); ?>
+        <input type="hidden" id="amreview-default-info" value="<?php echo __('Top customer reviews'); ?>" />
+    </p>
+    <div class="amrev-items-block block-content border p-3 rounded" data-amload-js="container">
+        <ol class="items amreview-review-items" id="amreview-review-items">
+            <?php
+            $query_review = "SELECT * FROM mgkf_seller_review ";
+            $query_review .= "WHERE seller_id = '" . $customerId . "'";
+            $query_review .= "AND rating = 100";
+            $result_review = $conn->query($query_review);
+            if ($result_review->num_rows > 0) {
+                while ($row_review = $result_review->fetch_assoc()) {
+                    $author = $row_review['nickname'];
+                    $time = date("d.m.y", strtotime($row_review['created_at']));
+                    $is_recommended = $row_review['is_recommended'];
+                    $title = $row_review['summary'];
+                    $description = $row_review['description'];
+                    $rating = $row_review['rating'] . '%';
+            ?>
+                    <li class="d-flex justify-content-between flex-wrap py-3 border-bottom-not-last" data-amreview-js="review-entity">
+                        <div class="review-details amreview-author-details">
+                            <div class="amreview-wrap">
+                                <p class="text-capitalize" itemprop="author">
+                                    <?php echo $author; ?>
+                                </p>
+                                <p class="amreview-date">
+                                    <time class="text-body font-12" itemprop="datePublished">
+                                        <?php echo $time; ?>
+                                    </time>
+                                </p>
+                                <?php
+                                if ($is_recommended == 1) { ?>
+                                    <p class="text-java amreview-recommended">
+                                        <?php echo __('I recommend this product'); ?>
+                                    </p>
+                                <?php
+                                }
+                                ?>
+                            </div>
+                        </div>
+                        <div class="amreview-description-wrap" data-amreview-js="description-wrap">
+                            <div class="amrev-desc-title">
+                                <span class="amreview-title-review" itemprop="name">
+                                    <?php echo $title; ?>
+                                </span>
+                                <span class="amrev-voteqty" style="display:none;">
+                                    1 people found this helpful
+                                </span>
+                            </div>
+                            <span class="amreview-rating-label">Rating</span>
+                            <div class="amstars-rating-container -small" itemprop="reviewRating">
+                                <p class="amstars-stars" style="width:<?php echo $rating; ?>">
+                                    <span itemprop="ratingValue" class="hidden" title="<?php echo $rating; ?>">
+                                        <?php echo $rating; ?>
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="text-body" itemprop="description">
+                                <span data-amshowmore-js="text">
+                                    <?php echo $description; ?>
+                                </span>
+                            </div>
+                        </div>
+                    </li>
+                <?php
+                }
+            } else {
+                ?>
+                <p class="amreview-review-list -empty" id="list-review-5">
+                    <strong>
+                        <?= $block->escapeHtml(__('No reviews')); ?>
+                    </strong>
+                </p>
+            <?php
+            }
+            ?>
+            <?php
+            $query_review = "SELECT * FROM mgkf_seller_review ";
+            $query_review .= "WHERE seller_id = '" . $customerId . "'";
+            $query_review .= "AND rating = 80";
+            $result_review = $conn->query($query_review);
+            if ($result_review->num_rows > 0) {
+                while ($row_review = $result_review->fetch_assoc()) {
+                    $author = $row_review['nickname'];
+                    $time = date("d.m.y", strtotime($row_review['created_at']));
+                    $is_recommended = $row_review['is_recommended'];
+                    $title = $row_review['summary'];
+                    $description = $row_review['description'];
+                    $rating = $row_review['rating'] . '%';
+            ?>
+                    <li class="item review-item amreview-review-wrapper list-review-4" data-amreview-js="review-entity" style="display:none;">
+                        <div class="review-details amreview-author-details">
+                            <div class="amreview-wrap">
+                                <p class="amreview-author" itemprop="author">
+                                    <?php echo $author; ?>
+                                </p>
+                                <p class="amreview-date">
+                                    <time class="review-details-value" itemprop="datePublished">
+                                        <?php echo $time; ?>
+                                    </time>
+                                </p>
+                                <?php
+                                if ($is_recommended == 1) { ?>
+                                    <p class="amreview-recommended">
+                                        <?php echo __('I recommend this product'); ?>
+                                    </p>
+                                <?php
+                                }
+                                ?>
+                            </div>
+                        </div>
+                        <div class="amreview-description-wrap" data-amreview-js="description-wrap">
+                            <div class="amrev-desc-title">
+                                <span class="amreview-title-review" itemprop="name">
+                                    <?php echo $title; ?>
+                                </span>
+                                <span class="amrev-voteqty" style="display:none;" style="display:none;">
+                                    1 people found this helpful
+                                </span>
+                            </div>
+                            <span class="amreview-rating-label">Rating</span>
+                            <div class="amstars-rating-container -small" itemprop="reviewRating">
+                                <p class="amstars-stars" style="width:<?php echo $rating; ?>">
+                                    <span itemprop="ratingValue" class="hidden" title="<?php echo $rating; ?>">
+                                        <?php echo $rating; ?>
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="amreview-description amshowmore-container" itemprop="description">
+                                <span class="amreview-text amshowmore-text" data-amshowmore-js="text">
+                                    <?php echo $description; ?>
+                                </span>
+                            </div>
+                        </div>
+                    </li>
+                <?php
+                }
+            } else {
+                ?>
+                <p class="amreview-review-list -empty" id="list-review-4" style="display:none;">
+                    <strong>
+                        <?= $block->escapeHtml(__('No reviews')); ?>
+                    </strong>
+                </p>
+            <?php
+            }
+            ?>
+            <?php
+            $query_review = "SELECT * FROM mgkf_seller_review ";
+            $query_review .= "WHERE seller_id = '" . $customerId . "'";
+            $query_review .= "AND rating = 60";
+            $result_review = $conn->query($query_review);
+            if ($result_review->num_rows > 0) {
+                while ($row_review = $result_review->fetch_assoc()) {
+                    $author = $row_review['nickname'];
+                    $time = date("d.m.y", strtotime($row_review['created_at']));
+                    $is_recommended = $row_review['is_recommended'];
+                    $title = $row_review['summary'];
+                    $description = $row_review['description'];
+                    $rating = $row_review['rating'] . '%';
+            ?>
+                    <li class="item review-item amreview-review-wrapper list-review-3" data-amreview-js="review-entity" style="display:none;">
+                        <div class="review-details amreview-author-details">
+                            <div class="amreview-wrap">
+                                <p class="amreview-author" itemprop="author">
+                                    <?php echo $author; ?>
+                                </p>
+                                <p class="amreview-date">
+                                    <time class="review-details-value" itemprop="datePublished">
+                                        <?php echo $time; ?>
+                                    </time>
+                                </p>
+                                <?php
+                                if ($is_recommended == 1) { ?>
+                                    <p class="amreview-recommended">
+                                        <?php echo __('I recommend this product'); ?>
+                                    </p>
+                                <?php
+                                }
+                                ?>
+                            </div>
+                        </div>
+                        <div class="amreview-description-wrap" data-amreview-js="description-wrap">
+                            <div class="amrev-desc-title">
+                                <span class="amreview-title-review" itemprop="name">
+                                    <?php echo $title; ?>
+                                </span>
+                                <span class="amrev-voteqty" style="display:none;">
+                                    1 people found this helpful
+                                </span>
+                            </div>
+                            <span class="amreview-rating-label">Rating</span>
+                            <div class="amstars-rating-container -small" itemprop="reviewRating">
+                                <p class="amstars-stars" style="width:<?php echo $rating; ?>">
+                                    <span itemprop="ratingValue" class="hidden" title="<?php echo $rating; ?>">
+                                        <?php echo $rating; ?>
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="amreview-description amshowmore-container" itemprop="description">
+                                <span class="amreview-text amshowmore-text" data-amshowmore-js="text">
+                                    <?php echo $description; ?>
+                                </span>
+                            </div>
+                        </div>
+                    </li>
+                <?php
+                }
+            } else {
+                ?>
+                <p class="amreview-review-list -empty" id="list-review-3" style="display:none;">
+                    <strong>
+                        <?= $block->escapeHtml(__('No reviews')); ?>
+                    </strong>
+                </p>
+            <?php
+            }
+            ?>
+            <?php
+            $query_review = "SELECT * FROM mgkf_seller_review ";
+            $query_review .= "WHERE seller_id = '" . $customerId . "'";
+            $query_review .= "AND rating = 40";
+            $result_review = $conn->query($query_review);
+            if ($result_review->num_rows > 0) {
+                while ($row_review = $result_review->fetch_assoc()) {
+                    $author = $row_review['nickname'];
+                    $time = date("d.m.y", strtotime($row_review['created_at']));
+                    $is_recommended = $row_review['is_recommended'];
+                    $title = $row_review['summary'];
+                    $description = $row_review['description'];
+                    $rating = $row_review['rating'] . '%';
+            ?>
+                    <li class="item review-item amreview-review-wrapper list-review-2" data-amreview-js="review-entity" style="display:none;">
+                        <div class="review-details amreview-author-details">
+                            <div class="amreview-wrap">
+                                <p class="amreview-author" itemprop="author">
+                                    <?php echo $author; ?>
+                                </p>
+                                <p class="amreview-date">
+                                    <time class="review-details-value" itemprop="datePublished">
+                                        <?php echo $time; ?>
+                                    </time>
+                                </p>
+                                <?php
+                                if ($is_recommended == 1) { ?>
+                                    <p class="amreview-recommended">
+                                        <?php echo __('I recommend this product'); ?>
+                                    </p>
+                                <?php
+                                }
+                                ?>
+                            </div>
+                        </div>
+                        <div class="amreview-description-wrap" data-amreview-js="description-wrap">
+                            <div class="amrev-desc-title">
+                                <span class="amreview-title-review" itemprop="name">
+                                    <?php echo $title; ?>
+                                </span>
+                                <span class="amrev-voteqty" style="display:none;">
+                                    1 people found this helpful
+                                </span>
+                            </div>
+                            <span class="amreview-rating-label">Rating</span>
+                            <div class="amstars-rating-container -small" itemprop="reviewRating">
+                                <p class="amstars-stars" style="width:<?php echo $rating; ?>">
+                                    <span itemprop="ratingValue" class="hidden" title="<?php echo $rating; ?>">
+                                        <?php echo $rating; ?>
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="amreview-description amshowmore-container" itemprop="description">
+                                <span class="amreview-text amshowmore-text" data-amshowmore-js="text">
+                                    <?php echo $description; ?>
+                                </span>
+                            </div>
+                        </div>
+                    </li>
+                <?php
+                }
+            } else {
+                ?>
+                <p class="amreview-review-list -empty" id="list-review-2" style="display:none;">
+                    <strong>
+                        <?= $block->escapeHtml(__('No reviews')); ?>
+                    </strong>
+                </p>
+            <?php
+            }
+            ?>
+            <?php
+            $query_review = "SELECT * FROM mgkf_seller_review ";
+            $query_review .= "WHERE seller_id = '" . $customerId . "'";
+            $query_review .= "AND rating = 20";
+            $result_review = $conn->query($query_review);
+            if ($result_review->num_rows > 0) {
+                while ($row_review = $result_review->fetch_assoc()) {
+                    $author = $row_review['nickname'];
+                    $time = date("d.m.y", strtotime($row_review['created_at']));
+                    $is_recommended = $row_review['is_recommended'];
+                    $title = $row_review['summary'];
+                    $description = $row_review['description'];
+                    $rating = $row_review['rating'] . '%';
+            ?>
+                    <li class="item review-item amreview-review-wrapper list-review-1" data-amreview-js="review-entity" style="display:none;">
+                        <div class="review-details amreview-author-details">
+                            <div class="amreview-wrap">
+                                <p class="amreview-author" itemprop="author">
+                                    <?php echo $author; ?>
+                                </p>
+                                <p class="amreview-date">
+                                    <time class="review-details-value" itemprop="datePublished">
+                                        <?php echo $time; ?>
+                                    </time>
+                                </p>
+                                <?php
+                                if ($is_recommended == 1) { ?>
+                                    <p class="amreview-recommended">
+                                        <?php echo __('I recommend this product'); ?>
+                                    </p>
+                                <?php
+                                }
+                                ?>
+                            </div>
+                        </div>
+                        <div class="amreview-description-wrap" data-amreview-js="description-wrap">
+                            <div class="amrev-desc-title">
+                                <span class="amreview-title-review" itemprop="name">
+                                    <?php echo $title; ?>
+                                </span>
+                                <span class="amrev-voteqty" style="display:none;">
+                                    1 people found this helpful
+                                </span>
+                            </div>
+                            <span class="amreview-rating-label">Rating</span>
+                            <div class="amstars-rating-container -small" itemprop="reviewRating">
+                                <p class="amstars-stars" style="width:<?php echo $rating; ?>">
+                                    <span itemprop="ratingValue" class="hidden" title="<?php echo $rating; ?>">
+                                        <?php echo $rating; ?>
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="amreview-description amshowmore-container" itemprop="description">
+                                <span class="amreview-text amshowmore-text" data-amshowmore-js="text">
+                                    <?php echo $description; ?>
+                                </span>
+                            </div>
+                        </div>
+                    </li>
+                <?php
+                }
+            } else {
+                ?>
+                <p class="amreview-review-list -empty" id="list-review-1" style="display:none;">
+                    <strong>
+                        <?= $block->escapeHtml(__('No reviews')); ?>
+                    </strong>
+                </p>
+            <?php
+            }
+            ?>
+        </ol>
+    </div>
+    </div>
+    <h3 class="font-weight-bold my-3">Cele mai populare produse</h3>
+    <script>
+        var parent = document.getElementById("amreview-review-items");
+        var review = parent.getElementsByClassName("item review-item amreview-review-wrapper list-review-5");
+        for (var i = 0; i < review.length; i++) {
+            review[i].setAttribute("id", "list-review-5_" + i);
+        }
+        var review = parent.getElementsByClassName("item review-item amreview-review-wrapper list-review-4");
+        for (var i = 0; i < review.length; i++) {
+            review[i].setAttribute("id", "list-review-4_" + i);
+        }
+        var review = parent.getElementsByClassName("item review-item amreview-review-wrapper list-review-3");
+        for (var i = 0; i < review.length; i++) {
+            review[i].setAttribute("id", "list-review-3_" + i);
+        }
+        var review = parent.getElementsByClassName("item review-item amreview-review-wrapper list-review-2");
+        for (var i = 0; i < review.length; i++) {
+            review[i].setAttribute("id", "list-review-2_" + i);
+        }
+        var review = parent.getElementsByClassName("item review-item amreview-review-wrapper list-review-1");
+        for (var i = 0; i < review.length; i++) {
+            review[i].setAttribute("id", "list-review-1_" + i);
+        }
+
+        function show_add_review_form() {
+            document.getElementById("add-review-form").style.display = "block";
+            document.getElementById("amreview-add-new").style.display = "none";
+        }
+
+        function hide_reviews_block() {
+            document.getElementById("add-review-form").style.display = "none";
+            document.getElementById("amreview-add-new").style.display = "block";
+        }
+
+        function show_reviews(k) {
+            var rating;
+            var info;
+
+            if (k == 5) {
+                rating = '100%';
+                info = '<?php echo __('with 5 stars'); ?>';
+            }
+            if (k == 4) {
+                rating = '80%';
+                info = '<?php echo __('with 4 stars'); ?>';
+            }
+            if (k == 3) {
+                rating = '60%';
+                info = '<?php echo __('with 3 stars'); ?>';
+            }
+            if (k == 2) {
+                rating = '40%';
+                info = '<?php echo __('with 2 stars'); ?>';
+            }
+            if (k == 1) {
+                rating = '20%';
+                info = '<?php echo __('with 1 star'); ?>';
+            }
+
+            var current = document.getElementById("amreview-current").innerText;
+            var review_count = parent.getElementsByClassName("item review-item amreview-review-wrapper list-review-" + k);
+            for (var i = 0; i <= review_count.length; i++) {
+                if (document.getElementById("list-review-" + current)) {
+                    document.getElementById("list-review-" + current).style.display = "none";
+                }
+                if (document.getElementById("list-review-" + current + "_" + i)) {
+                    document.getElementById("list-review-" + current + "_" + i).style.display = "none";
+                }
+                if (document.getElementById("list-review-" + k + "_" + i)) {
+                    document.getElementById("list-review-" + k + "_" + i).style.display = "flex";
+                } else {
+                    if (document.getElementById("list-review-" + k)) {
+                        document.getElementById("list-review-" + k).style.display = "flex";
+                    }
+                }
+            }
+
+            document.getElementById("amreview-current").innerText = k;
+            document.getElementById("amstars-stars").removeAttribute("style");
+            document.getElementById("amstars-stars").style.width = rating;
+
+            var nr_review = document.getElementById("amreview-count-" + k).value;
+            document.getElementById("amreview-current-count").innerText = nr_review + ' ' + "<?php echo __('reviews'); ?>";
+
+            document.getElementsByClassName("amreview-bar")[1].classList.remove("-active");
+            if (k == 5) {
+                document.getElementsByClassName("amreview-bar")[1].classList.add("-active");
+                for (var i = 0; i < 10; i++) {
+                    if (i != 1) {
+                        document.getElementsByClassName("amreview-bar")[i].classList.remove("-active");
+                    }
+                }
+            }
+            if (k == 4) {
+                document.getElementsByClassName("amreview-bar")[3].classList.add("-active");
+                for (var i = 0; i < 10; i++) {
+                    if (i != 3) {
+                        document.getElementsByClassName("amreview-bar")[i].classList.remove("-active");
+                    }
+                }
+            }
+            if (k == 3) {
+                document.getElementsByClassName("amreview-bar")[5].classList.add("-active");
+                for (var i = 0; i < 10; i++) {
+                    if (i != 5) {
+                        document.getElementsByClassName("amreview-bar")[i].classList.remove("-active");
+                    }
+                }
+            }
+            if (k == 2) {
+                document.getElementsByClassName("amreview-bar")[7].classList.add("-active");
+                for (var i = 0; i < 10; i++) {
+                    if (i != 7) {
+                        document.getElementsByClassName("amreview-bar")[i].classList.remove("-active");
+                    }
+                }
+            }
+            if (k == 1) {
+                document.getElementsByClassName("amreview-bar")[9].classList.add("-active");
+                for (var i = 0; i < 10; i++) {
+                    if (i != 9) {
+                        document.getElementsByClassName("amreview-bar")[i].classList.remove("-active");
+                    }
+                }
+            }
+
+            var default_info = document.getElementById("amreview-default-info").value;
+            document.getElementById("amreview-info").innerText = default_info;
+            var current_info = document.getElementById("amreview-info").innerText;
+            document.getElementById("amreview-info").innerText = current_info + ' ' + info;
+        }
+    </script>

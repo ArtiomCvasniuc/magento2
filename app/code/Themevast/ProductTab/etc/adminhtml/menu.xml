@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Backend/etc/menu.xsd">
+    <menu>
+		<add id="Themevast_ProductTab::themevast_producttab" title="Product Tabs" module="Themevast_ProductTab" sortOrder="0" parent="Themevast_Themevast::themevast_setting" resource="Themevast_ProductTab::themevast_producttab" action="adminhtml/system_config/edit/section/producttab" />
+    </menu>
+</config>

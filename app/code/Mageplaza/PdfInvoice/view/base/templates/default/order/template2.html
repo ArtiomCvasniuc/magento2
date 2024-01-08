@@ -1,0 +1,118 @@
+<html>
+<body>
+<div id="wrapper">
+    <div class="header">
+        <div class="header-left">
+            <div class="address">
+                <div class="info">
+                    <h4>{{trans "Address"}}</h4>
+                    <ul>
+                        <li>{{var businessInformation.getAddress()}}</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="phone">
+                <div class="info">
+                    <h4>{{trans "Phone"}}</h4>
+                    <ul>
+                        <li>{{var businessInformation.getPhone()}}</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="address">
+                <div class="info">
+                    <h4>{{trans "Email"}}</h4>
+                    <ul>
+                        <li>{{var businessInformation.getContact()}}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="logo-right">
+                <a class="logo" href="{{store url=""}}">
+                <img
+                        {{if logo_white_url}}
+                        src="{{var logo_white_url}}"
+                        {{else}}
+                        src="{{var logo_url}}"
+                        {{/if}}
+                width="{{var businessInformation.getLogoWidth()}}"
+                height="{{var businessInformation.getLogoHeight()}}"
+                alt="{{var logo_alt}}"
+                border="0"
+                />
+                </a>
+            </div>
+        </div>
+        <div class="clr"></div>
+    </div>
+    <div class="content">
+        <nav>
+            <div class="heading">
+                <h1>{{trans "ORDER"}}</h1>
+            </div>
+            <div class="heading-right">
+                <div class="invoice-id">
+                    <span>{{trans "Order: #"}}</span><b>{{var order.increment_id}}</b>
+                </div>
+                <div class="invoice-date">
+                    <span>{{trans "Date: "}}</span><b>{{var pdfInvoiceCustom.formatDate($order.created_at)}}</b>
+                </div>
+                <div class="invoice-amount">
+                    <span>{{trans "Amount: "}}</span><b>{{var order.formatPrice($order.getGrandTotal())|raw }}</b>
+                </div>
+            </div>
+        </nav>
+        <div class="contnet-top">
+            <div class="section-left">
+                <div class="billing-info">
+                    <h3>{{trans "BILLING ADDRESS"}}</h3>
+                    <p>{{var formattedBillingAddress|raw}}</p>
+                </div>
+            </div>
+            <div class="section-right">
+                <div class="info-invoice">
+                    <h3>{{trans "PAYMENT METHOD"}}</h3>
+                    {{var payment_html|raw}}
+                </div>
+            </div>
+            <div class="clr"></div>
+            {{depend order.getIsNotVirtual()}}
+            <div class="section-left">
+                <div class="shipping-info">
+                    <h3>{{trans "SHIPPING ADDRESS"}}</h3>
+                    <p>{{var formattedShippingAddress|raw}}</p>
+                </div>
+            </div>
+            <div class="section-right">
+                <div class="shipping-method">
+                    <h3>{{trans "SHIPPING METHOD"}}</h3>
+                    <span>{{var order.getShippingDescription()}}</span>
+                </div>
+            </div>
+            {{/depend}}
+            <div class="clr"></div>
+        </div>
+        <div class="items">
+            {{layout area="frontend" handle="pdfinvoice_order_items2" order=$order itemBarcode=1}}
+        </div>
+    </div>
+    <footer>
+        {{depend orderNote}}
+        <div class="footer-left">
+            <h3>{{trans "Notes"}}</h3>
+            <span><i>{{var orderNote|raw}} </i></span>
+        </div>
+        {{/depend}}
+        <div class="footer-right">
+            <div class="bar-code">
+                <p class="mp-invoice-barcode">
+                    <barcode code="{{var order.increment_id}}" type="C39"/>
+                </p>
+            </div>
+        </div>
+    </footer>
+</div>
+</body>
+</html>

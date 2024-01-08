@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Config/etc/system_file.xsd">
+    <system>
+        <tab id="themevast" translate="label" sortOrder="400">
+            <label>Themevast</label>
+        </tab>
+		<section id="import_export" translate="label" type="text" sortOrder="500" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Import - Export</label>
+            <tab>themevast</tab>
+			<resource>Themevast_Themevast::themevast_import_export</resource>
+            <group id="import" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Import</label>
+				<field id="overwrite_blocks" translate="label comment" type="select" sortOrder="0"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Overwrite Blocks</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+					<comment>Set to 'Yes', if you want to overwrite blocks.</comment>
+                </field>
+                <field id="static_block" translate="label comment" type="button" sortOrder="0"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Static Blocks</label>
+                    <frontend_model>Themevast\Themevast\Block\Adminhtml\Button\Import\Block</frontend_model>
+                </field>
+				<field id="overwrite_pages" translate="label comment" type="select" sortOrder="0"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Overwrite Pages</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+					<comment>Set to 'Yes', if you want to overwrite blocks.</comment>
+                </field>
+                <field id="import_pages" translate="label comment" type="button" sortOrder="0"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Custom Pages</label>
+                    <frontend_model>Themevast\Themevast\Block\Adminhtml\Button\Import\Page</frontend_model>
+                </field>
+            </group>
+			<group id="export" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Export</label>
+                <field id="static_block" translate="label comment" type="button" sortOrder="0"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Static Blocks</label>
+                    <frontend_model>Themevast\Themevast\Block\Adminhtml\Button\Export\Block</frontend_model>
+                </field>
+                <field id="export_pages" translate="label comment" type="button" sortOrder="0"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Custom Pages</label>
+                    <frontend_model>Themevast\Themevast\Block\Adminhtml\Button\Export\Page</frontend_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

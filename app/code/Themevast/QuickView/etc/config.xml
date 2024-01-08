@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Magento/Store/etc/config.xsd">
+	<default>
+		<themevast_quickview>
+            <general>
+                <enabled>1</enabled>
+                <enabledTab>1</enabledTab>
+                <enabledTagTab>1</enabledTagTab>
+                <enabledReviewTab>1</enabledReviewTab>
+            </general>
+			<main_image>
+				<image_width>370</image_width>
+                <image_height>470</image_height>
+			</main_image>
+            <moreview>
+                <enable>1</enable>
+                <image_width>100</image_width>
+                <image_height>110</image_height>
+                <autoplay>0</autoplay>
+                <orientation>horizontal</orientation>
+            </moreview>
+        </themevast_quickview>
+	</default>
+</config>

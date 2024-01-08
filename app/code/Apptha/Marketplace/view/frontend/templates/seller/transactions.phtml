@@ -1,0 +1,769 @@
+<?php
+/**
+ * Apptha
+ * NOTICE OF LICENSE
+ * This source file is subject to the EULA
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://www.apptha.com/LICENSE.txt
+ * ==============================================================
+ * MAGENTO EDITION USAGE NOTICE
+ * ==============================================================
+ * This package designed for Magento COMMUNITY edition
+ * Apptha does not guarantee correct work of this extension
+ * on any other Magento edition except Magento COMMUNITY edition.
+ * Apptha does not provide extension support in case of
+ * incorrect edition usage.
+ * ==============================================================
+ *
+ * @category Apptha
+ * @package Apptha_Marketplace
+ * @version 1.2
+ * @author Apptha Team <developers@contus.in>
+ * @copyright Copyright (c) 2017 Apptha. (http://www.apptha.com)
+ * @license http://www.apptha.com/LICENSE.txt
+ */
+if (file_exists("conf/conf.php"))
+	@include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+if(isset($_POST['add_card'])) {
+	$sellerId = $_POST['seller_id'];
+	$cardNumber = $_POST['card_number'];
+	$cardExpirationDate = $_POST['card_expiration_date'];
+	$cardOwner = $_POST['card_owner'];
+	$cardCvv = $_POST['card_cvv'];
+
+	$query = "INSERT INTO mgkf_cards ";
+	$query .= "(seller_id, number, expiration_date, owner, cvv) ";
+	$query .= "VALUES ";
+	$query .= "('".$sellerId."', '".$cardNumber."', '".$cardExpirationDate."', '".$cardOwner."', '".$cardCvv."')";
+	$result = $conn->query($query);
+}
+if (isset($_POST['edit_card'])) {
+	$cardId = $_POST['card_id'];
+	$cardNumber = $_POST['card_number'];
+	$cardExpirationDate = $_POST['card_expiration_date'];
+	$cardOwner = $_POST['card_owner'];
+	$cardCvv = $_POST['card_cvv'];
+
+	$query = "UPDATE mgkf_cards ";
+	$query .= "SET number = '" . $cardNumber . "', ";
+	$query .= "expiration_date = '" . $cardExpirationDate . "', ";
+	$query .= "owner = '" . $cardOwner . "', ";
+	$query .= "cvv = '" . $cardCvv . "' ";
+	$query .= "WHERE id = '" . $cardId . "'";
+	$result = $conn->query($query);
+}
+if(isset($_POST['delete_card'])) {
+	$cardId = $_POST['delete_card'];
+
+	$query = "DELETE FROM mgkf_cards ";
+	$query .= "WHERE id = '".$cardId."'";
+	$result = $conn->query($query);
+}
+
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer();
+if ($customerSession->isLoggedIn()) {
+	$customerId = $customerSession->getId();
+	$customerGroupId = $customerDatas->getGroupId();
+	$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+	$sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+	$sellerGroupId = $sellerGroupData->getId();
+	$status = $helper->sellerStatus($customerId);
+}
+
+$query_seller_currency = "SELECT currency FROM mgkf_marketplace_seller_currency ";
+$query_seller_currency .= "WHERE seller_id = $customerId";
+$result_seller_currency = $conn->query($query_seller_currency);
+$row_seller_currency = $result_seller_currency->fetch_row();
+$sellerCurrency = ucfirst(strtolower($row_seller_currency[0]));
+
+$query_tva = "SELECT tva_level FROM mgkf_marketplace_seller ";
+$query_tva .= "WHERE customer_id = $customerId";
+$result_tva = $conn->query($query_tva);
+
+$query_vendor = "SELECT * FROM mgkf_marketplace_seller ";
+$query_vendor .= "WHERE customer_id = $customerId";
+$result_vendor = $conn->query($query_vendor);
+
+$query_inv = "SELECT * ";
+$query_inv .= "FROM mgkf_marketplace_sellerorder, mgkf_customer_entity ";
+$query_inv .= "WHERE seller_id = entity_id AND active = 0";
+$result_inv = $conn->query($query_inv);
+
+$query_store_info = "SELECT * FROM mgkf_store_info";
+$result_store_info = $conn->query($query_store_info);
+?>
+<main class="main-tabs">
+	<div class="tab">
+		<div class="justify-content-between justify-content-md-start tab-menu">
+			<button class="tab-menu-link border-0" data-content="first">
+                <span data-title="first">
+                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('transactions')->toHtml(); ?>
+                </span>
+			</button>
+			<button class="tab-menu-link border-0" data-content="second">
+                <span data-title="second">
+                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('invoices')->toHtml(); ?>
+                </span>
+			</button>
+			<button class="tab-menu-link border-0 active" data-content="third">
+                <span data-title="third">
+                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('cards')->toHtml(); ?>
+                </span>
+			</button>
+		</div>
+		<div class="tab-bar">
+			<div class="tab-bar-content" id="first">
+                <?php
+                $query = "SELECT customer_firstname, customer_lastname, subtotal_incl_tax, subtotal, commission, tva, active, is_shipped, is_returned ";
+                $query .= "FROM mgkf_sales_order, mgkf_marketplace_sellerorder ";
+                $query .= "WHERE entity_id = order_id ";
+                $query .= "AND active = 1 ";
+                $query .= "AND is_shipped = 1 ";
+                $query .= "AND seller_id = '".$customerId."'";
+                $result = $conn->query($query);
+                $row_count = $result->num_rows;
+
+                if ($result->num_rows > 0) {
+                    $sum = 0;
+                    while ($row = $result->fetch_assoc()) {
+                        $return = $row['is_returned'];
+                        $tva = $row['tva'];
+                        $active = $row['active'];
+                        $k = $row['commission'] * (1 + $tva * 0.01);
+                        if ($return == 1) {
+                            $sum = $sum - $k;
+                        } else {
+                            $sum = $sum + $k;
+                        }
+                        if ($active == 1 && $sum >= 1000) {
+                            $invoice = 1;
+                            $sum = $sum - 1000;
+                            $total = $sum + 1000;
+
+                            $update = "UPDATE mgkf_marketplace_sellerorder ";
+                            $update .= "SET active = 0 WHERE created_at < NOW()";
+                            $result_update = $conn->query($update);
+
+                            $insert = "INSERT INTO mgkf_marketplace_seller_invoices (total) ";
+                            $insert .= "VALUES ('" . $total . "')";
+                            $result_insert = $conn->query($insert);
+
+                            $sum = $sum - 1000;
+                        }
+                    }
+                ?>
+                    <h5 class="text-md-right">
+                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('current_balance')->toHtml(); ?>: 
+                        <span class="font-weight-normal">
+                            <?php echo number_format((float)$sum, 2, '.', '') . ' Ron' ?>
+                        </span>
+                    </h5>
+                    <?php
+                }
+                $result = $conn->query($query);
+                if ($result->num_rows > 0) { 
+                    $i = 1;
+                    $sum = 0;
+                    while ($row = $result->fetch_assoc()) {
+                        $tva = $row['tva'];
+                        $com = $row['commission'] * (1 + $tva * 0.01);
+                        $sum = $sum + $com; 
+                        $fullName = $row['customer_firstname'] . ' ' . $row['customer_lastname'];
+                        $subtotal = $row['subtotal'];
+                        $com = $subtotal * 0.15;
+                        ?>                            
+                        <div class="shadow py-3 px-4 mt-3">
+                            <h5 class="m-0">
+                                <span class="text-uppercase">Nr.</span>&nbsp;<?php echo $i; ?>
+                            </h5>
+                            <div class="row mt-2 align-items-md-center">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('client')->toHtml(); ?>:
+                                                <span class="font-weight-normal">
+                                                    <?php echo $fullName; ?>
+                                                </span>
+                                            </p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('value')->toHtml(); ?>:
+                                                <span class="font-weight-normal">
+                                                    <?php echo number_format((float)$subtotal, 2, '.', '') . ' ' . $sellerCurrency; ?>
+                                                </span>
+                                            </p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('commission')->toHtml(); ?>:
+                                                <span class="font-weight-normal">
+                                                    <?php echo number_format((float)$com, 2, '.', '') . ' ' . $sellerCurrency; ?>
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php
+                        $i++;
+                    }
+                }
+                else { ?>
+                    <div class="alert alert-danger" role="alert">
+                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('no_records_found')->toHtml(); ?>
+                    </div>
+                <?php
+                }
+                ?>
+			</div>
+			<div class="tab-bar-content" id="second">
+                <?php
+                $query = "SELECT * ";
+                $query .= "FROM mgkf_marketplace_seller_invoices ";
+                $query .= "ORDER BY date";
+                $result = $conn->query($query);
+                    if ($result->num_rows > 0) {
+                        $sum = 0;
+                        $i = 1;
+                        while ($row = $result->fetch_assoc()) {
+                            $pr = '%'; 
+                            $date = $row['date'];
+                            $total = $row['total'];
+                            ?>
+                            <div class="shadow py-3 px-4 mb-3">
+                                <h5 class="m-0">
+                                    <span class="text-uppercase">Nr <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('invoice')->toHtml(); ?>:</span> 
+                                    <?php echo $i; ?>
+                                </h5>
+                                <div class="row mt-2 align-items-md-center">
+                                    <div class="col-md-10">
+                                        <div class="row flex-column">
+                                            <div class="col-xl-9">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <p class="m-0 font-weight-bold">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('date')->toHtml(); ?>:
+                                                            <span class="font-weight-normal">
+                                                                <?php echo $date; ?>
+                                                            </span>
+                                                        </p>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <p class="m-0 font-weight-bold">
+                                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('total')->toHtml(); ?>:
+                                                            <span class="font-weight-normal">
+                                                                <?php echo $total ?>
+                                                            </span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-2 text-md-right mt-2 mt-xl-0">
+                                        <div class="d-flex justify-content-md-end">
+                                            <button class="btn-sm rounded mr-3 btn-secondary" data-toggle="modal" data-target="#invoice-<?php echo $i; ?>">
+                                                <i class="far fa-eye"></i>
+                                            </button>
+                                            <button class="btn-sm rounded btn-secondary">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="invoice-<?php echo $i; ?>" role="dialog">
+                                <div class="modal-dialog" id="printThis">
+                                    <div id="main">
+                                        <div class="modal-content" id="printDiv">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                <div class="col-md-12">
+                                                    <div class="col-md-6">
+                                                        <div class="header-left">
+                                                            <div class="logo-left">
+                                                                <img width="150" height="100" src="/pub/media/logo/stores/1/Screenshot_2019-03-18_at_16.37.53.png" alt="Atytude" />
+                                                            </div>
+                                                            <div class="business-information">
+                                                                <?php while ($row_query_info = $result_store_info->fetch_assoc()) { ?>
+                                                                    <p>
+                                                                        <b><u><?php echo $row_query_info['name']; ?></u></b>
+                                                                    </p>
+                                                                    <p><?php echo $row_query_info['address']; ?></p>
+                                                                    <p><?php echo $row_query_info['tax_id']; ?></p>
+                                                                    <p><?php echo $row_query_info['registration_number']; ?></p>
+                                                                    <p><?php echo $row_query_info['bank']; ?></p>
+                                                                    <p><?php echo $row_query_info['account']; ?></p>
+                                                                <?php } ?>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="header-right">
+                                                            <?php while ($row_tva = $result_tva->fetch_assoc()) { ?>
+                                                                <div class="info">
+                                                                    <h1 class="info-title">INVOICE</h1>
+                                                                    <p>Invoice <b>#0000000001</b></p>
+                                                                    <p>Date: <b>Aug 03, 2019</b></p>
+                                                                    <p>Amount = <b>1111.50</b></p>
+                                                                    <p>Currency: <b>RON</b></p>
+                                                                    <p><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('vat_percent')->toHtml(); ?>: <b><?php echo $row_tva['tva_level'] . '%' ?></b></p>
+                                                                </div>
+                                                            <?php } ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-body">
+                                                <ul>
+                                                    <li>
+                                                        <div class="address">
+                                                            <div class="col-md-12">
+                                                                <div class="col-md-6">
+                                                                    <div class="billing-address">
+                                                                        <?php while ($row = $result_vendor->fetch_assoc()) { ?>
+                                                                            <h3 class="mp-block-heading">Client</h3>
+                                                                            <p><b><?php echo $row['trading_company_name'] ?></b></p>
+                                                                            <p><b><?php echo $row['address'] . ' ' . $row['state'] . ' ' . $row['country'] ?></b></p>
+                                                                            <p><b><?php echo $row['cui'] ?></b></p>
+                                                                            <p><b><?php echo $row['registration_number'] ?></b></p>
+                                                                            <p><b><?php echo $row['bank'] ?></b></p>
+                                                                            <p><b><?php echo $row['bank_account'] ?></b></p>
+                                                                            <p><b><?php echo $row['delegate'] ?></b></p>
+                                                                        <?php } ?>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <div class="payment-method">
+                                                                        <h3 class="mp-block-heading">Payment Method</h3>
+                                                                        <p><b>Card Transfer</b></p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Nr</th>
+                                                            <th>Product Name</th>
+                                                            <th>U.M.</th>
+                                                            <th>Qty</th>
+                                                            <th>Value</th>
+                                                            <th>TVA</th>
+                                                            <th>Total</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <?php
+                                                        $i = 1;
+                                                        $sum = 0;
+                                                        $total_value = 0;
+                                                        $total_tva = 0;
+                                                        $total_total = 0;
+                                                        while ($row = $result_inv->fetch_assoc()) {
+                                                            $curr = 'RON';
+                                                            $qty = 1;
+                                                            $tva = $row['tva'];
+                                                            $com = $row['commission'];
+                                                            $total = $com * (1 + $tva * 0.01);
+                                                            $tva_converted = $tva * 0.1;
+                                                            $tva_value = $total - $com;
+                                                            $total_value = $total_value + $com;
+                                                            $total_tva = $total_tva + $tva_value;
+                                                            $total_total = $total_total + $total;
+                                                            $fullName = $row['firstname'] . ' ' . $row['lastname'];
+                                                            ?>
+                                                            <tr>
+                                                                <td><?php echo $i; ?></td>
+                                                                <td><?php echo 'Commission Transaction ' . $fullName; ?></td>
+                                                                <td>buc</td>
+                                                                <td><?php echo $qty; ?></td>                
+                                                                <td><?php echo number_format((float)$com, 2, '.', ''); ?></td>
+                                                                <td><?php echo number_format((float)$tva_value, 2, '.', ''); ?></td>
+                                                                <td><?php echo number_format((float)$total, 2, '.', ''); ?></td>
+                                                            </tr>
+                                                        <?php
+                                                        $i++;
+                                                        } 
+                                                        ?>
+                                                        <tr>
+                                                            <td class="right" colspan="4"><b>Total:</b></td>
+                                                            <td class="right"><?php echo number_format((float)$total_value, 2, '.', '') ?></td>
+                                                            <td class="right"><?php echo number_format((float)$total_tva, 2, '.', '') ?></td>
+                                                            <td class="right"><?php echo number_format((float)$total_total, 2, '.', '') ?></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                                <?php while ($row_tva = $result_tva->fetch_assoc()) { ?>
+                                                    <div class="footer-left">
+                                                        <div class="col-md-12">
+                                                            <h3 class="mp-note">Notes:</h3>
+                                                            <span style="font-style: italic;">TVA is 19%</span>
+                                                        </div>
+                                                    </div>
+                                                <?php } ?>
+                                            </div>
+                                            <div class="main">
+                                                <div class="modal-footer">
+                                                    <button id="Print" type="button" class="btn btn-primary hidden-print"><span class="glyphicon glyphicon-print" aria-hidden="true"></span> Print Invoice</button>
+                                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php
+                            $i++;
+                        }
+                        ?>
+                <?php
+                } else { ?>
+                    <div class="alert alert-danger" role="alert">
+                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('no_records_found')->toHtml(); ?>
+                    </div>
+                <?php
+                }
+                ?>
+			</div>
+			<div class="tab-bar-content active" id="third">
+				<div class="text-md-right">
+					<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+						<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_card')->toHtml(); ?>
+					</button>
+				</div>
+                <?php 
+                $query = "SELECT * FROM mgkf_cards ";
+                $query .= "WHERE seller_id = '".$customerId."'";
+                $result = $conn->query($query);
+                $cardCount = $result->num_rows;
+                $i = 1;
+                while($row = $result->fetch_assoc()) {
+                    $cardId = $row['id'];
+                    $cardNumber = $row['number'];
+                    $cardOwner = $row['owner'];
+                    $cardExpirationDate = $row['expiration_date'];
+                    $cardCvv = $row['cvv'];
+                ?>
+                    <div class="shadow py-3 px-4 mt-3">
+						<h5 class="m-0">
+							<span class="text-uppercase">Card Nr.</span>&nbsp;<?php echo $i; ?>
+						</h5>
+						<div class="row mt-2 align-items-md-center">
+							<div class="col-xl-11">
+								<div class="row flex-column">
+									<div class="row">
+										<div class="col-sm-6 col-lg-4">
+											<p class="m-0 font-weight-bold">
+												<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('card_nr')->toHtml(); ?>:
+												<span class="font-weight-normal">
+													<?php echo $cardNumber; ?>
+												</span>
+											</p>
+										</div>
+										<div class="col-sm-6 col-lg-4">
+											<p class="m-0 font-weight-bold">
+												<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('expiration_date')->toHtml(); ?>:
+												<span class="font-weight-normal">
+													<?php echo $cardExpirationDate; ?>
+												</span>
+											</p>
+										</div>
+										<div class="col-sm-6 col-lg-2">
+											<p class="m-0 font-weight-bold">
+												<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('owner')->toHtml(); ?>:
+												<span class="font-weight-normal">
+													<?php echo $cardOwner; ?>
+												</span>
+											</p>
+										</div>
+										<div class="col-sm-6 col-lg-2">
+											<p class="m-0 font-weight-bold">
+												CVV:
+												<span class="font-weight-normal">
+													<?php echo $cardCvv; ?>
+												</span>
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-md-3 col-xl-1 text-md-right mt-2 mt-xl-0">
+								<div class="d-flex justify-content-xl-end">
+									<button id="showEditCard-<?php echo $i; ?>" onclick="showEditCard(<?php echo $i; ?>)" class="btn btn-sm btn-secondary mr-3">
+										<i class="far fa-edit"></i>
+									</button>
+									<form method="post" action="">
+										<input type="hidden" name="delete_card" value="<?php echo $cardId; ?>" />
+										<button type="submit" class="btn btn-sm btn-secondary">
+											<i class="fas fa-trash"></i>
+										</button>
+									</form>
+								</div>
+							</div>
+						</div>
+						<div id="edit-card-<?php echo $i; ?>" class="d-none">
+							<hr>
+							<form role="form" method="post" action="">
+								<h5><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('edit_card')->toHtml(); ?></h5>
+								<div class="row align-items-end">
+									<div class="col-md-6 col-xl-3">
+										<div>
+											<label for="owner" class="form-label">
+												<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('owner')->toHtml(); ?>
+											</label>
+											<input type="text" name="card_owner" class="border-right-0 border-right-0 form-control rounded-0 rounded-left rounded-right-0" id="owner" value="<?php echo $cardOwner; ?>">
+										</div>
+									</div>
+									<div class="col-md-6 col-xl-4 mt-2 mt-md-0">
+										<label for="basic-url" class="form-label">
+											<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('card_nr')->toHtml(); ?>
+										</label>
+										<div class="input-group">
+											<input type="text" name="card_number" class="border-right-0 form-control rounded-0 rounded-left rounded-right-0" value="<?php echo $cardNumber; ?>">
+											<span class="input-group-text" id="basic-addon2">
+												<i class="fab fa-cc-visa mx-1"></i>
+												<i class="fab fa-cc-amex mx-1"></i>
+												<i class="fab fa-cc-mastercard mx-1"></i>
+											</span>
+										</div>
+									</div>
+									<div class="col-md-4 col-xl-2 mt-2 mt-xxl-0">
+										<div class="">
+											<label for="expiration-date" class="form-label"><?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('expiration_date')->toHtml(); ?></label>
+											<input type="text" name="card_expiration_date" class="border-right-0 rounded-0 rounded-left rounded-right-0 border-right-0 border-right-0 form-control rounded-0 rounded-left rounded-right-0" placeholder="MM / YY" id="expiration-date" value="<?php echo $cardExpirationDate; ?>">
+										</div>
+									</div>
+									<div class="col-md-4 col-xl-1 mt-2 mt-md-0">
+										<div>
+											<label for="cvv" class="form-label" data-toggle="tooltip" title="" data-original-title="Three-digits code on the back of your card">CVV
+												<i class="fa fa-question-circle"></i>
+											</label>
+											<input type="number" name="card_cvv" class="border-right-0 form-control rounded-0 rounded-left rounded-right-0" id="cvv" value="<?php echo $cardCvv; ?>">
+										</div>
+									</div>
+									<div class="col-md-4 col-xl-2">
+										<input type="hidden" name="card_id" value="<?php echo $cardId; ?>" />
+										<button type="submit" name="edit_card" class="btn btn-block btn-primary mt-3 px-5">
+											<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('save')->toHtml(); ?>
+										</button>
+									</div>
+								</div>
+							</form>
+						</div>
+                    </div>
+                <?php
+                    $i++;
+                }
+                ?>
+				<input type="hidden" id="cards-count" value="<?php echo $cardCount; ?>" />
+			</div>
+		</div>
+	</div>
+</main>
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">
+                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_card')->toHtml(); ?>
+                </h5>
+				<button type="button" class="btn-close bg-transparent border-0" data-dismiss="modal" aria-label="Close">
+					<i class="fas fa-times"></i>
+				</button>
+			</div>
+			<div class="modal-body p-md-4">
+				<form role="form" method="post" action="">
+					<div class="row align-items-end">
+						<div class="col-md-6">
+							<div>
+								<label for="owner" class="form-label">
+									<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('owner')->toHtml(); ?>
+								</label>
+								<input type="text" class="border-right-0 form-control rounded-0 rounded-left rounded-right-0" placeholder="Enter first and last name" id="owner" name="card_owner">
+							</div>
+						</div>
+						<div class="col-md-6 mt-2 mt-md-0">
+							<label for="basic-url" class="form-label">
+								<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('card_nr')->toHtml(); ?>
+							</label>
+							<div class="input-group">
+								<input type="text" class="border-right-0 form-control rounded-0 rounded-left rounded-right-0" placeholder="Enter card number" name="card_number">
+								<span class="input-group-text" id="basic-addon2">
+									<i class="fab fa-cc-visa mx-1"></i>
+									<i class="fab fa-cc-amex mx-1"></i>
+									<i class="fab fa-cc-mastercard mx-1"></i>
+								</span>
+							</div>
+						</div>
+						<div class="col-md-4 mt-2">
+							<div class="">
+								<label for="expiration-date" class="form-label">
+									<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('expiration_date')->toHtml(); ?>
+								</label>
+								<input type="text" class="border-right-0 form-control rounded-0 rounded-left rounded-right-0" placeholder="MM / YY" id="expiration-date" name="card_expiration_date">
+							</div>
+						</div>
+						<div class="col-md-4 mt-2 mt-md-0">
+							<div>
+								<label for="cvv" class="form-label" data-toggle="tooltip" title="" data-original-title="Three-digits code on the back of your card">CVV
+									<i class="fa fa-question-circle"></i>
+								</label>
+								<input type="number" class="border-right-0 form-control rounded-0 rounded-left rounded-right-0" placeholder="Enter CVV" id="cvv" name="card_cvv">
+							</div>
+						</div>
+						<div class="col-md-4">
+							<input type="hidden" name="seller_id" value="<?php echo $customerId; ?>" />
+							<button type="submit" name="add_card" class="btn btn-block btn-primary mt-3 px-5">
+								<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('save')->toHtml(); ?>
+							</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+const tabLink = document.querySelectorAll(".tab-menu-link");
+const tabContent = document.querySelectorAll(".tab-bar-content");
+
+tabLink.forEach((el) => {
+  el.addEventListener("click", activeTab);
+});
+
+function activeTab(el) {
+  const btnTarget = el.currentTarget;
+  const content = btnTarget.dataset.content;
+
+  tabContent.forEach((el) => {
+    el.classList.remove("active");
+  });
+
+  tabLink.forEach((el) => {
+    el.classList.remove("active");
+  });
+
+  document.querySelector("#" + content).classList.add("active");
+  btnTarget.classList.add("active");
+}
+
+function showEditCard(k) {
+	var cards_count = document.getElementById("cards-count").value;
+	for(var i=0; i<=cards_count; i++) {
+		if(document.getElementById("edit-card-"+i)) {
+			document.getElementById("edit-card-"+i).classList.add("d-none");
+		}
+	}
+	document.getElementById("edit-card-"+k).classList.remove("d-none");
+}
+
+document.getElementById("Print").onclick = function() {
+  printElement(document.getElementById("printThis"));
+};
+
+function printElement(elem) {
+	var domClone = elem.cloneNode(true);
+	var $printSection = document.getElementById("printSection");
+
+	if (!$printSection) {
+			var $printSection = document.createElement("div");
+			$printSection.id = "printSection";
+			document.body.appendChild($printSection);
+	}
+
+	$printSection.innerHTML = "";
+	$printSection.appendChild(domClone);
+	window.print();
+}
+var doc = new jsPDF();
+var specialElementHandlers = {
+	'#editor': function(element, renderer) {
+			return true;
+	}
+};
+$('#cmd').click(function() {
+	doc.fromHTML($('#content').html(), 15, 15, {
+		'width': 170,
+		'elementHandlers': specialElementHandlers
+	});
+	doc.save('invoice.pdf');
+});
+
+function downloadInnerHtml(filename, elId, mimeType) {
+	var elHtml = document.getElementById(elId).innerHTML;
+	var link = document.createElement('a');
+	mimeType = mimeType || 'text/plain';
+
+	link.setAttribute('download', filename);
+	link.setAttribute('href', 'data:' + mimeType + ';charset=utf-8,' + encodeURIComponent(elHtml));
+	link.click();
+}
+var fileName = 'invoice.html';
+$('#downloadLink').click(function() {
+  downloadInnerHtml(fileName, 'main', 'text/html');
+});
+$(document).ready(function() {
+	$("#form_test").submit(function(e) {
+		e.preventDefault();
+		$.ajax({
+			url: "",
+			method: "post",
+			data: $("form").serialize(),
+			dataType: "text",
+			success: function(strMessage) {
+				$("#message").text(strMessage);
+				$('#form_test').fadeOut(1000);
+				document.getElementById("success_message").style.display = "block";
+				document.getElementById("form_test").style.display = "none";
+			}
+		});
+	});
+});
+var clicked = true;
+
+function show_menu() {
+  var megamenu = document.getElementsByClassName("megamenu-top")[0];
+	var close_megamenu = document.getElementsByClassName("close-menu")[0];
+	megamenu.classList.add("open-nav");
+	close_megamenu.setAttribute("onclick", "close_megamenu();");
+	document.getElementById("nav-mobile").style.display = "block";
+}
+
+function close_megamenu() {
+	var megamenu = document.getElementsByClassName("megamenu-top open-nav");
+	megamenu[0].classList.remove("open-nav");
+}
+var clicked = false;
+
+function show_history() {
+	if (!clicked) {
+		document.getElementById("history").style.display = "block";
+	} else {
+		document.getElementById("history").style.display = "none";
+	}
+	clicked = !clicked;
+}
+
+function collapse(k) {
+	jQuery(document).find('.hide-collapse').addClass('d-none').removeClass('d-block');
+	jQuery('#collapse' + k).removeClass('d-none').addClass('d-block')
+}
+
+function show_add_card_form() {
+  document.getElementById("add_card").style.display = "block";
+}
+</script>

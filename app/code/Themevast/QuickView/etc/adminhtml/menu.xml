@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Themevast_QuickView::themevast_quick_view" parent="Themevast_Themevast::themevast_setting" title="Quick View Setting" module="Themevast_QuickView" sortOrder="110" resource="Themevast_QuickView::themevast_quick_view" action="adminhtml/system_config/edit/section/themevast_quickview" />
+    </menu>
+</config>

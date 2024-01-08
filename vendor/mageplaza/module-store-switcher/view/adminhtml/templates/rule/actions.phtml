@@ -1,0 +1,50 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_StoreSwitcher
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+?>
+<div id="mpstoreswitcher-actions">
+    <?= /** @noEscape **/ $block->getForm()->getHtml() ?>
+</div>
+
+<script>
+    require(['jquery'], function ($) {
+        var fieldStoreRedirect = $('.field-store_redirected'),
+            fieldCurrency = $('.field-currency'),
+            fieldChangeType = $('.field-change_type'),
+            fieldRedirectURL = $('.field-redirect_url'),
+            actionType = $('#rule_redirect_type');
+
+        actionType.on('change', function () {
+            if ($(this).val() === 'redirect_store_currency') {
+                fieldStoreRedirect.show();
+                fieldCurrency.show();
+                fieldChangeType.show();
+                fieldRedirectURL.hide();
+            } else {
+                fieldStoreRedirect.hide();
+                fieldCurrency.hide();
+                fieldChangeType.hide();
+                fieldRedirectURL.show();
+            }
+        });
+        actionType.trigger('change');
+    });
+</script>

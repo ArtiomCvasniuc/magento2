@@ -1,0 +1,72 @@
+"Save and Continue Edit","Save and Continue Edit"
+"Edit Rule '%1'","Edit Rule '%1'"
+"Create New Item","Create New Item"
+Actions,Actions
+Type,Type
+"How to change Store View","How to change Store View"
+"If Manually is selected, a notice will be shown to ask if the visitor wants to change the store view which suits the current location or not. If Automatically is selected, the appropriate store view will be auto-switched without any advanced notice or permission.","If Manually is selected, a notice will be shown to ask if the visitor wants to change the store view which suits the current location or not. If Automatically is selected, the appropriate store view will be auto-switched without any advanced notice or permission."
+"Redirect to a store","Redirect to a store"
+"Change Currency to","Change Currency to"
+"Redirect to a URL","Redirect to a URL"
+Conditions,Conditions
+Countries,Countries
+"Apply to the selected country(ies)","Apply to the selected country(ies)"
+"Page Type","Page Type"
+"Apply by path of Url","Apply by path of Url"
+"E.g: Enter /blog will be excluded all pages path contain /blog","E.g: Enter /blog will be excluded all pages path contain /blog"
+Samples:,Samples:
+"Exclude by path of URL","Exclude by path of URL"
+"Exclude IPs","Exclude IPs"
+"IP ranges are accepted. E.g., 172.168.*.*; 172.0.0.0-172.1.0.0","IP ranges are accepted. E.g., 172.168.*.*; 172.0.0.0-172.1.0.0"
+"Search engines to ignore","Search engines to ignore"
+"List search engines and user agents to ignore.","List search engines and user agents to ignore."
+"Separated by comma(,)","Separated by comma(,)"
+General,General
+Name,Name
+Status,Status
+Priority,Priority
+"0 is highest","0 is highest"
+"Item Information","Item Information"
+"You are in %1, would you like to switch to the %2?","You are in %1, would you like to switch to the %2?"
+"This rule no longer exists.","This rule no longer exists."
+"The Rule has been deleted.","The Rule has been deleted."
+"Rule to delete was not found.","Rule to delete was not found."
+"Manage Rules","Manage Rules"
+"Create New Rule","Create New Rule"
+"Rules has been deleted.","Rules has been deleted."
+"Something wrong when delete Rules.","Something wrong when delete Rules."
+"Something went wrong while updating status for %1.","Something went wrong while updating status for %1."
+"A total of %1 record(s) have been updated.","A total of %1 record(s) have been updated."
+"The rule has been saved.","The rule has been saved."
+"Something went wrong while saving the Rule.","Something went wrong while saving the Rule."
+"Redirect to a Store View / Change Currency","Redirect to a Store View / Change Currency"
+Manually,Manually
+Automatic,Automatic
+"Home Page","Home Page"
+"All Pages","All Pages"
+"Specific Pages","Specific Pages"
+Edit,Edit
+"A total of %1 countries","A total of %1 countries"
+"Select All","Select All"
+"Would you like to save this store view for the next visit?","Would you like to save this store view for the next visit?"
+YES,YES
+NO,NO
+"No, thanks!","No, thanks!"
+"Switch to %1","Switch to %1"
+Enabled,Enabled
+Disabled,Disabled
+"Mageplaza StoreSwitcher","Mageplaza StoreSwitcher"
+"Store Switcher","Store Switcher"
+Enable,Enable
+"Select Yes to enable this module","Select Yes to enable this module"
+"Allow visitors to save the switched store view","Allow visitors to save the switched store view"
+"If Yes is chosen, a popup will be shown to visitors to ask if they want to save the switched store view for the next visit or not.","If Yes is chosen, a popup will be shown to visitors to ask if they want to save the switched store view for the next visit or not."
+"Add New","Add New"
+Delete,Delete
+"Delete Rule(s)","Delete Rule(s)"
+"Are you sure want to delete selected Rule(s)?","Are you sure want to delete selected Rule(s)?"
+"Change status","Change status"
+Disable,Disable
+ID,ID
+"Created Date","Created Date"
+"Updated Date","Updated Date"

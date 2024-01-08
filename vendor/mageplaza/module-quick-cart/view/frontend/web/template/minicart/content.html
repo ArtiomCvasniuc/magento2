@@ -1,0 +1,114 @@
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_QuickCart
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+ -->
+
+<div class="block-title">
+    <!-- ko if: getCartParam('summary_count') -->
+    <b>
+        <!-- ko if: (maxItemsToDisplay < getCartLineItemsCount()) -->
+        <!-- ko text: maxItemsToDisplay --><!-- /ko -->
+        <!-- ko i18n: 'of' --><!-- /ko -->
+        <!--/ko-->
+
+        <!-- ko text: getCartLineItemsCount() --><!-- /ko -->
+
+        <!-- ko if: (getCartLineItemsCount() === 1) -->
+        <!-- ko i18n: 'Item in Cart'--><!-- /ko -->
+        <!--/ko-->
+
+        <!-- ko if: (getCartLineItemsCount() > 1) -->
+        <!-- ko i18n: 'Items in Cart'--><!-- /ko -->
+        <!--/ko-->
+    </b>
+    <!--/ko-->
+</div>
+
+<!-- ko if: getCartParam('summary_count') -->
+<div class="block-content block-items">
+    <strong class="subtitle">
+        <!-- ko i18n: 'Recently added item(s)'--><!-- /ko -->
+    </strong>
+    <div data-action="scroll" class="minicart-items-wrapper">
+        <ol id="mini-cart" class="minicart-items" data-bind="foreach: { data: getCartItems(), as: 'item' }">
+            <each args="$parent.getRegion($parent.getItemRenderer(item.product_type))"
+                  render="{name: getTemplate(), data: item, afterRender: function() {$parents[1].initSidebar()}}"
+            />
+        </ol>
+    </div>
+</div>
+<!-- /ko -->
+
+<div class="block-content block-footer">
+    <!-- ko ifnot: getCartParam('summary_count') -->
+    <strong class="subtitle empty" data-bind="visible: closeSidebar()">
+        <!-- ko i18n: 'You have no items in your shopping cart.'--><!-- /ko -->
+    </strong>
+    <!-- ko if: getCartParam('cart_empty_message') -->
+    <p class="minicart empty text" data-bind="text: getCartParam('cart_empty_message')"></p>
+    <div class="actions">
+        <div class="secondary">
+            <a class="action viewcart" data-bind="attr: {href: shoppingCartUrl}">
+                <!-- ko i18n: 'View and Edit Cart'--><!-- /ko -->
+            </a>
+        </div>
+    </div>
+    <!-- /ko -->
+    <!-- /ko -->
+
+    <div id="minicart-widgets" class="minicart-widgets" data-bind="if: getRegion('promotion').length">
+        <!-- ko foreach: getRegion('promotion') -->
+        <!-- ko template: getTemplate() --><!-- /ko -->
+        <!--/ko-->
+    </div>
+
+    <!-- ko if: getCartParam('summary_count') -->
+
+    <!-- ko foreach: getRegion('extraInfo') -->
+    <!-- ko template: getTemplate() --><!-- /ko -->
+    <!--/ko-->
+
+    <div class="actions">
+        <div class="primary">
+            <a class="action primary viewcart" data-bind="attr: {href: shoppingCartUrl}">
+                <!-- ko i18n: 'Go to Cart'--><!-- /ko -->
+            </a>
+            <button id="top-cart-btn-checkout"
+                    type="button"
+                    class="action primary checkout"
+                    data-action="close"
+                    data-bind="
+                            if: getCartParam('possible_onepage_checkout'),
+                            attr: {
+                                title: $t('Proceed to Checkout')
+                            },
+                            click: closeMinicart()
+                        ">
+                <!-- ko i18n: 'Checkout'--><!-- /ko -->
+            </button>
+            <div data-bind="html: getCartParam('extra_actions')"></div>
+        </div>
+    </div>
+    <!-- /ko -->
+</div>
+
+<!-- ko foreach: getRegion('sign-in-popup') -->
+<!-- ko template: getTemplate() --><!-- /ko -->
+<!--/ko-->

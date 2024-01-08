@@ -1,0 +1,168 @@
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_Osc
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+<div style="display:block;" id="billing" class="checkout-billing-address d-none"
+     data-bind="visible: !isAddressSameAsShipping()">
+    <!-- ko if: !isAmazonAccountLoggedIn() -->
+    <!--/ko-->
+    <div id="checkout-step-billing" class="shadow p-3" data-role="content">
+        <!-- ko if: (quoteIsVirtual) -->
+        <!-- ko foreach: getRegion('customer-email') -->
+        <!-- ko template: getTemplate() --><!-- /ko -->
+        <!--/ko-->
+        <!--/ko-->
+        <!-- ko if: !isAmazonAccountLoggedIn() -->
+        <!-- ko if: (addressOptions.length > 1) -->
+        <!-- ko template: 'Magento_Checkout/billing-address/list' --><!-- /ko -->
+        <!-- /ko -->
+        <!-- ko if: isAddressFormVisible -->
+        <!-- ko template: 'Magento_Checkout/billing-address/form' --><!-- /ko -->
+        <!-- /ko -->
+        <!-- ko if: (!isCustomerLoggedIn() && quoteIsVirtual) -->
+        <!-- ko foreach: getRegion('customer-email') -->
+        <!-- ko template: 'Mageplaza_Osc/container/address/billing/create' --><!-- /ko -->
+        <!--/ko-->
+        <!--/ko-->
+        <!--/ko-->
+    </div>
+</div>
+<div class="p-3 shadow mt-3">
+    <div id="company-purchase"
+         class="cp user-select-none rounded align-items-center d-flex justify-content-between px-2 py-2 border-2"
+         onclick="companyPurchase(1);">
+        Cumpar Pe Firma
+        <i id="company-purchase-no" class="far fa-circle text-java"></i>
+        <i id="company-purchase-yes" class="far fa-check-circle text-java d-none"></i>
+    </div>
+    <div id="company-block" class="d-none animated fadeIn mt-3"></div>
+
+    <div style="display:none;" id="company-data-block" class="mt-2">
+        <div class="row">
+            <div id="company-data" data-role="content">
+                <span style="display:none;" id="company-data-save-success"
+                      class="alert alert-success">Datele au fost salvate</span>
+                <div class="company">
+                    <p class="m-0">
+                        <span class="font-weight-bold">Nume Companie:</span>
+                        <span id="checkout-company-name"></span>
+                    </p>
+                    <p class="m-0">
+                        <span class="font-weight-bold">Țara:</span>
+                        <span id="checkout-company-country"></span>
+                    </p>
+                    <p class="m-0">
+                        <span class="font-weight-bold">Oraș:</span>
+                        <span id="checkout-company-city"></span>
+                    </p>
+                    <p class="m-0">
+                        <span class="font-weight-bold">Adresa:</span>
+                        <span id="checkout-company-address"></span>
+                    </p>
+                    <p class="m-0">
+                        <span class="font-weight-bold">CUI:</span>
+                        <span id="checkout-company-cui"></span>
+                    </p>
+                    <p class="m-0">
+                        <span class="font-weight-bold">Număr Înregistrare:</span>
+                        <span id="checkout-company-reg-number"></span>
+                    </p>
+                    <p class="m-0">
+                        <span class="font-weight-bold">Banca:</span>
+                        <span id="checkout-company-bank"></span>
+                    </p>
+                    <p class="m-0">
+                        <span class="font-weight-bold">Contul:</span>
+                        <span id="checkout-company-account"></span>
+                    </p>
+                    <p class="m-0">
+                        <span class="font-weight-bold">Reprezentant:</span>
+                        <span id="checkout-company-responsible"></span>
+                    </p>
+                </div>
+                <button onclick="edit_company_data();" id="company-data-edit-btn" type="button"
+                        class="btn btn-block btn-dark btn-sm mt-3" name="edit"> Editează
+                </button>
+            </div>
+            <div style="display:none;" id="company-data-edit" class="mt-2">
+                <form method="post" action="" id="company-form" onsubmit="return false">
+                    <div class="mb-2">
+                        <label class="label">Nume Companie</label>
+                        <input type="text" class="form-control border rounded" name="company_name"
+                               id="checkout-company-name-edit">
+                    </div>
+                    <div class="mb-2">
+                        <label class="label">Țara</label>
+                        <input type="text" class="form-control border rounded" name="company_country"
+                               id="checkout-company-country-edit">
+                    </div>
+                    <div class="mb-2">
+                        <label class="label">Oraș</label>
+                        <input type="text" class="form-control border rounded" name="company_city"
+                               id="checkout-company-city-edit">
+                    </div>
+                    <div class="mb-2">
+                        <label class="label">Adresa</label>
+                        <input type="text" class="form-control border rounded" name="company_address"
+                               id="checkout-company-address-edit">
+                    </div>
+                    <div class="mb-2">
+                        <label class="label">CUI</label>
+                        <input type="text" class="form-control border rounded" name="company_cui"
+                               id="checkout-company-cui-edit">
+                    </div>
+                    <div class="mb-2">
+                        <label class="label">Număr Înregistrare</label>
+                        <input type="text" class="form-control border rounded" name="company_reg_number"
+                               id="checkout-company-reg-number-edit">
+                    </div>
+                    <div class="mb-2">
+                        <label class="label">Banca</label>
+                        <input type="text" class="form-control border rounded" name="company_bank"
+                               id="checkout-company-bank-edit">
+                    </div>
+                    <div class="mb-2">
+                        <label class="label">Contul</label>
+                        <input type="text" class="form-control border rounded" name="company_account"
+                               id="checkout-company-account-edit">
+                    </div>
+                    <div class="mb-2">
+                        <label class="label">Reprezentant</label>
+                        <input type="text" class="form-control border rounded" name="company_responsible"
+                               id="checkout-company-responsible-edit">
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <button onclick="save_company_data();" id="company-data-save-btn" type="submit"
+                                    class="btn btn-block btn-dark btn-sm mt-3" name="save">
+                                Salvează
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button onclick="close_edit_company_data();" type="button"
+                                    class="btn btn-block btn-dark btn-sm mt-3" name="edit">Închide
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,96 @@
+@import 'themeless/_tv_variables.less';
+@import 'themeless/_global.less';
+@import 'themeless/_tv_pages.less';
+@import 'themeless/_tv_header.less';
+@import 'themeless/_tv_choose.less';
+@import 'themeless/_tv_menu.less';
+@import 'themeless/_tv_layouts.less';
+@import 'themeless/_tv_block_content.less';
+@import 'themeless/_tv_products.less';
+@import 'themeless/_tv_productslider.less';
+@import 'themeless/_tv_footer.less';
+@import 'themeless/_tv_quickview.less';
+@import 'themeless/_tv_owl.carousel.less';
+@import 'themeless/_tv_fancybox.less';
+@import 'themeless/_tv_animate.less';
+@import 'themeless/_tv_responsive.less';
+@import 'themeless/_tv_setting.less';
+@import 'normalize.css';
+
+@color-white: #ffffff;
+@color-light: #ededed;
+@color-dark: #454545;
+@color-blue: #1a9de1;
+
+.main {
+  .accordion {
+    &-item {
+      padding: 0.5rem 0;
+      margin: 0;
+      overflow: hidden;
+      border: none;
+      outline: none;
+      border-bottom: 1px solid #e6e6e6;
+
+      &:first-child {
+        border-top: 1px solid #e6e6e6;
+      }
+
+      .title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: inherit;
+        font-size: 1.1rem;
+        font-weight: 600;
+        line-height: inherit;
+        cursor: pointer;
+        color: @color-dark;
+        margin-bottom: 0;
+
+        i.fal {
+          font-size: 0.9rem;
+          color: @color-dark;
+          transform: translateX(-50%) rotate(0);
+          transition: transform 0.15s ease;
+        }
+      }
+
+      .paragraph {
+        font-family: inherit;
+        font-size: 1rem;
+        font-weight: normal;
+        line-height: inherit;
+        color: @color-dark;
+        display: none;
+        padding: 1rem 0;
+      }
+
+      &.active {
+        .title {
+          i.fal {
+            color: @color-blue;
+            transform: translateX(-50%) rotate(180deg);
+          }
+        }
+
+        .paragraph {
+          display: block;
+        }
+      }
+    }
+    p {
+      margin: 0;
+    }
+  }
+}
+
+@media only screen and(max-width: 768px) {
+  .main {
+    .accordion {
+      max-width: 100%;
+      height: auto;
+      margin: 0 auto;
+    }
+  }
+}

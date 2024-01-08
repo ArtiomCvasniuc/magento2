@@ -1,0 +1,50 @@
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_SpecialPromotions
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+<!-- ko if: isDisplayed() && !ifShowDetails() -->
+    <tr class="totals discount">
+        <th class="mark" scope="row">
+            <span class="title" data-bind="text: getTitle()"></span>
+            <span class="discount coupon" data-bind="text: getCouponCode()"></span>
+        </th>
+        <td class="amount">
+            <span class="price" data-bind="text: getValue(), attr: {'data-th': name}"></span>
+        </td>
+    </tr>
+<!-- /ko -->
+<!-- ko if: isDisplayed() && ifShowDetails() -->
+    <tr class="totals-discount-summary"
+        data-bind="mageInit: {'toggleAdvanced':{'selectorsToggleClass': 'shown', 'baseToggleClass': 'expanded', 'toggleContainers': '.totals-discount-details'}}">
+        <th class="mark" scope="row" data-bind="text: getTitle()"></th>
+        <td class="amount">
+            <span class="price" data-bind="text: getValue(), attr: {'data-th': name}"></span>
+        </td>
+    </tr>
+    <!-- ko foreach: getDetails() -->
+        <tr class="totals-discount-details">
+            <th class="mark" scope="row" data-bind="text: title"></th>
+            <td class="amount">
+                <span class="price"
+                      data-bind="text: $parents[0].formatPrice(amount), attr: {'data-th': title}"></span>
+            </td>
+        </tr>
+    <!-- /ko -->
+<!-- /ko -->

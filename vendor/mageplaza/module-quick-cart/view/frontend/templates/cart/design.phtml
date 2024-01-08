@@ -1,0 +1,92 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_QuickCart
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+/** @var \Mageplaza\QuickCart\Block\Cart\Design $block */
+
+$helper = $block->getHelper();
+
+if (!$helper->isEnabled()) {
+    return;
+}
+?>
+
+<?php if ($helper->isFixedIcon()) : ?>
+    <script type="text/javascript">
+        require(['jquery'], function ($) {
+            $(document).ready(function () {
+                var sticky = $('.mpquickcart-icon-wrapper');
+                if (!sticky.length) {
+                    return;
+                }
+
+                var stickyTop = sticky.offset().top;
+
+                $(window).scroll(function () {
+                    if (stickyTop < $(window).scrollTop()) {
+                        sticky.css('position', 'fixed');
+                    } else {
+                        sticky.css('position', '');
+                    }
+                });
+            });
+        });
+    </script>
+<?php endif; ?>
+
+<?php if ($helper->isAutoOpen()) : ?>
+    <script type="text/javascript">
+        require(['jquery'], function ($) {
+            $(document).on('ajax:addToCart', function () {
+                $('.mpquickcart .minicart-wrapper').modal('openModal')
+            });
+        });
+    </script>
+<?php endif; ?>
+
+<style type="text/css">
+    .mpquickcart .modal-header {
+        background-color: <?= /** @noEscape */ $helper->getHeaderBackground() ?>;
+        color: <?= /** @noEscape */ $helper->getHeaderText() ?>;
+    }
+
+    .mpquickcart .modal-header .action-close:before {
+        color: <?= /** @noEscape */ $helper->getHeaderText() ?>;
+    }
+
+    .mpquickcart .cart-totals {
+        background-color: <?= /** @noEscape */ $helper->getSubtotalBackground() ?>;
+        color: <?= /** @noEscape */ $helper->getSubtotalText() ?>;
+    }
+
+    <?= /** @noEscape */ $helper->getCustomCss() ?>
+
+    <?php if ($block->getCurrentTheme() === 'Smartwave/porto') : ?>
+    .mpquickcart .button-action:before {
+        font-family: 'porto-icons';
+    }
+    .mpquickcart .button-action.minus:before {
+        content: '\f812';
+    }
+    .mpquickcart .button-action.plus:before {
+        content: '\f811';
+    }
+    <?php endif; ?>
+</style>

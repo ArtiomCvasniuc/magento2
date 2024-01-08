@@ -1,0 +1,97 @@
+<?php
+$helperBrand = $this->helper('Themevast\Brand\Helper\Image');
+$enable = $this->getConfig('enable_frontend');
+$auto = $this->getConfig('auto');
+$speed = $this->getConfig('speed');
+$default = $this->getConfig('default');
+$tv_column1 = $block->getConfig('tv_column1') ? $block->getConfig('tv_column1'):4;
+$tv_column2 = $block->getConfig('tv_column2') ? $block->getConfig('tv_column2'):3;
+$tv_column3 = $block->getConfig('tv_column3') ? $block->getConfig('tv_column3'):2;
+$tv_column4 = $block->getConfig('tv_column4') ? $block->getConfig('tv_column4'):1;
+$tv_column5 = $block->getConfig('tv_column5') ? $block->getConfig('tv_column5'):1;
+$pagination = $this->getConfig('pagination');
+$show_next_back = $this->getConfig('show_next_back');
+$img_width = $this->getConfig('img_width');
+$img_height = $this->getConfig('img_height');
+$rows=$this->getConfig('rows');
+if($block->getTitle()){
+	$title = $block->getTitle();
+}else{
+	$title = $this->getConfig('title');
+}
+$show_navigation_control = $this->getConfig('show_navigation_control');
+$_brandCollection = $block->getBrand();
+?>
+<?php if ($_brandCollection->count() && $enable) { ?>
+<div class="brandslider brand-preload">
+	<div class="owl-container">
+		<div class="container">		
+			<div class="title-heading title-product-heading">
+				<h2><?php echo __($title) ?></h2>
+			</div>			
+			<div class="b-gallery_logo_list">
+				<div class="owl-carousel">
+					<div class="brandFirst_loading"></div>
+					<?php $i=0; foreach ($_brandCollection as $_brand) { ?>
+						<?php if($i %$rows == 0) echo "<div class='item brand-item'>"; ?>
+							<div class="brand-image">
+								<a href="<?php echo $_brand->getLink() ?>">
+									<?php  $link = $helperBrand->resize($_brand->getImage(),$img_width,$img_height);?>
+									<img alt="<?php echo $_brand->getTitle(); ?>" src="<?php echo $link ?>" title="<?php echo $block->escapeHtml($_brand->getTitle()) ?>"/>
+								</a>
+							</div>
+							<?php $i++;?>
+							<?php if($i %$rows == 0) echo "</div>"; ?>     
+					<?php } ?>
+					<?php if($i %$rows != 0) echo "</div>"; ?>     
+				</div>
+			</div>	
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	require([
+		'jquery',
+		'mage/mage',
+		'themevast/owl'
+	], function ($) {
+		'use strict';
+   setTimeout(function () {
+				jQuery(".brandslider").removeClass('brand-preload');
+				jQuery('.brandFirst_loading').remove();
+				brandSlider();
+	}, 500);
+	 function brandSlider() {
+			jQuery(".brandslider .owl-carousel").owlCarousel({
+				autoplay :<?php echo $auto==1 ? 'true':'false' ?>,
+				items : 4,
+				smartSpeed : <?php echo $speed ?>,
+				dotsSpeed : <?php echo $speed ?>,
+				rewindSpeed : <?php echo $speed ?>,
+				nav : false,
+				autoplayHoverPause : true,
+				dots :<?php echo $show_navigation_control==1 ? 'true':'false' ;  ?>,
+				scrollPerPage:true,
+				margin: 10,
+				responsive: {
+				0: {
+					items : 2,
+				},
+				480: {
+					items : 3,
+				},
+				768: {
+					items : 3,
+				},
+				991: {
+					items : 4,
+				},						
+				1200: {
+					items : 5,
+				}
+			 }
+			});
+	}
+	});
+</script>
+<?php } ?>

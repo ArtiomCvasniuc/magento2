@@ -1,0 +1,32 @@
+<?php
+/**
+ * Copyright © 2016 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+?>
+<?php
+$required = '';
+if ($block->hasRequiredOptions()) {
+    $required = ' data-hasrequired="' . __('* Required Fields') . '"';
+}
+?>
+<div class="product-options-wrapper " id="product-options-wrapper"<?php /* @escapeNotVerified */ echo $required; ?>>
+    <div class="fieldset" tabindex="0">
+        <?php echo $block->getChildHtml('', true);?>
+    </div>
+</div>
+<script>
+var interval = setInterval(check, 1000);
+function check() {
+    if(document.getElementById("super_attribute[93]-error")) {
+        if(document.getElementById("super_attribute[93]-error").style.display == "block") {
+            document.getElementById("super_attribute[93]-error").innerText = "Selectați o culoare pentru a adăuga produsul în coșul de cumpărături";
+        }
+    }
+    if(document.getElementById("super_attribute[136]-error")) {
+        if(document.getElementById("super_attribute[136]-error").style.display == "block") {
+            document.getElementById("super_attribute[136]-error").innerText = "Selectați o mărime pentru a adăuga produsul în coșul de cumpărături";
+        }
+    }
+}
+</script>

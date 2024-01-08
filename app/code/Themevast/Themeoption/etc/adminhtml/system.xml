@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../Magento/Backend/etc/system_file.xsd">
+    <system>
+    
+		 <section id="themeoption_setting" translate="label" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Theme Settings</label>
+            <tab>themevast</tab>
+            <resource>Themevast_Themeoption::themeoption_setting</resource>
+			<group id="general" translate="label" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General</label>
+				 <field id="is_custom" translate="label comment" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Custom</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="main_color" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Main Colors</label>
+                   <backend_model>Themevast\Themeoption\Model\Config\Backend\Color\Transparent</backend_model>
+                    <frontend_model>Themevast\Themeoption\Block\Adminhtml\System\Config\Form\Field\Color</frontend_model>
+					 <depends>
+                        <field id="is_custom">1</field>
+                    </depends>
+                </field>
+				<field id="main_color_hover" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Main Hover Colors</label>
+                   <backend_model>Themevast\Themeoption\Model\Config\Backend\Color\Transparent</backend_model>
+                    <frontend_model>Themevast\Themeoption\Block\Adminhtml\System\Config\Form\Field\Color</frontend_model>
+					 <depends>
+                        <field id="is_custom">1</field>
+                    </depends>
+                </field>
+				<field id="border_color" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Border Colors</label>
+                    <backend_model>Themevast\Themeoption\Model\Config\Backend\Color\Transparent</backend_model>
+                    <frontend_model>Themevast\Themeoption\Block\Adminhtml\System\Config\Form\Field\Color</frontend_model>
+					 <depends>
+                        <field id="is_custom">1</field>
+                    </depends>
+                </field>
+            </group>
+			<group id="font" translate="label" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Font Custom</label>
+                <field id="is_custom" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Custom</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="font_size" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Font Size</label>
+                    <source_model>Themevast\Themeoption\Model\Config\Backend\Font\Size</source_model>
+                    <depends>
+                        <field id="is_custom">1</field>
+                    </depends>
+                </field>
+                <field id="font_family" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Font Family</label>
+                    <source_model>Themevast\Themeoption\Model\Config\Backend\Font\Family</source_model>
+                    <depends>
+                        <field id="is_custom">1</field>
+                    </depends>
+                </field>
+                <field id="custom_font_family" translate="label comment" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Font Family : Custom</label>
+                    <depends>
+                        <field id="is_custom">1</field>
+                        <field id="font_family">custom</field>
+                    </depends>
+                </field>
+                <field id="google_font_family" translate="label comment" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Font Family : Google Fonts</label>
+                    <source_model>Themevast\Themeoption\Model\Config\Backend\Font\Googlefonts</source_model>
+                    <depends>
+                        <field id="is_custom">1</field>
+                        <field id="font_family">google</field>
+                    </depends>
+                </field>
+            </group>
+			<group id="less" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Less</label>
+				<field id="auto_render_less" translate="label comment" type="select" sortOrder="0"  showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Auto Render Less to Css</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

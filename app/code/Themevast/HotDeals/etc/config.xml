@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Magento/Store/etc/config.xsd">
+	<default>
+        <hotdeals>
+            <hotdeals_config>
+                <enabled>1</enabled>
+                <title>Hot Deals</title>
+                <auto>0</auto>
+                <speed>3000</speed>
+                <show_price>1</show_price>
+                <addtocart>1</addtocart>
+                <addtowishlist>1</addtowishlist>
+                <addtocompare>1</addtocompare>
+                <review>1</review>
+                <qty>9</qty>
+                <row_show>1</row_show>
+                <next_back>1</next_back>
+                <nav_ctrl>0</nav_ctrl>
+            </hotdeals_config>
+        </hotdeals>
+	</default>
+</config>

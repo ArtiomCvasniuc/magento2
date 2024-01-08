@@ -1,0 +1,213 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_PdfInvoice
+ * @copyright   Copyright (c) Mageplaza (http://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="pdfinvoice" translate="label" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>PDF Invoice</label>
+            <tab>mageplaza</tab>
+            <resource>Mageplaza_PdfInvoice::configuration</resource>
+            <group id="general" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Configuration</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Enable PDF Invoice</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <group id="business_information" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Business Information</label>
+                    <field id="company" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Company Name</label>
+                    </field>
+                    <field id="logo" translate="label comment" type="image" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Black Logo (Color)</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
+                        <upload_dir config="system/filesystem/media" scope_info="1">mageplaza/pdfinvoice</upload_dir>
+                        <base_url type="media" scope_info="1">mageplaza/pdfinvoice</base_url>
+                        <comment><![CDATA[Your default logo will be used on template design. If empty, default logo will be used.<br />(jpeg, gif, png). You should upload logo 180 x 52 ]]></comment>
+                    </field>
+                    <field id="white_logo" translate="label comment" type="image" sortOrder="205" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>White Logo</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
+                        <upload_dir config="system/filesystem/media" scope_info="1">mageplaza/pdfinvoice</upload_dir>
+                        <base_url type="media" scope_info="1">mageplaza/pdfinvoice</base_url>
+                        <comment><![CDATA[Your default logo will be used on template design. If empty, default logo will be used.<br />(jpeg, gif, png). You should upload logo 180 x 52 ]]></comment>
+                    </field>
+                    <field id="logo_width" translate="label comment" type="text" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Logo Width</label>
+                        <comment><![CDATA[Necessary only if an image has been uploaded above. Enter image width size in pixels without appending "px".]]></comment>
+                        <validate>validate-digits</validate>
+                    </field>
+                    <field id="logo_height" translate="label comment" type="text" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Logo Height</label>
+                        <comment><![CDATA[Necessary only if an image has been uploaded above. Enter image height size in pixels without appending "px".]]></comment>
+                        <validate>validate-digits</validate>
+                    </field>
+                    <field id="address" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Address</label>
+                    </field>
+                    <field id="vat_number" translate="label" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>VAT Number</label>
+                        <validate>validate-digits</validate>
+                    </field>
+                    <field id="phone" translate="label" type="text" sortOrder="500" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Phone</label>
+                        <validate>validate-digits</validate>
+                    </field>
+                    <field id="contact" translate="label" type="text" sortOrder="600" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Email</label>
+                        <validate>validate-email</validate>
+                    </field>
+                    <field id="registered" translate="label" type="text" sortOrder="700" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Registered Number</label>
+                        <validate>validate-digits</validate>
+                    </field>
+                </group>
+            </group>
+            <group id="design" translate="label" type="text" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Design</label>
+                <field id="heading_color" translate="label comment" sortOrder="25" type="text" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Heading Color</label>
+                    <validate>jscolor {hash:true,refine:false}</validate>
+                    <comment>Select the color for headings in template design</comment>
+                </field>
+                <field id="page_number" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Show Page Number</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="page_size" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Page Size</label>
+                    <source_model>Mageplaza\PdfInvoice\Model\Source\PageSize</source_model>
+                    <comment>Default templates work better in A4 and A5 sizes</comment>
+                </field>
+            </group>
+            <group id="order" translate="label" type="text" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Order</label>
+                <field id="enable" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Enable PDF Attachment</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Select Yes to enable attaching PDF documents</comment>
+                </field>
+                <field id="template" translate="label comment" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Select Template</label>
+                    <source_model>Mageplaza\PdfInvoice\Model\Source\Order</source_model>
+                    <comment>Select a PDF template used for Order documents</comment>
+                </field>
+                <field id="print" translate="label comment" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Show Custom Print Button</label>
+                    <source_model>Mageplaza\PdfInvoice\Model\Source\PrintButton</source_model>
+                    <comment>Select which type of print button to display</comment>
+                </field>
+                <field id="button_top" translate="label comment" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Display Print Button On Top</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Select Yes to display print button on top of order grid</comment>
+                </field>
+                <field id="note" translate="label comment" type="textarea" sortOrder="800" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Note</label>
+                    <comment>Insert a note displayed in Order templates</comment>
+                </field>
+            </group>
+            <group id="invoice" translate="label" type="text" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Invoice</label>
+                <field id="enable" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Enable PDF Attachment</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Select Yes to enable attaching PDF documents</comment>
+                </field>
+                <field id="template" translate="label comment" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Select Template</label>
+                    <source_model>Mageplaza\PdfInvoice\Model\Source\Invoice</source_model>
+                    <comment>Select a PDF template used for Invoice documents</comment>
+                </field>
+                <field id="print" translate="label comment" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Show Custom Print Button</label>
+                    <source_model>Mageplaza\PdfInvoice\Model\Source\PrintButton</source_model>
+                    <comment>Select which type of print button to display</comment>
+                </field>
+                <field id="orderGrid_button" translate="label comment" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Display Print Button In Order Grid</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Select Yes to display print invoice button in action list from order grid</comment>
+                </field>
+                <field id="note" translate="label comment" type="textarea" sortOrder="800" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Note</label>
+                    <comment>Insert a note displayed in Invoice templates</comment>
+                </field>
+            </group>
+            <group id="shipment" translate="label" type="text" sortOrder="450" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Shipment</label>
+                <field id="enable" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Enable PDF Attachment</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Select Yes to enable attaching PDF documents</comment>
+                </field>
+                <field id="template" translate="label comment" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Select Template</label>
+                    <source_model>Mageplaza\PdfInvoice\Model\Source\Shipment</source_model>
+                    <comment>Select a PDF template used for Shipment documents</comment>
+                </field>
+                <field id="print" translate="label comment" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Show Custom Print Button</label>
+                    <source_model>Mageplaza\PdfInvoice\Model\Source\PrintButton</source_model>
+                    <comment>Select which type of print button to display</comment>
+                </field>
+                <field id="orderGrid_button" translate="label comment" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Display Print Button In Order Grid</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Select Yes to display print shipment button in action list from order grid</comment>
+                </field>
+                <field id="note" translate="label comment" type="textarea" sortOrder="800" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Note</label>
+                    <comment>Insert a note displayed in Shipment templates</comment>
+                </field>
+            </group>
+            <group id="creditmemo" translate="label" type="text" sortOrder="550" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Credit Memo</label>
+                <field id="enable" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Enable PDF Attachment</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Select Yes to enable attaching PDF documents</comment>
+                </field>
+                <field id="template" translate="label comment" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Select Template</label>
+                    <source_model>Mageplaza\PdfInvoice\Model\Source\CreditMemo</source_model>
+                    <comment>Select a PDF template used for Credit Memo documents</comment>
+                </field>
+                <field id="print" translate="label comment" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Show Custom Print Button</label>
+                    <source_model>Mageplaza\PdfInvoice\Model\Source\PrintButton</source_model>
+                    <comment>Select which type of print button to display</comment>
+                </field>
+                <field id="orderGrid_button" translate="label comment" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Display Print Button In Order Grid</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Select Yes to display print creditmemo button in action list from order grid</comment>
+                </field>
+                <field id="note" translate="label comment" type="textarea" sortOrder="800" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Note</label>
+                    <comment>Insert a note displayed in Credit Memo templates</comment>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

@@ -1,0 +1,38 @@
+<?php
+/**
+ * Copyright © 2016 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+?>
+<?php
+/** @var \Magento\Wishlist\Block\Customer\Wishlist\Items $block */
+$columns = $block->getColumns();
+?>
+<div class="products-grid wishlist">
+    <?php $iterator = 1; ?>
+    <?php if (count($block->getItems())) { ?>
+    <ol class="product-items wishlist-hover g-3 row">
+        <?php foreach ($block->getItems() as $item) { ?>
+            <?php /* @escapeNotVerified */ echo($iterator++ == 1) ? '<li data-row="product-item" class="col-6 col-lg-4 col-xl-3 col-xxl-20 mb-3" id="item_' . $item->getId() . '">' : '</li><li class="col-6 col-lg-4 col-xl-3 col-xxl-20 mb-3" id="item_' . $item->getId() . '">' ?>
+                <div class="border-0 card shadow wishlist-card">
+                    <?php foreach ($columns as $column) { ?>
+                        <?php $column->setItem($item); echo $column->toHtml($item);?>
+                    <?php } ?>
+                </div>
+            <?php echo($iterator == count($block->getItems())+1) ? '</li>' : '' ?>
+        <?php } ?>
+    </ol>
+    <?php } else { ?>
+        <div class="alert alert-warning border-0 rounded-0">
+            <span>
+                <?php /* @escapeNotVerified */ echo __('This Wish List has no Items');?>
+            </span>
+        </div>
+    <?php } ?>
+</div>
+<?php foreach ($columns as $column) { ?>
+    <?php echo $column->getAdditionalHtml();?>
+<?php } ?>

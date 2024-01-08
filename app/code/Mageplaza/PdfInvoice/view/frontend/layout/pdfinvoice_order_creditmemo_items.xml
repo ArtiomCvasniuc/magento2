@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_PdfInvoice
+ * @copyright   Copyright (c) Mageplaza (http://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd" label="Email Creditmemo Items List" design_abstraction="custom">
+    <body>
+        <block class="Mageplaza\PdfInvoice\Block\Creditmemo\Items" name="items" template="Mageplaza_PdfInvoice::handle/creditmemo/items.phtml">
+            <block class="Magento\Sales\Block\Order\Creditmemo\Totals" name="creditmemo_totals" template="Mageplaza_PdfInvoice::handle/totals.phtml" cacheable="false">
+                <arguments>
+                    <argument name="label_properties" xsi:type="string">colspan="2"</argument>
+                </arguments>
+                <block class="Magento\Tax\Block\Sales\Order\Tax" name="tax" template="Mageplaza_PdfInvoice::handle/tax.phtml"/>
+            </block>
+        </block>
+        <block class="Magento\Framework\View\Element\Template" name="additional.product.info" template="Magento_Theme::template.phtml"/>
+    </body>
+</page>

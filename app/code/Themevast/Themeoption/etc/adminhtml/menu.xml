@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Backend/etc/menu.xsd">
+    <menu>
+		<add id="Themevast_Themeoption::themeoption" title="Theme Option" module="Themevast_Themeoption" sortOrder="80" parent="Themevast_Themevast::themevast" resource="Themevast_Themeoption::themeoption"/>
+        <add id="Themevast_Themeoption::themeoption_setting" title="Theme Settings" module="Themevast_Themeoption" sortOrder="20" parent="Themevast_Themeoption::themeoption" action="adminhtml/system_config/edit/section/themeoption_setting" resource="Themevast_Themeoption::themeoption_setting"/>
+	</menu>
+</config>

@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_SpecialPromotions
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <settings>
+        <buttons>
+            <button name="duplicate" class="Mageplaza\SpecialPromotions\Block\Adminhtml\Promo\Quote\Edit\DuplicateButton"/>
+        </buttons>
+    </settings>
+    <fieldset name="actions">
+        <field name="simple_action" sortOrder="10">
+            <settings>
+                <switcherConfig>
+                    <rules>
+                        <rule name="0">
+                            <value>by_percent</value>
+                            <actions>
+                                <action name="0">
+                                    <target>sales_rule_form.sales_rule_form.actions.discount_step</target>
+                                    <callback>show</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                        <rule name="1">
+                            <value>by_fixed</value>
+                            <actions>
+                                <action name="0">
+                                    <target>sales_rule_form.sales_rule_form.actions.discount_step</target>
+                                    <callback>show</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                        <rule name="2">
+                            <value>cart_fixed</value>
+                            <actions>
+                                <action name="0">
+                                    <target>sales_rule_form.sales_rule_form.actions.discount_step</target>
+                                    <callback>hide</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                        <rule name="3">
+                            <value>to_fixed</value>
+                            <actions>
+                                <action name="0">
+                                    <target>sales_rule_form.sales_rule_form.actions.discount_step</target>
+                                    <callback>show</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                        <rule name="4">
+                            <value>buy_x_get_y</value>
+                            <actions>
+                                <action name="0">
+                                    <target>sales_rule_form.sales_rule_form.actions.discount_step</target>
+                                    <callback>show</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                        <rule name="5">
+                            <value>spent_x_get_y</value>
+                            <actions>
+                                <action name="0">
+                                    <target>sales_rule_form.sales_rule_form.actions.discount_step</target>
+                                    <callback>show</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                        <rule name="6">
+                            <value>cart_spent_x_get_y</value>
+                            <actions>
+                                <action name="0">
+                                    <target>sales_rule_form.sales_rule_form.actions.discount_step</target>
+                                    <callback>show</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                    </rules>
+                    <enabled>true</enabled>
+                </switcherConfig>
+            </settings>
+        </field>
+        <field name="discount_amount" sortOrder="15"/>
+        <field name="discount_qty" sortOrder="20"/>
+        <field name="discount_step" sortOrder="25"/>
+        <field name="maximum_discount_type" formElement="select" sortOrder="27">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">sales_rule</item>
+                    <item name="default" xsi:type="number">0</item>
+                </item>
+            </argument>
+            <settings>
+                <switcherConfig>
+                    <rules>
+                        <rule name="0">
+                            <value>0</value>
+                            <actions>
+                                <action name="0">
+                                    <target>sales_rule_form.sales_rule_form.actions.maximum_discount</target>
+                                    <callback>hide</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                        <rule name="1">
+                            <value>1</value>
+                            <actions>
+                                <action name="0">
+                                    <target>sales_rule_form.sales_rule_form.actions.maximum_discount</target>
+                                    <callback>show</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                        <rule name="2">
+                            <value>2</value>
+                            <actions>
+                                <action name="0">
+                                    <target>sales_rule_form.sales_rule_form.actions.maximum_discount</target>
+                                    <callback>show</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                    </rules>
+                    <enabled>true</enabled>
+                </switcherConfig>
+                <dataType>number</dataType>
+                <label translate="true">Maximum Discount Type</label>
+                <dataScope>maximum_discount_type</dataScope>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="Mageplaza\SpecialPromotions\Model\Config\Source\MaxDiscountType"/>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+        <field name="maximum_discount" formElement="input" sortOrder="28">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">sales_rule</item>
+                    <item name="default" xsi:type="number">0</item>
+                </item>
+            </argument>
+            <settings>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>text</dataType>
+                <label translate="true">Maximum Discount Amount</label>
+                <dataScope>maximum_discount</dataScope>
+                <notice translate="true">If zero or empty, no limitation</notice>
+            </settings>
+        </field>
+        <field name="apply_to_shipping" sortOrder="30"/>
+        <field name="stop_rules_processing" sortOrder="35">
+            <settings>
+                <notice translate="true">Select "Yes" to stop processing other rules after this rule is applied.</notice>
+            </settings>
+        </field>
+        <field name="simple_free_shipping" sortOrder="38"/>
+        <field name="item_action" component="Mageplaza_SpecialPromotions/js/form/element/item-action" formElement="select" sortOrder="45">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">sales_rule</item>
+                    <item name="default" xsi:type="string">none</item>
+                </item>
+            </argument>
+            <settings>
+                <switcherConfig>
+                    <rules>
+                        <rule name="0">
+                            <value>none</value>
+                            <actions>
+                                <action name="0">
+                                    <target>sales_rule_form.sales_rule_form.actions.item_action_qty</target>
+                                    <callback>hide</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                        <rule name="1">
+                            <value>cheapest</value>
+                            <actions>
+                                <action name="0">
+                                    <target>sales_rule_form.sales_rule_form.actions.item_action_qty</target>
+                                    <callback>show</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                        <rule name="2">
+                            <value>expensive</value>
+                            <actions>
+                                <action name="0">
+                                    <target>sales_rule_form.sales_rule_form.actions.item_action_qty</target>
+                                    <callback>show</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                        <rule name="3">
+                            <value>buy_x_get_y</value>
+                            <actions>
+                                <action name="0">
+                                    <target>sales_rule_form.sales_rule_form.actions.item_action_qty</target>
+                                    <callback>hide</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                        <rule name="4">
+                            <value>each_n</value>
+                            <actions>
+                                <action name="0">
+                                    <target>sales_rule_form.sales_rule_form.actions.item_action_qty</target>
+                                    <callback>hide</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                        <rule name="5">
+                            <value>group</value>
+                            <actions>
+                                <action name="0">
+                                    <target>sales_rule_form.sales_rule_form.actions.item_action_qty</target>
+                                    <callback>hide</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                        <rule name="6">
+                            <value>product_set</value>
+                            <actions>
+                                <action name="0">
+                                    <target>sales_rule_form.sales_rule_form.actions.item_action_qty</target>
+                                    <callback>hide</callback>
+                                </action>
+                            </actions>
+                        </rule>
+                    </rules>
+                    <enabled>true</enabled>
+                </switcherConfig>
+                <dataType>text</dataType>
+                <label translate="true">Additional Item Action</label>
+                <visible>true</visible>
+                <dataScope>item_action</dataScope>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="Mageplaza\SpecialPromotions\Model\Config\Source\ItemAction"/>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+        <field name="item_action_qty" formElement="input" sortOrder="50">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">sales_rule</item>
+                    <item name="default" xsi:type="number">1</item>
+                    <item name="cheapest" xsi:type="string" translate="true">If empty or zero, 1 item will be applied. For example, if in the carts there are 4 products: A ($ 10), B ($ 20), C ($ 30), D ($ 40) and the applied qty is 2, the discount will be applied to 2 cheapest items as A and B.</item>
+                    <item name="expensive" xsi:type="string" translate="true">If empty or zero, 1 item will be applied. For example, if in the carts there are 4 products: A ($ 10), B ($ 20), C ($ 30), D ($ 40) and the applied qty is 2, the discount will be applied to 2 expensive items as C and D.</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>number</dataType>
+                <label translate="true">Qty of applied products</label>
+                <dataScope>item_action_qty</dataScope>
+            </settings>
+        </field>
+    </fieldset>
+</form>

@@ -1,0 +1,69 @@
+<?php
+/**
+ * @author Amasty Team
+ * @copyright Copyright (c) 2020 Amasty (https://www.amasty.com)
+ * @package Amasty_AdvancedReview
+ */
+
+/** @var Amasty\AdvancedReview\Block\Widget\ProductReviews\ReviewsList $block */
+use Amasty\AdvancedReview\Block\Widget\ProductReviews\ReviewsList as ReviewsList;
+
+$items = $block->getLimitedReviewsCollection()->getItems();
+$advancedHelper = $block->getAdvancedHelper();
+$format = \IntlDateFormatter::MEDIUM;
+?>
+<div class="amreview-review-block" data-amreview-js="review-block-<?= $block->escapeHtml($block->getProductId()) ?>">
+    <?php if(count($items)) { ?>
+        <ul class="amreview-review-items"
+            <?php if ($block->getView() === 'slider') { ?>
+                data-mage-init='{"amReviewSlider": {}}'
+            <?php } ?>>
+            <?php foreach($items as $review) { ?>
+                <li class="item review-item amreview-review-wrapper"
+                    data-amreview-js="review-entity"
+                    data-amreview-id="<?= (int)$review->getId() ?>"
+                    data-mage-init='{"amReview": {"slidesToShow": "3"}}'>
+                    <div class="review-details amreview-author-details">
+                        <p class="amreview-author">
+                            <?= $block->escapeHtml($review->getNickname()) ?>
+                        </p>
+                        <?= /* @noEscape*/ $advancedHelper->getVerifiedBuyerHtml($review) ?>
+                        <time class="amreview-date"
+                              datetime="<?= $block->escapeHtml($block->formatDate($review->getCreatedAt(), $format)) ?>">
+                            <?= $block->escapeHtml($block->formatDate($review->getCreatedAt(), $format)) ?>
+                        </time>
+                        <?= /* @noEscape*/ $advancedHelper->getRecommendedHtml($review) ?>
+                    </div>
+                    <div class="amreview-description-wrap" data-amreview-js="description-wrap">
+                        <div class="amrev-desc-title">
+                            <span class="amreview-title-review">
+                                <?= $block->escapeHtml($review->getTitle()) ?>
+                            </span>
+                            <?= /* @noEscape*/ $advancedHelper->getHelpfulHtml($review, true) ?>
+                        </div>
+                        <?php $vote = $review->getRatingVotes() ? $review->getRatingVotes()->getFirstItem() : false; ?>
+                        <?php if ($vote && $vote->getId()) { ?>
+                            <div class="amstars-rating-container -small" <?php $stars = $vote->getValue(); ?> title="<?= $block->escapeHtml($stars > 1 ? __('%1 stars', $stars) : __('%1 star', $stars)) ?>">
+                                <p class="amstars-stars" style="width:<?= $block->escapeHtml($vote->getPercent()) ?>%"></p>
+                            </div>
+                        <?php } ?>
+                        <div class="amreview-description amshowmore-container" data-mage-init='{"amShowMore": {}}'>
+                            <?= /* @noEscape */ $advancedHelper->getReviewImagesHtml($review->getId(), false) ?>
+                            <span class="amreview-text amshowmore-text" data-amshowmore-js="text">
+                                <?= $block->escapeHtml($review->getDetail()); ?>
+                            </span>
+                        </div>
+                        <?= /* @noEscape*/ $advancedHelper->getHelpfulHtml($review) ?>
+                    </div>
+                </li>
+            <?php } ?>
+        </ul>
+        <?= /* @noEscape */ $block->getPager() ?>
+    <?php } else { ?>
+        <p class="amreview-review-list -empty">
+            <strong>
+                <?= $block->escapeHtml(__('No reviews')); ?>
+            </strong>
+        </p>
+    <?php } ?>
+</div>

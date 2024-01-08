@@ -1,0 +1,86 @@
+<?php if($items = $this->getMenuTree()): ?>
+<?php
+$menu = $this->getMenuObject();
+$type = $menu->getData('type');
+$styles = json_decode($menu->getData('style'));
+$block->setTemplate('menu-item.phtml');
+$dropdownStyle = (isset($styles->dropdown_style)&&($styles->dropdown_style=='full_width'))?'dropdown-fullwidth':'';
+$uniqId = uniqid("menu-{$menu->getId()}-");
+$dataMenu = json_encode(
+	['megamenu' => [
+		'dropdownEffect' => $styles->dropdown_animation,
+		'type' => $type
+	]]
+);
+$this->setData('need_filter',false);
+?>
+<div class="tv-menu <?php echo ($type == 1)?'tv-vertical-menu':'tv-horizontal-menu' ?> <?php echo $dropdownStyle ?> <?php echo $styles->css_class ?> <?php echo 'tv-'.$styles->dropdown_animation ?>" id="<?php echo $uniqId ?>" data-mage-init='<?php echo $dataMenu ?>'>
+	<ul class="d-flex flex-column flex-lg-row groupmenu mb-0">
+		<?php echo $this->getMenuHtml($items); ?>
+	</ul>
+	<?php if($type==1):?> 
+		  <div class="view-all-category"> 
+			<a href="javascript:void(0);" class="btn-view-all open-cate" data-title="<?php echo __('Load All Categories')?>" data-close="<?php echo __('Close') ?>"><?php echo __('Load All Categories')?></a>
+		  </div>
+	<?php endif;?>
+</div>
+<?php endif ?>
+<?php if($type==1):?> 
+<script type="text/javascript">
+    require([
+        'jquery'
+    ], function ($) {
+		if($('.tv-vertical-menu').length>0){
+			
+			var item_length= $('.tv-menu.tv-vertical-menu .item.level0').length;
+			
+			$('.tv-menu.tv-vertical-menu .view-all-category').hide();
+			
+			var dq_content = function(item_length,scan){
+				if(item_length > scan)
+				{
+					$('.tv-menu.tv-vertical-menu .item.level0').each(function( index ) {
+						if(index >= (scan - 1))
+						{
+							$(this).addClass('hidden-menu');
+							$(this).hide();
+						}
+					});
+					$('.tv-menu.tv-vertical-menu .view-all-category').show();
+					$('.tv-menu.tv-vertical-menu .view-all-category').on( "click", function() {
+						$(this).toggleClass('expanding');
+						$('.tv-menu.tv-vertical-menu .item.level0.hidden-menu').slideToggle('slow');
+						if($(this).hasClass('expanding')){
+							var rep = $('.btn-view-all',$(this)).data('close');
+							$('.btn-view-all',$(this)).html(rep);
+						}else{
+							var dq = $('.btn-view-all',$(this)).data('title');
+							$('.btn-view-all',$(this)).html(dq);
+						}
+					});
+				}
+			};
+			$( document ).ready(function() {
+			
+				var scan = 11;
+				if ($(window).width() <= 992) {
+					scan = 7;
+				}else{
+					scan =11;
+				}
+				dq_content(item_length,scan);
+			});
+			
+			$(window).resize(function () {
+				var scan=11;
+				if ($(window).width() <= 992) {
+					scan = 7;
+				}else{
+					scan = 11;
+				}
+				//dq_content(item_length,scan);
+			});
+		}
+    });
+</script>
+<?php endif;?>

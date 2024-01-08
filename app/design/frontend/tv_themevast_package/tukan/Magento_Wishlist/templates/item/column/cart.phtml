@@ -1,0 +1,519 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+if (file_exists("conf/conf.php")) 
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+/** @var \Magento\Wishlist\Block\Customer\Wishlist\Item\Column\Cart $block */
+
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get ('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer ();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+
+/** @var \Magento\Wishlist\Model\Item $item */
+$item = $block->getItem();
+$product = $item->getProduct();
+$productId = $product->getId();
+$itemId = $item->getId();
+
+$query_color_count = "SELECT COUNT(DISTINCT(value)) as count ";
+$query_color_count .= "FROM mgkf_catalog_product_index_eav ";
+$query_color_count .= "WHERE store_id = 1 ";
+$query_color_count .= "AND entity_id = '".$productId."' ";
+$query_color_count .= "AND attribute_id = 93";
+$result_color_count = $conn->query($query_color_count);
+
+$query_size_count = "SELECT COUNT(DISTINCT(value)) as count ";
+$query_size_count .= "FROM mgkf_catalog_product_index_eav ";
+$query_size_count .= "WHERE store_id = 1 ";
+$query_size_count .= "AND entity_id = '".$productId."' ";
+$query_size_count .= "AND attribute_id = 136";
+$result_size_count = $conn->query($query_size_count);
+
+$query_color = "SELECT DISTINCT(value) as value ";
+$query_color .= "FROM mgkf_catalog_product_index_eav ";
+$query_color .= "WHERE store_id = 1 ";
+$query_color .= "AND entity_id = '".$productId."' ";
+$query_color .= "AND attribute_id = 93";
+$result_color = $conn->query($query_color);
+
+$query_size = "SELECT DISTINCT(value) as value ";
+$query_size .= "FROM mgkf_catalog_product_index_eav ";
+$query_size .= "WHERE store_id = 1 ";
+$query_size .= "AND entity_id = '".$productId."' ";
+$query_size .= "AND attribute_id = 136";
+$result_size = $conn->query($query_size);
+?>
+<?php foreach ($block->getChildNames() as $childName) { ?>
+    <?= /* @noEscape */ $block->getLayout()->renderElement($childName, false) ?>
+<?php } ?>
+<input type="hidden" id="customer_id" value="<?php echo $customerId; ?>" />
+<input type="hidden" id="item_id_<?php echo $productId; ?>" value="<?php echo $itemId; ?>" />
+<div class="box-tocart wishlist-product-body">
+    <fieldset class="fieldset">
+        <div style="font-size:16px;" class="product-options-wrapper" id="product-options-wrapper">
+            <div class="fieldset" tabindex="0">
+                <div class="swatch-opt" data-role="swatch-options">
+                    <?php
+                    if($result_color->num_rows > 0) {
+                    ?>
+                        <div id="swatch-attribute-color-<?php echo $productId; ?>" class="swatch-attribute-color" attribute-code="color" attribute-id="93">
+                            <span class="swatch-attribute-label mr-2">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('color')->toHtml();?>                        
+                            </span>
+                            <span id="swatch-attribute-selected-color-<?php echo $productId; ?>" class="swatch-attribute-selected-option"></span>
+                            <input type="hidden" id="selected-color-id-<?php echo $productId; ?>" value="" />
+                            <div class="swatch-attribute-options clearfix">
+                                <?php
+                                while($row_count_color = $result_color_count->fetch_assoc()) {
+                                    while($row_color = $result_color->fetch_assoc()) {
+                                        $color_option_id = $row_color['value'];
+
+                                        $query_color_value = "SELECT value ";
+                                        $query_color_value .= "FROM mgkf_eav_attribute_option_value ";
+                                        $query_color_value .= "WHERE option_id = '".$color_option_id."' ";
+                                        $query_color_value .= "AND store_id = 4";
+                                        $result_color_value = $conn->query($query_color_value);
+                                        $row_color_value = $result_color_value->fetch_assoc();
+                                        $color_value = $row_color_value['value'];
+
+                                        $query_color_original = "SELECT value ";
+                                        $query_color_original .= "FROM mgkf_eav_attribute_option_value ";
+                                        $query_color_original .= "WHERE store_id = 0 ";
+                                        $query_color_original .= "AND option_id = '".$color_option_id."'";
+                                        $result_color_original = $conn->query($query_color_original);
+                                        $row_color_original = $result_color_original->fetch_assoc();
+                                        $color_original = $row_color_original['value'];
+
+                                        $query_count = "SELECT COUNT(child_id) as count ";
+                                        $query_count .= "FROM mgkf_catalog_product_relation ";
+                                        $query_count .= "WHERE parent_id = '".$productId."'";
+                                        $result_count = $conn->query($query_count);
+                                        $row_count = $result_count->fetch_assoc();
+                                        $count = $row_count['count'];
+                                        
+                                        $query = "SELECT * ";
+                                        $query .= "FROM mgkf_catalog_product_entity_int ";
+                                        $query .= "WHERE attribute_id IN (93,136) ";
+                                        $query .= "AND entity_id BETWEEN $productId-$count AND $productId";
+                                        $result = $conn->query($query);
+                                        $i = 0;
+                                        $cnt = $result->num_rows;
+                                        echo '<input type="hidden" id="count-'.$productId.'" value="'.$cnt.'" />';
+                                        while($row = $result->fetch_assoc()) {
+                                            $id = $row['entity_id'];
+                                            $attribute= $row['attribute_id'];
+                                            $value = $row['value'];
+
+                                            echo '<input type="hidden" id="'.$productId.'_'.$i.'" value="'.$id.'_'.$attribute.'_'.$value.'" />';
+
+                                            $i++;
+                                        }
+
+                                        $query_color_swatch = "SELECT value ";
+                                        $query_color_swatch .= "FROM mgkf_eav_attribute_option_swatch ";
+                                        $query_color_swatch .= "WHERE option_id = '".$color_option_id."'";
+                                        $result_color_swatch = $conn->query($query_color_swatch);
+                                        $row_color_swatch = $result_color_swatch->fetch_assoc();
+                                        $color_swatch = $row_color_swatch['value'];
+                                        ?>
+                                        <input type="hidden" id="<?php echo $productId; ?>_color_<?php echo $color_option_id; ?>" value="<?php echo $color_value; ?>" />
+                                        <div onclick="set_active_color(<?php echo $productId . ',' . $color_option_id; ?>);" class="swatch-option-color" option-type="1" option-id="<?php echo $color_option_id; ?>" option-label="<?php echo $color_value; ?>" option-tooltip-value="<?php echo $color_swatch; ?>" id="<?php echo 'color_' . $productId . '_' . $color_option_id; ?>" style="background: <?php echo $color_swatch; ?> no-repeat center; background-size: initial;"></div>
+                                    <?php
+                                    }
+                                }
+                                ?>
+                            </div>
+                        </div>
+                    <?php 
+                    }
+                    ?>
+                    <div class="swatch-attribute size" attribute-code="size" attribute-id="136">
+                        <span class="swatch-attribute-label mr-2">
+                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('size')->toHtml();?>
+                        </span>
+                        <span id="swatch-attribute-selected-size-<?php echo $productId; ?>" class="swatch-attribute-selected-option"></span>
+                        <input type="hidden" id="selected-size-id-<?php echo $productId; ?>" value="" />
+                        <div class="swatch-attribute-options clearfix">
+                            <?php
+                            if($result_size->num_rows > 0) {
+                                while($row_size_count = $result_size_count->fetch_assoc()) {
+                                    while($row_size = $result_size->fetch_assoc()) {
+                                        $size_option_id = $row_size['value'];
+
+                                        $query_size_value = "SELECT value ";
+                                        $query_size_value .= "FROM mgkf_eav_attribute_option_value ";
+                                        $query_size_value .= "WHERE option_id = '".$size_option_id."'";
+                                        $result_size_value = $conn->query($query_size_value);
+                                        $row_size_value = $result_size_value->fetch_assoc();
+                                        $size_value = $row_size_value['value'];
+
+                                        $query_size_swatch = "SELECT value ";
+                                        $query_size_swatch .= "FROM mgkf_eav_attribute_option_swatch ";
+                                        $query_size_swatch .= "WHERE option_id = '".$size_option_id."'";
+                                        $result_size_swatch = $conn->query($query_size_swatch);
+                                        $row_size_swatch = $result_size_swatch->fetch_assoc();
+                                        $size_swatch = $row_size_swatch['value'];
+
+                                        $query_count = "SELECT COUNT(child_id) as count ";
+                                        $query_count .= "FROM mgkf_catalog_product_relation ";
+                                        $query_count .= "WHERE parent_id = '".$productId."'";
+                                        $result_count = $conn->query($query_count);
+                                        $row_count = $result_count->fetch_assoc();
+                                        $count = $row_count['count'];
+                                        
+                                        $query = "SELECT * ";
+                                        $query .= "FROM mgkf_catalog_product_entity_int ";
+                                        $query .= "WHERE attribute_id IN (93,136) ";
+                                        $query .= "AND entity_id BETWEEN $productId-$count AND $productId";
+                                        $result = $conn->query($query);
+                                        $i = 0;
+                                        $cnt = $result->num_rows;
+                                        echo '<input type="hidden" id="count-'.$productId.'" value="'.$cnt.'" />';
+                                        while($row = $result->fetch_assoc()) {
+                                            $id = $row['entity_id'];
+                                            $attribute= $row['attribute_id'];
+                                            $value = $row['value'];
+
+                                            echo '<input type="hidden" id="'.$productId.'_'.$i.'" value="'.$id.'_'.$attribute.'_'.$value.'" />';
+
+                                            $i++;
+                                        }
+                                        ?>
+                                        <input type="hidden" id="<?php echo $productId; ?>_size_<?php echo $size_option_id; ?>" value="<?php echo $size_value; ?>" />
+                                        <div onclick="set_active_size(<?php echo $productId . ',' . $size_option_id; ?>)" class="swatch-option-text" option-type="0" option-id="<?php echo $size_option_id; ?>" option-label="<?php echo $size_value; ?>" id="<?php echo 'size_' . $productId . '_' . $size_option_id; ?>">
+                                            <?php echo $size_value; ?>
+                                        </div>
+                                    <?php
+                                    }
+                                }
+                            }
+                            else {
+                                $query_child = "SELECT child_id ";
+                                $query_child .= "FROM mgkf_catalog_product_relation ";
+                                $query_child .= "WHERE parent_id = '".$productId."'";
+                                $result_child = $conn->query($query_child);
+                                $count = $result_child->num_rows;
+                                $query = "SELECT * ";
+                                $query .= "FROM mgkf_catalog_product_entity_int ";
+                                $query .= "WHERE attribute_id IN (93,136) ";
+                                $query .= "AND entity_id BETWEEN $productId-$count AND $productId";
+                                $result = $conn->query($query);
+                                $i = 0;
+                                $cnt = $result->num_rows;
+                                echo '<input type="hidden" id="count-'.$productId.'" value="'.$cnt.'" />';
+
+                                while($row = $result->fetch_assoc()) {
+                                    $id = $row['entity_id'];
+                                    $attribute= $row['attribute_id'];
+                                    $value = $row['value'];
+
+                                    echo '<input type="hidden" id="'.$productId.'_'.$i.'" value="'.$id.'_'.$attribute.'_'.$value.'" />';
+
+                                    $i++;
+                                }
+
+                                while($row_child = $result_child->fetch_assoc()) {
+                                    $childId = $row_child['child_id'];
+
+                                    $query_sizes = "SELECT value ";
+                                    $query_sizes .= "FROM mgkf_catalog_product_entity_int ";
+                                    $query_sizes .= "WHERE entity_id = '".$childId."' ";
+                                    $query_sizes .= "AND attribute_id = 136";
+                                    $result_sizes = $conn->query($query_sizes);
+                                    $row_sizes = $result_sizes->fetch_assoc();
+                                    $size_option_id = $row_sizes['value'];
+                                    
+
+                                    $query_size_value = "SELECT value ";
+                                    $query_size_value .= "FROM mgkf_eav_attribute_option_value ";
+                                    $query_size_value .= "WHERE option_id = '".$size_option_id."'";
+                                    $result_size_value = $conn->query($query_size_value);
+                                    $row_size_value = $result_size_value->fetch_assoc();
+                                    $size_value = $row_size_value['value'];
+
+                                    $query_size_swatch = "SELECT value ";
+                                    $query_size_swatch .= "FROM mgkf_eav_attribute_option_swatch ";
+                                    $query_size_swatch .= "WHERE option_id = '".$size_option_id."'";
+                                    $result_size_swatch = $conn->query($query_size_swatch);
+                                    $row_size_swatch = $result_size_swatch->fetch_assoc();
+                                    $size_swatch = $row_size_swatch['value'];
+                                    ?>
+                                    <input type="hidden" id="<?php echo $productId; ?>_size_<?php echo $size_option_id; ?>" value="<?php echo $size_value; ?>" />
+                                    <div onclick="set_active_size(<?php echo $productId . ',' . $size_option_id; ?>)" class="swatch-option-text" option-type="0" option-id="<?php echo $size_option_id; ?>" option-label="<?php echo $size_value; ?>" id="<?php echo 'size_' . $productId . '_' . $size_option_id; ?>">
+                                        <?php echo $size_value; ?>
+                                    </div>
+                                <?php
+                                }
+                            }
+                            ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>        
+        <?php if ($item->canHaveQty() && $product->isVisibleInSiteVisibility()) { ?>
+            <div class="field qty">
+                <label class="font-weight-bold font-14 mr-2 mt-1 text-left" for="qty[<?= $block->escapeHtmlAttr($item->getId()) ?>]"><span><?= $block->escapeHtml(__('Qty')) ?></span></label>
+                <div class="control">
+                    <input type="number" data-role="qty" id="qty[<?= $block->escapeHtmlAttr($item->getId()) ?>]" class="input-text qty" data-validate="{'required-number':true,'validate-greater-than-zero':true}" name="qty[<?= $block->escapeHtmlAttr($item->getId()) ?>]" value="<?= /* @noEscape */ (int)($block->getAddToCartQty($item) * 1) ?>">
+                </div>
+            </div>
+            <span style="display:none;font-size:16px;" class="alert alert-warning" id="color-warning-<?php echo $productId; ?>"></span>
+            <span style="display:none;font-size:16px;" class="alert alert-warning" id="size-warning-<?php echo $productId; ?>"></span>
+        <?php } ?>
+        <?php if ($product->isSaleable()) { ?>
+        <div class="product-item-actions">
+            <div class="actions-primary">
+                <button onclick="wishlist_addtocart(<?php echo $productId . ',' . $item->getId(); ?>);" type="button" title="<?= $block->escapeHtmlAttr(__('Add to Cart')) ?>" class="btn btn-block btn-orange text-white">
+                    <span><?= $block->escapeHtml(__('Add to Cart')) ?></span>
+                </button>
+            </div>
+        </div>
+        <?php } else { ?>
+            <?php if ($product->getIsSalable()) { ?>
+                <p class="available stock" title="<?= $block->escapeHtmlAttr(__('Availability')) ?>">
+                    <span><?= $block->escapeHtml(__('In stock')) ?></span>
+                </p>
+            <?php } else { ?>
+                <p class="unavailable stock" title="<?= $block->escapeHtmlAttr(__('Availability')) ?>">
+                    <span><?= $block->escapeHtml(__('Out of stock')) ?></span>
+                </p>
+            <?php } ?>
+        <?php } ?>
+    </fieldset>
+</div>
+<style>
+.swatch-option-color {
+    cursor: pointer;
+    float: left;
+    margin: 0 10px 5px 0;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 1px 2px;
+    position: relative;
+    text-align: center;
+    text-overflow: ellipsis;
+    min-width: 28px;
+    height: 22px;
+    border: 0;
+    margin: 0;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    color: #333 !important;
+}
+.swatch-option-text {
+    border-radius: 0px;
+    outline: 1px solid #e6e6e6;
+    background: #ffffff;
+    height: 24px;
+    width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #212529;
+    border: 0;
+    margin-bottom: 10px;
+    color: #333 !important;
+    float: left;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 20px;
+    padding: 4px 8px;
+    min-width: 22px;
+    margin-right: 7px;
+}
+input.input-text.qty {
+    border: 1px solid #e6e6e6;
+    height: 30px !important;
+    text-align: center;
+    width: 52px;
+}
+.field.qty {
+    display: inline-block;
+}
+.control {
+    float: none !important;
+    width: auto;
+}
+.tooltip.wrapper.product-item-tooltip {
+    display: none;
+}
+.swatch-option-text.active {
+    background: #1ec7a6 !important;
+    border-color: #1ec7a6;
+    color: #fff !important;
+}
+</style>
+<script>
+function set_active_color(i, k) {
+    var selected = document.getElementById(i+"_color_"+k).value;
+    document.getElementById("swatch-attribute-selected-color-"+i).innerText = selected;
+    document.getElementById("selected-color-id-"+i).value = k;
+    for(var j=0; j<1000; j++) {
+        if(document.getElementById("color_"+i+"_"+j)) {
+            document.getElementById("color_"+i+"_"+j).style.outline = "none";
+            document.getElementById("color_"+i+"_"+j).style.border = "none";
+        }
+    }    
+    document.getElementById("color_"+i+"_"+k).style.outline = "2px solid #ff5501";
+    document.getElementById("color_"+i+"_"+k).style.border = "2px solid #ff5501";
+}
+function set_active_size(i, k) {
+    var selected = document.getElementById(i+"_size_"+k).value;
+    document.getElementById("swatch-attribute-selected-size-"+i).innerText = selected;
+    document.getElementById("selected-size-id-"+i).value = k;
+    for(var j=0; j<1000; j++) {
+        if(document.getElementById("size_"+i+"_"+j)) {
+            document.getElementById("size_"+i+"_"+j).classList.remove("active");
+        }
+    }
+    document.getElementById("size_"+i+"_"+k).classList.add("active");
+}
+function wishlist_addtocart(k, i) {
+    var product_id = k;
+    var item_id = i;
+    var selected_color = jQuery("#swatch-attribute-selected-color-"+k).text();
+    var selected_size = jQuery("#swatch-attribute-selected-size-"+k).text();
+    var qty = document.getElementById("qty["+i+"]").value;
+    if(document.getElementById("swatch-attribute-color-"+k)) {
+        if(selected_color == '') {
+            document.getElementById("color-warning-"+k).innerText = "Field color is required";
+            document.getElementById("color-warning-"+k).style.display = "block";     
+        }
+        else {
+            document.getElementById("color-warning-"+k).style.display = "none";  
+        }
+    }    
+    if(selected_size == '') {
+        document.getElementById("size-warning-"+k).innerText = "Field size is required";
+        document.getElementById("size-warning-"+k).style.display = "block";
+    }
+    else { 
+        document.getElementById("size-warning-"+k).style.display = "none";
+    }
+    if(document.getElementById("swatch-attribute-color-"+k)) {
+        if((selected_color != '') && (selected_size != '')) {        
+            var customer_id = document.getElementById("customer_id").value;
+            var color_id = document.getElementById("selected-color-id-"+product_id).value;
+            var size_id = document.getElementById("selected-size-id-"+product_id).value;
+            var item_id = document.getElementById("item_id_"+product_id).value;
+
+            var cnt = document.getElementById("count-"+product_id).value;
+
+            for(var i=0; i<cnt; i++) {
+                if(document.getElementById(product_id+"_"+i)) {
+
+                    var id = document.getElementById(product_id+"_"+i).value;
+                    var j = i+1;
+
+                    if(document.getElementById(product_id+"_"+j)) {
+                        var next = document.getElementById(product_id+"_"+j).value;
+
+                        if(id.includes(color_id) && next.includes(size_id)) {
+
+                            var child_id = id.replace("_93", "");
+                            var child_id = child_id.replace("_"+color_id, "");
+
+                            if(child_id.includes("_")) {
+                                child_id = child_id.split("_")[0];
+                            }
+
+                            jQuery.ajax({
+                                type:"POST",
+                                url: "/wishlistAddToCart.php",
+                                data: "item_id="+item_id+"&product_id="+product_id+"&child_id="+child_id+"&color="+selected_color+"&size="+selected_size+"&qty="+qty+"&customer_id="+customer_id,
+                                success: '',
+                            });
+                        }
+                    }
+                }
+            }
+
+            interval = setInterval(myTimer, 2000);
+        
+            var current_count = document.getElementById("wish-list-buble").innerText;
+            if(current_count >= 1) {
+                var new_count = current_count - 1;
+                document.getElementById("wish-list-buble").innerText = new_count;
+            }
+
+            var counter = document.getElementsByClassName("counter-number")[0].innerText;
+            var new_counter = Number(counter) + 1;
+            document.getElementsByClassName("counter-number")[0].innerText = new_counter;
+
+            document.getElementById("item_"+item_id).remove();
+        }
+    }
+    else {
+        if(selected_size != '') {        
+            var customer_id = document.getElementById("customer_id").value;
+            var size_id = document.getElementById("selected-size-id-"+product_id).value;
+            var item_id = document.getElementById("item_id_"+product_id).value;
+
+            var cnt = document.getElementById("count-"+product_id).value;
+
+            for(var i=0; i<cnt; i++) {
+                if(document.getElementById(product_id+"_"+i)) {
+                    var id = document.getElementById(product_id+"_"+i).value;
+                    var j = i+1;
+
+                    if(document.getElementById(product_id+"_"+j)) {
+                        var next = document.getElementById(product_id+"_"+j).value;
+
+                        jQuery.ajax({
+                            type:"POST",
+                            url: "/wishlistAddToCart.php",
+                            data: "item_id="+item_id+"&product_id="+product_id+"&child_id="+child_id+"&size="+selected_size+"&qty="+qty+"&customer_id="+customer_id,
+                            success: '',
+                        });
+                    }
+                }
+                break;
+            }
+
+            interval = setInterval(myTimer, 2000);
+        
+            var current_count = document.getElementById("wish-list-buble").innerText;
+            if(current_count >= 1) {
+                var new_count = current_count - 1;
+                document.getElementById("wish-list-buble").innerText = new_count;
+            }
+
+            var counter = document.getElementsByClassName("counter-number")[0].innerText;
+            var new_counter = Number(counter) + 1;
+            document.getElementsByClassName("counter-number")[0].innerText = new_counter;
+
+            document.getElementById("item_"+item_id).remove();
+        }
+    }
+    
+}
+function myTimer() {
+    var customer_id = document.getElementById("customer_id").value;
+    jQuery("#mini-cart").load("/minicartUpdate.php", {customer_id:customer_id});
+    jQuery("#block-content-block-footer").load("/minicartUpdateTotals.php", {customer_id:customer_id});
+    stopTimer();
+}
+function stopTimer() {
+    clearInterval(interval);
+}
+</script>

@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_SpecialPromotions
+ * @copyright   Copyright (c) Mageplaza (http://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Mageplaza\SpecialPromotions\Api\Data\DiscountDetailsInterface" type="Mageplaza\SpecialPromotions\Model\Data\DiscountDetails"/>
+    <preference for="Mageplaza\SpecialPromotions\Api\Data\DiscountDetailsItemInterface" type="Mageplaza\SpecialPromotions\Model\Data\DiscountDetailsItem"/>
+    <type name="Magento\SalesRule\Model\Rule\Action\Discount\CalculatorFactory">
+        <arguments>
+            <argument name="discountRules" xsi:type="array">
+                <item name="spent_x_get_y" xsi:type="string">Mageplaza\SpecialPromotions\Model\Rule\Action\Discount\SpentXGetY</item>
+                <item name="cart_spent_x_get_y" xsi:type="string">Mageplaza\SpecialPromotions\Model\Rule\Action\Discount\CartSpentXGetY</item>
+                <item name="to_fixed" xsi:type="string">Mageplaza\SpecialPromotions\Model\Rule\Action\Discount\ToFixed</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Magento\SalesRule\Model\Rule">
+        <plugin name="overide_action_instance" type="Mageplaza\SpecialPromotions\Plugin\Rule"/>
+    </type>
+    <type name="Magento\SalesRule\Model\Validator">
+        <plugin name="validate_cart_init_totals" type="Mageplaza\SpecialPromotions\Plugin\Validator"/>
+    </type>
+    <type name="Magento\SalesRule\Model\Utility">
+        <plugin name="validate_cart_init_totals" type="Mageplaza\SpecialPromotions\Plugin\Utility"/>
+    </type>
+    <type name="Magento\Quote\Model\Cart\TotalsConverter">
+        <plugin name="add_discount_details" type="Mageplaza\SpecialPromotions\Plugin\Quote\DiscountDetailsPlugin"/>
+    </type>
+    <type name="Magento\Quote\Model\Quote\TotalsReader">
+        <plugin name="add_discount_detail_to_fetch" type="Mageplaza\SpecialPromotions\Plugin\Quote\TotalsReader"/>
+    </type>
+</config>

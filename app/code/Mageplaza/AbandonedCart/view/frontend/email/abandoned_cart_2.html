@@ -1,0 +1,75 @@
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_AbandonedCart
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+<!--@subject {{trans "Oh. Is this your cart in %store_name" store_name=$store.getFrontendName()}} @-->
+<!--@vars {
+"var coupon_code|raw":"Coupon Code",
+"var checkout_url":"Checkout Url",
+"var url_suffix":"Checkout Url Suffix"
+} @-->
+<!--@styles
+.btn-primary {
+    margin: 10px auto;
+}
+.btn-primary td a {
+    background-color: #348eda;
+    border: solid 1px #348eda;
+    border-radius: 25px;
+    border-width: 10px 20px;
+    display: inline-block;
+    color: #ffffff !important;
+    cursor: pointer;
+    font-weight: bold;
+    line-height: 2;
+    text-decoration: none;
+}
+ @-->
+
+{{template config_path="design/email/header_template"}}
+
+<p class="greeting">{{trans "Hello %name," name=$customer_name}}</p>
+<p>{{trans "I’m %sender from %store_name and hopefully, you haven’t forgotten us as well as the shopping cart you left
+    in our store recently. Thus, we would love to be sure that below items will catch your attention again."
+    sender=$sender store_name=$store.getFrontendName()}}</p>
+
+{{layout handle="ace_email_quote_items" quote=$quote area="frontend"}}
+
+<table class="btn-primary" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td>
+            {{trans '<a href="%checkout_url">Your cart here</a>' checkout_url=$checkout_url |raw}}
+        </td>
+    </tr>
+</table>
+
+<p>{{trans "Or if anything got you confused in shopping process? Feel free to contact again to discuss problems you may
+    have. Your satisfaction is the best product we desire to deliver."}}</p>
+<p>
+    {{depend coupon_code}}
+    {{trans "Friendly remind that the coupon <b>%couponCode</b> is waiting for you." couponCode=$coupon_code |raw}}<br>
+    {{/depend}}
+    {{depend to_date}}
+    {{trans "The expiration date will be lasted until %to" to=$to_date}}
+    {{/depend}}
+</p>
+<p>{{trans "Thank you so much and have a nice day."}}</p>
+
+{{template config_path="design/email/footer_template"}}

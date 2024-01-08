@@ -1,0 +1,67 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_SocialShare
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+/**
+ * @var \Mageplaza\SocialShare\Block\SocialShare $block
+ */
+
+if (file_exists("conf/conf.php")) 
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+?>
+
+<?php if ($block->isEnable()) { ?>
+    <?php if ($block->isThisPageEnable() && $block->isThisPositionEnable()) { ?>
+        <div class="<?= $block->getContainerClass($block->getDisplayType()) ?>">
+            <div class="a2a_kit <?= $block->getDisplayType() ?> <?= $block->getButtonSize() ?>">
+                <?php foreach ($block->getEnableService() as $enableService) { ?>
+                    <?php if ($block->isImageEnable($enableService)) { ?>
+                        <a class="position-relative a2a_button_<?= $enableService ?> <?= $block->getShareCounter() ?>">
+                            <img src="<?= $block->getImageUrl($enableService) ?>" <?= $block->setImageSize($block->getButtonSize()) ?>
+                                 alt="<?= $enableService ?>">
+                        </a>
+                    <?php } else { ?>
+                        <a class="a2a_button_<?= $enableService ?> <?= $block->getShareCounter() ?>"></a>
+                    <?php } ?>
+                <?php } ?>
+                <?php if ($block->isAddMoreShare()) { ?>
+                    <a class="a2a_dd <?= $block->getShareCounter() ?>" href="https://www.addtoany.com/share"></a>
+                <?php } ?>
+            </div>
+        </div>
+        <script type="text/x-magento-init">
+        {
+            "*": {
+                "Mageplaza_SocialShare/js/config": {
+                    "buttonColor": "<?= $block->getButtonColor() ?>",
+                    "iconColor": "<?= $block->getIconColor() ?>",
+                    "click": "<?= $block->getMenuType() ?>",
+                    "popUp": "<?= $block->getThankYou() ?>",
+                    "service": "<?= $block->getNumberOfService() ?>",
+                    "disable": "<?= $block->getDisabledServices() ?>"
+                }
+            }
+        }
+        </script>
+    <?php } ?>
+<?php } ?>

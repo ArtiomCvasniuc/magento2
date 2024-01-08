@@ -1,0 +1,170 @@
+<?php
+use \Magento\Framework\Stdlib\StringUtils;
+?>
+<?php
+/**
+ * Blog sidebar recent posts template
+ *
+ * @var $block \Themevast\Blog\Block\Sidebar\Recent
+ */
+?>
+
+<?php
+
+	$stringFilter = new \Magento\Framework\Stdlib\StringUtils;
+	$enable = $this->getConfig('enable_frontend');
+	$auto = $this->getConfig('auto');
+	$speed = $this->getConfig('speed');
+	$default = $this->getConfig('default');
+	$tv_column1 = $block->getConfig('tv_column1') ? $block->getConfig('tv_column1'):4;
+	$tv_column2 = $block->getConfig('tv_column2') ? $block->getConfig('tv_column2'):3;
+	$tv_column3 = $block->getConfig('tv_column3') ? $block->getConfig('tv_column3'):2;
+	$tv_column4 = $block->getConfig('tv_column4') ? $block->getConfig('tv_column4'):1;
+	$tv_column5 = $block->getConfig('tv_column5') ? $block->getConfig('tv_column5'):1;
+	$pagination = $this->getConfig('pagination');
+	$show_next_back = $this->getConfig('show_next_back');
+	$show_navigation_control = $this->getConfig('show_navigation_control');
+	$title = $this->getConfig('title');
+	$helperTheme = $this->helper('Themevast\Themevast\Helper\Image');
+	/* if($show_next_back)
+		$show_next_back = 'true';
+	else
+		$show_next_back = 'false'; */
+	$show_navigation_control = $this->getConfig('show_navigation_control');
+	/* if($show_navigation_control)
+		$show_navigation_control = 'true';
+	else
+		$show_navigation_control = 'false'; */
+	$_postCollection = $block->getPostCollection();
+?>
+<?php if ($_postCollection->count() && $enable) { ?>
+<div class="block-posts-slider blog-preload" data-bind="scope: 'recemt-posts'">
+	<div class="title-product-heading title-blog-heading">
+		<h2><?php echo __($title) ?></h2>
+	</div>
+		<div class="owl-container">
+			<div class="block-content">
+		
+				<div class="owl-carousel">
+					<div class="blogFirst_loading"></div>
+					<?php foreach ($_postCollection as $_post) { ?>
+						<div class="item">
+							<div class="blog-item">
+								<div class="item-inner">
+									<div class="blog-image clearfix">
+										<a href="<?php echo $_post->getPostUrl() ?>">
+											<?php $linkPost = $helperTheme->resize($_post->getThumbnailimage(),457,280);
+											?>
+											<img src="<?php echo $linkPost ?>"/>
+										</a>
+										<div class="time-conment">
+											<?php 
+												$date = $_post->getPublishTime();
+											?>
+											<div class="date-time"><div class="date"><?php echo __(date("d", strtotime($date))) ?></div><div class="month"><?php echo __(date("M", strtotime($date))) ?></div></div>
+										</div>
+									</div>
+									<div class="blog-content">
+											 <h3 class="blog-title"><a href="<?php echo $_post->getPostUrl() ?>"><?php echo $block->escapeHtml($_post->getTitle()) ?></a></h3>
+											<?php $length = 135; ?>
+											<?php if ($_author = $_post->getAuthor()) { ?>
+											<div class="post-author">
+											<span class="label">&nbsp;</span>
+											<span>
+												<?php echo $block->escapeHtml($_author->getTitle()) ?>
+												</span>
+											</div>
+											<?php } ?>
+											<?php if ($block->getCommentsType()) { ?>
+											<div class="block comments">
+											  <?php if ($block->getCommentsType() == 'facebook') { ?>
+												<div id="fb-root"></div>
+												 <script>(function(d, s, id) {
+													var js, fjs = d.getElementsByTagName(s)[0];
+													if (d.getElementById(id)) return;
+													js = d.createElement(s); js.id = id;
+													js.src = "//connect.facebook.net/<?php echo $block->getLocaleCode() ?>/sdk.js#xfbml=1&version=v2.5&appId=<?php echo $block->getFacebookAppId() ?>";
+													fjs.parentNode.insertBefore(js, fjs);
+												  }(document, 'script', 'facebook-jssdk'));
+												</script>
+												<span class="label">&nbsp;</span>
+												 <span class="fb-comments-count" data-href="<?php echo $_post->getPostUrl() ?>"></span>
+												 <span>Comment</span>
+											  <?php } elseif ($block->getCommentsType() == 'disqus') { ?>
+													<span class="disqus-comment-count" data-disqus-url="<?php echo $_post->getPostUrl() ?>">
+													<script>
+														var disqus_config = function () {
+															this.page.url = "<?php echo $_post->getPostUrl() ?>";
+															this.page.identifier = "<?php echo $_post->getPostUrl()  ?>"
+														};
+
+														(function() {
+															var d = document, s = d.createElement('script');
+															s.src = '//<?php echo $block->getDisqusShortname() ?>.disqus.com/embed.js';
+															s.setAttribute('data-timestamp', +new Date());
+															(d.head || d.body).appendChild(s);
+														})();
+													</script>
+											  <?php } ?>
+											  
+											</div>
+											<?php } ?>
+											<div class="shot-des"><?php echo $stringFilter->substr($_post->getShortContent(),0,$length); ?></div>
+											<div class="view-more"><a href="<?php echo $_post->getPostUrl() ?>"><?php echo $block->escapeHtml(__('Read More')); ?></a></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					<?php } ?>
+				</div>
+			
+			</div>
+		</div>
+</div>
+
+<script type="text/javascript">
+	require([
+		'jquery',
+		'mage/mage',
+		'themevast/owl'
+	], function ($) {
+		'use strict';
+		setTimeout(function () {
+				jQuery(".block-posts-slider").removeClass('blog-preload');
+				jQuery('.blogFirst_loading').remove();
+				blogSlider();
+		}, 500);
+		function blogSlider() {
+			jQuery(".block-posts-slider .owl-carousel").owlCarousel({
+				autoplay :<?php echo $auto==1 ? 'true':'false' ?>,
+				items : <?php echo $default ?>,
+				smartSpeed : <?php echo $speed ?>,
+				dotsSpeed : <?php echo $speed ?>,
+				rewindSpeed : <?php echo $speed ?>,
+				nav : <?php echo $show_next_back==1 ? 'true' : 'false';?>,
+				autoplayHoverPause : true,
+				dots :<?php echo $show_navigation_control==1 ? 'true':'false' ;  ?>,
+				scrollPerPage:true,
+				margin: 30,
+				responsive: {
+				0: {
+					items:<?php echo $tv_column5;?>
+				},
+				480: {
+					items:<?php echo $tv_column4;?>
+				},
+				768: {
+					items:<?php echo $tv_column3;?>
+				},
+				991: {
+					items:<?php echo $tv_column2;?>
+				},						
+				1200: {
+					items:<?php echo $tv_column1;?>
+				}
+			 }
+			});
+		}
+	});
+</script>
+<?php } ?>

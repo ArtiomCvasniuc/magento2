@@ -1,0 +1,150 @@
+
+@import url('https://fonts.googleapis.com/css?family=Poppins:300,300i,400,400i,500,500i,600,600i,700,700i,800,800i&subset=latin-ext');
+@font-face {
+  font-family: "Flaticon";
+  src: url("../fonts/flaticon.eot");
+  src: url("../fonts/flaticon.eot#iefix") format("embedded-opentype"),
+  url("../fonts/flaticon.woff") format("woff"),
+  url("../fonts/flaticon.ttf") format("truetype"),
+  url("../fonts/flaticon.svg") format("svg");
+  font-weight: normal;
+  font-style: normal;
+}
+[class^="flaticon-"]:before, 
+[class*=" flaticon-"]:before,
+[class^="flaticon-"]:after, 
+[class*=" flaticon-"]:after {   
+	font-family: Flaticon;
+	font-style: normal;
+}
+.flaticon-01search:before { content: "\f100"; }
+.flaticon-02arrows:before { content: "\f101"; }
+.flaticon-03wishlist:before { content: "\f102"; }
+.flaticon-04shopcart:before { content: "\f103"; }
+.flaticon-05menu:before { content: "\f104"; }
+.flaticon-06accessories:before { content: "\f105"; }
+.flaticon-07furniture:before { content: "\f106"; }
+.flaticon-08women-shoes:before { content: "\f107"; }
+.flaticon-09handbag:before { content: "\f108"; }
+.flaticon-10watch:before { content: "\f109"; }
+.flaticon-11sport-shoes:before { content: "\f10a"; }
+.flaticon-12clothes:before { content: "\f10b"; }
+.flaticon-13male-telemarketer:before { content: "\f10c"; }
+.flaticon-14credit-card-security:before { content: "\f10d"; }
+.flaticon-15return-of-investment:before { content: "\f10e"; }
+.flaticon-16transport:before { content: "\f10f"; }
+.flaticon-17grid:before { content: "\f110"; }
+.flaticon-18list:before { content: "\f111"; }
+.flaticon-19grid:before { content: "\f112"; }
+.flaticon-20shirt:before { content: "\f113"; }
+.flaticon-21sunglass:before { content: "\f114"; }
+.flaticon-22shoes:before { content: "\f115"; }
+.flaticon-23book:before { content: "\f116"; }
+.flaticon-24accessories:before { content: "\f117"; }
+.flaticon-25bag:before { content: "\f118"; }
+.flaticon-26check:before { content: "\f119"; }
+.flaticon-27arrows:before { content: "\f11a"; }
+.flaticon-28bag:before { content: "\f11b"; }
+
+
+
+@font-face {
+  font-family: 'storm';
+  src:  url('../fonts/storm.eot?hvqnpe');
+  src:  url('../fonts/storm.eot?hvqnpe#iefix') format('embedded-opentype'),
+    url('../fonts/storm.ttf?hvqnpe') format('truetype'),
+    url('../fonts/storm.woff?hvqnpe') format('woff'),
+    url('../fonts/storm.svg?hvqnpe#storm') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+
+[class^="storm-"], [class*=" storm-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'storm' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+.storm-round-user:before {
+  content: "\e917";
+}
+.storm-phone-call:before {
+  content: "\e916";
+}
+.storm-check-square:before {
+  content: "\e913";
+}
+.storm-envelope:before {
+  content: "\e914";
+}
+.storm-user:before {
+  content: "\e915";
+}
+.storm-zoom:before {
+  content: "\e912";
+}
+.storm-clock:before {
+  content: "\e90e";
+}
+.storm-male-avatar:before {
+  content: "\e90f";
+}
+.storm-prices:before {
+  content: "\e910";
+}
+.storm-shopping-online:before {
+  content: "\e911";
+}
+.storm-four-dots:before {
+  content: "\e90c";
+}
+.storm-text:before {
+  content: "\e90d";
+}
+.storm-comment:before {
+  content: "\e90b";
+}
+.storm-eye:before {
+  content: "\e90a";
+}
+.storm-balance:before {
+  content: "\e907";
+}
+.storm-heart:before {
+  content: "\e908";
+}
+.storm-shopping-basket:before {
+  content: "\e909";
+}
+.storm-credit-card:before {
+  content: "\e900";
+}
+.storm-delivery-truck:before {
+  content: "\e901";
+}
+.storm-headset:before {
+  content: "\e902";
+}
+.storm-money-bag:before {
+  content: "\e903";
+}
+.storm-pin:before {
+  content: "\e904";
+}
+.storm-shopping-bag:before {
+  content: "\e905";
+}
+.storm-telemarketer:before {
+  content: "\e906";
+}

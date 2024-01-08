@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../Magento/Backend/etc/system_file.xsd">
+    <system>
+		 <section id="searchbycat" translate="label" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Search By Category</label>
+            <tab>themevast</tab>
+            <resource>Themevast_SearchbyCat::searchbycat</resource>
+			<group id="settings" translate="label" type="text" sortOrder="101" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Settings</label>
+				<field id="enabled" translate="label comment" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Module</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+		
+				<field id="select_category_on_category_pages" translate="label comment" type="select" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Select Category On Category Pages</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="show_subcategories" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Sub categories</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+				<field id="subcategories_level" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Number of items showed on slide</label>  
+					<depends>
+                        <field id="show_subcategories">1</field>
+                    </depends>					
+                </field>
+				<field id="indentation_text" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Number of items showed on slide</label>  
+					<depends>
+                        <field id="show_subcategories">1</field>
+                    </depends>					
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

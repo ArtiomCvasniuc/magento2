@@ -1,0 +1,27 @@
+@import '_tv_variables.less';
+
+.btn-java {
+    background: @java;
+
+    &:hover {
+        background: #000 !important;
+        color: #fff !important;
+    }
+}
+
+.btn-gallery {
+    background: @gallery;
+
+    &:hover {
+        background: @java;
+    }
+}
+
+.btn {
+    transition: all .3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+button#action-show-popup {
+    background-color: #ff5501 !important;
+    border-color: #ff5501 !important;
+}

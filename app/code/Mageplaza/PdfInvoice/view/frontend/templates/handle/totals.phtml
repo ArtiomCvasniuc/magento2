@@ -1,0 +1,83 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category   Mageplaza
+ * @package    Mageplaza_PdfInvoice
+ * @copyright   Copyright (c) Mageplaza (http://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+// @codingStandardsIgnoreFile
+
+/**
+ * @var $block \Magento\Sales\Block\Order\Totals
+ * @see \Magento\Sales\Block\Order\Totals
+ */
+$_source = $block->getSource();
+$_order = $block->getOrder();
+?>
+<?php foreach ($block->getTotals() as $_code => $_total): ?>
+    <?php if ($_total->getBlockName()): ?>
+        <div class="custom mp">
+            <?= /** @noEscape */ $block->getChildHtml($_total->getBlockName(), false) ?>
+        </div>
+    <?php else: ?>
+        <?php if ($_code == 'grand_total' && $_source->getCustomerBalanceAmount()): ?>
+            <div class="mp">
+                <div class="mp-str">
+                    <?php /* @noEscape */
+                    echo __('Store Credit') ?>
+                </div>
+                <div class="mp-right">
+                    <span class="balance discount">-<?php /* @noEscape */
+                        echo $_order->formatPrice($_source->getCustomerBalanceAmount()) ?></span>
+                </div>
+            </div>
+        <?php endif ?>
+        <div class="<?php /* @noEscape */
+        echo $_code ?> mp">
+            <div class="mp-str">
+                <?php if ($_total->getStrong()): ?>
+                    <strong><?= /** @noEscape */ $block->escapeHtml($_total->getLabel()) ?></strong>
+                <?php else: ?>
+                    <?= /** @noEscape */ $block->escapeHtml($_total->getLabel()) ?>
+                <?php endif ?>
+            </div>
+            <div <?php /* @noEscape */
+            echo $block->getValueProperties() ?> class="mp-right"
+                                                 data-th="<?= /** @noEscape */ $block->escapeHtml($_total->getLabel()) ?>">
+                <?php if ($_total->getStrong()): ?>
+                    <strong><?php /* @noEscape */
+                        echo $block->formatValue($_total) ?></strong>
+                <?php else: ?>
+                    <?php /* @noEscape */
+                    echo $block->formatValue($_total) ?>
+                <?php endif ?>
+            </div>
+        </div>
+    <?php endif ?>
+<?php endforeach ?>
+<?php if ($_source->getCustomerBalTotalRefunded()): ?>
+    <div class="mp">
+        <div class="mp-str">
+            <?php /* @noEscape */
+            echo __('Refunded to Store Credit') ?>
+        </div>
+        <div class="mp-right">
+            <span class="balance discount">-<?php /* @noEscape */
+                echo $_order->formatPrice($_source->getCustomerBalTotalRefunded()) ?></span>
+        </div>
+    </div>
+<?php endif ?>

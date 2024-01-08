@@ -1,0 +1,188 @@
+<?php
+
+/**
+ * Copyright © 2016 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+/** @var \Magento\Customer\Block\Form\Edit $block */
+?>
+<?php
+if (file_exists("conf/conf.php"))
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+if (isset($_POST['submit'])) {
+    $customer_id = $_POST['customer_id'];
+    $firstname = $_POST['firstname'];
+    $lastname = $_POST['lastname'];
+    $email = $_POST['email'];
+    $phone = $_POST['phone'];
+    $full_name = $firstname . ' ' . $lastname;
+
+    $query_1 = "UPDATE mgkf_customer_entity SET
+                firstname = '$firstname', 
+                lastname = '$lastname',
+                email = '$email'
+                WHERE entity_id = $customer_id";
+    $result_1 = $conn->query($query_1);
+
+    $query_2 = "UPDATE mgkf_customer_grid_flat SET
+                name = '$full_name',
+                email = '$email',
+                billing_telephone = '$phone'
+                WHERE entity_id = $customer_id";
+    $result_2 = $conn->query($query_2);
+}
+
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+?>
+<form class="form form-edit-account" action="<?= $_SERVER['PHP_SELF'] ?>" method="post" id="form-validate" enctype="multipart/form-data" data-hasrequired="<?php /* @escapeNotVerified */ echo __('* Required Fields') ?>" autocomplete="off">
+    <?php
+    $url = $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
+    if (strpos($url, 'customer/account/edit') !== false) {
+    ?>
+        <div class="mt-3">
+            <?php echo $block->getBlockHtml('formkey') ?>
+            <h3 class="font-weight-bold mb-3"><?php /* @escapeNotVerified */ echo __('Account Information') ?></h3>
+            <?php echo $block->getLayout()->createBlock('Magento\Customer\Block\Widget\Name')->setObject($block->getCustomer())->toHtml() ?>
+            <div class="row mt-3">
+                <div class="col-12 col-md-6">
+                    <label class="mb-1" for="email"><span><?php /* @escapeNotVerified */ echo __('Email') ?></span></label>
+                    <div class="control">
+                        <input type="hidden" name="customer_id" id="customer_id" value="<?php echo $customerId; ?>" />
+                        <input type="email" name="email" id="email" class="form-control shadow-none rounded" value="<?php echo $block->escapeHtml($block->getCustomer()->getEmail()) ?>" title="<?php /* @escapeNotVerified */ echo __('Email') ?>" class="input-text" data-validate="{required:true, 'validate-email':true}">
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="mb-1" for="phone"><span><?php /* @escapeNotVerified */ echo __('Phone') ?></span></label>
+                    <div class="contol">
+                        <?php
+                        $query = 'SELECT billing_telephone FROM mgkf_customer_grid_flat
+                                WHERE email = "' . $block->escapeHtml($block->getCustomer()->getEmail()) . '"';
+                        $result = $conn->query($query);
+                        while ($row = $result->fetch_assoc()) {
+                            $phone = $row['billing_telephone'];
+                        }
+                        ?>
+                        <input type="number" name="phone" id="phone" value="<?php echo $phone; ?>" class="form-control shadow-none rounded" data-validate="{required:true}">
+                    </div>
+                </div>
+                <div>
+                    <?php $_dob = $block->getLayout()->createBlock('Magento\Customer\Block\Widget\Dob') ?>
+                    <?php $_taxvat = $block->getLayout()->createBlock('Magento\Customer\Block\Widget\Taxvat') ?>
+                    <?php $_gender = $block->getLayout()->createBlock('Magento\Customer\Block\Widget\Gender') ?>
+                    <?php if ($_dob->isEnabled()) : ?>
+                        <?php echo $_dob->setDate($block->getCustomer()->getDob())->toHtml() ?>
+                    <?php endif ?>
+                    <?php if ($_taxvat->isEnabled()) : ?>
+                        <?php echo $_taxvat->setTaxvat($block->getCustomer()->getTaxvat())->toHtml() ?>
+                    <?php endif ?>
+                    <?php if ($_gender->isEnabled()) : ?>
+                        <?php echo $_gender->setGender($block->getCustomer()->getGender())->toHtml() ?>
+                    <?php endif ?>
+                </div>
+            </div>
+        </div>
+    <?php
+    } else {
+    ?>
+        <?php $_dob = $block->getLayout()->createBlock('Magento\Customer\Block\Widget\Dob') ?>
+        <?php $_taxvat = $block->getLayout()->createBlock('Magento\Customer\Block\Widget\Taxvat') ?>
+        <?php $_gender = $block->getLayout()->createBlock('Magento\Customer\Block\Widget\Gender') ?>
+        <?php if ($_dob->isEnabled()) : ?>
+            <?php echo $_dob->setDate($block->getCustomer()->getDob())->toHtml() ?>
+        <?php endif ?>
+        <?php if ($_taxvat->isEnabled()) : ?>
+            <?php echo $_taxvat->setTaxvat($block->getCustomer()->getTaxvat())->toHtml() ?>
+        <?php endif ?>
+        <?php if ($_gender->isEnabled()) : ?>
+            <?php echo $_gender->setGender($block->getCustomer()->getGender())->toHtml() ?>
+        <?php endif ?>
+        <div class="mt-3">
+            <h3 class="font-weight-bold mb-3"><span><?php /* @escapeNotVerified */ echo __('Change Password') ?></span></h3>
+            <div class="mb-1">
+                <label class="mb-1" for="current-password"><span><?php /* @escapeNotVerified */ echo __('Current Password') ?></span></label>
+                <input type="password" class="form-control shadow-none rounded" name="current_password" id="current-password" autocomplete="off">
+            </div>
+            <div class="mb-1">
+                <label class="mb-1" for="password"><span><?php /* @escapeNotVerified */ echo __('New Password') ?></span></label>
+                <input type="password" class="form-control shadow-none rounded" name="password" id="password" autocomplete="off">
+            </div>
+            <div class="mb-1">
+                <label class="mb-1" for="password-confirmation"><span><?php /* @escapeNotVerified */ echo __('Confirm New Password') ?></span></label>
+                <input type="password" class="form-control shadow-none rounded" name="password_confirmation" id="password-confirmation" autocomplete="off">
+            </div>
+        </div>
+    <?php
+    }
+    ?>
+    <div class="row mt-3">
+        <div class="col-6 col-md-3">
+            <button name="submit" type="submit" class="btn btn-primary btn-block" title="<?php /* @escapeNotVerified */ echo __('Save') ?>"><span><?php /* @escapeNotVerified */ echo __('Save') ?></span></button>
+        </div>
+        <div class="col-6 offset-md-3 text-right">
+            <div class="secondary">
+                <a class="action back" href="<?php echo $block->escapeUrl($block->getBackUrl()) ?>"><span><?php /* @escapeNotVerified */ echo __('Go back') ?></span></a>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    require([
+        "jquery",
+        "mage/mage"
+    ], function($) {
+        var dataForm = $('#form-validate');
+        var ignore = <?php /* @escapeNotVerified */ echo $_dob->isEnabled() ? '\'input[id$="full"]\'' : 'null'; ?>;
+
+        dataForm.mage('validation', {
+            <?php if ($_dob->isEnabled()) : ?>
+                errorPlacement: function(error, element) {
+                    if (element.prop('id').search('full') !== -1) {
+                        var dobElement = $(element).parents('.customer-dob'),
+                            errorClass = error.prop('class');
+                        error.insertAfter(element.parent());
+                        dobElement.find('.validate-custom').addClass(errorClass)
+                            .after('<div class="' + errorClass + '"></div>');
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                ignore: ':hidden:not(' + ignore + ')'
+            <?php else : ?>
+                ignore: ignore ? ':hidden:not(' + ignore + ')' : ':hidden'
+            <?php endif ?>
+        });
+
+    });
+</script>
+<script type="text/x-magento-init">
+    {
+        "#change-password": {
+            "setPassword": {
+                "currentPasswordId": "#current-password",
+                "passwordId": "#password",
+                "confirmationId": "#password-confirmation",
+                "passwordContainer": "fieldset.fieldset.password",
+                "showOnDefault": <?php /* @escapeNotVerified */ echo $block->getChangePassword() ? 'true' : 'false' ?>
+            }
+        }
+    }
+</script>

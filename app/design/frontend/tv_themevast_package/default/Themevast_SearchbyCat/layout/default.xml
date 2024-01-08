@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../../../lib/internal/Magento/Framework/View/Layout/etc/page_configuration.xsd">
+	<referenceBlock name="top.search" remove="true"/>
+	<referenceContainer name="header-wrapper">
+		<block class="Themevast\SearchbyCat\Block\Form" name="top.search.bycat" as="topSearch" template="Themevast_SearchbyCat::search/form.mini.phtml" />
+	</referenceContainer>
+	<move element="top.search.bycat" destination="themevast_header" />
+</page>

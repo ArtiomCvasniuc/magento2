@@ -1,0 +1,1805 @@
+<?php
+/**
+ * Apptha
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the EULA
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://www.apptha.com/LICENSE.txt
+ *
+ * ==============================================================
+ *                 MAGENTO EDITION USAGE NOTICE
+ * ==============================================================
+ * This package designed for Magento COMMUNITY edition
+ * Apptha does not guarantee correct work of this extension
+ * on any other Magento edition except Magento COMMUNITY edition.
+ * Apptha does not provide extension support in case of
+ * incorrect edition usage.
+ * ==============================================================
+ *
+ * @category    Apptha
+ * @package     Apptha_Marketplace
+ * @version     1.2
+ * @author      Apptha Team <developers@contus.in>
+ * @copyright   Copyright (c) 2017 Apptha. (http://www.apptha.com)
+ * @license     http://www.apptha.com/LICENSE.txt
+ *
+ */
+if (file_exists("conf/conf.php"))
+    @include 'conf/conf.php';
+
+$conn = new mysqli($conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name);
+
+$date = date("Y-m-d");
+
+if (isset($_POST['delete'])) {
+    $id = $_POST['id'];
+
+    $query = "DELETE FROM mgkf_catalog_product_entity ";
+    $query .= "WHERE entity_id = '".$id."'";
+    $result = $conn->query($query);
+
+    $query = "SELECT child_id FROM mgkf_catalog_product_relation ";
+    $query .= "WHERE parent_id = '".$id."'";
+    $result = $conn->query($query);
+    while ($row = $result->fetch_assoc()) {
+        $child = $row['child_id'];
+        $query_related = "DELETE FROM mgkf_catalog_product_relation ";
+        $query_related .= "WHERE entity_id = '".$child."';";
+        $result_related = $conn->query($query_related);
+    }
+}
+if (isset($_POST['full-edit'])) {
+    $id = $_POST['id'];
+    $seller_id = $_POST['seller_id'];
+    $name = $_POST['name'];
+    $price = $_POST['price'];
+    $sku = $_POST['sku'];
+
+    if(isset($_POST['edit_product_discount_type'])) {
+        $discount = $_POST['edit_product_discount_type'];
+        $dateFrom = $_POST['edit_product_date_from'];
+        $dateTo = $_POST['edit_product_date_to'];
+        if($date >= $dateFrom && $date <= $dateTo) {
+            $isActive = 1;
+        }
+        else {
+            $isActive = 0;
+        }
+
+        $query_discount = "UPDATE mgkf_marketplace_discount_products ";
+        $query_discount .= "SET discount = '".$discount."', ";
+        $query_discount .= "is_active = '".$isActive."', ";
+        $query_discount .= "date_from = '".$dateFrom."', ";
+        $query_discount .= "date_to = '".$dateTo."' ";
+        $query_discount .= "WHERE product_id = '".$id."'";
+        $result_discount = $conn->query($query_discount);
+    }
+    if(isset($_POST['product_discount_type'])) {
+        $productPrice = $price . ' RON';
+        $discount = $_POST['product_discount_type'];
+        $dateFrom = $_POST['product_date_from'];
+        $dateTo = $_POST['product_date_to'];
+        if($date >= $dateFrom && $date <= $dateTo) {
+            $isActive = 1;
+        }
+        else {
+            $isActive = 0;
+        }
+
+        $query_discount = "INSERT INTO mgkf_marketplace_discount_products ";
+        $query_discount .= "(seller_id, product_id, product_name, product_price, discount, is_active, date_from, date_to) ";
+        $query_discount .= "VALUES ";
+        $query_discount .= "('".$seller_id."', '".$id."', '".$name."', '".$productPrice."', '".$discount."', '".$isActive."', '".$dateFrom."', '".$dateTo."')";
+        $result_discount = $conn->query($query_discount);
+    }
+
+    $countfiles = count($_FILES['product_images']['name']);
+    $filename = $_FILES['product_images']['name'][0];
+    if ($filename != '') {
+        $dir = '/pub/media/catalog/product/cache';
+        $subdirs = array_diff(scandir($dir), array('..', '.'));
+
+        foreach ($subdirs as $subdir) {
+            $path = '/pub/media/catalog/product/cache/' . $subdir . '/' . $dir_1 . '/' . $dir_2 . '/';
+
+            if (!file_exists($path)) {
+                mkdir($path, 0777, true);
+            }
+
+            $path_file = '/pub/media/catalog/product/cache/' . $subdir . '/' . $dir_1 . '/' . $dir_2 . '/' . $filename;
+            move_uploaded_file($_FILES['product_images']['tmp_name'][0], $path_file);
+            if (!copy("/pub/media/catalog/product/cache/0cdbea399f8ed06da39b3854134f6934/$dir_1/$dir_2/$filename", $path_file)) {
+            }
+        }
+
+        $basic_path = '/pub/media/catalog/product/' . $dir_1 . '/' . $dir_2 . '/';
+        if (!file_exists($basic_path)) {
+            mkdir($basic_path, 0775, true);
+        }
+        $file = $basic_path . $filename;
+
+        if (!copy("/pub/media/catalog/product/cache/0cdbea399f8ed06da39b3854134f6934/$dir_1/$dir_2/$filename", $file)) {
+        }
+
+        $query_upd_img = "UPDATE mgkf_catalog_product_entity_varchar ";
+        $query_upd_img .= "SET value = '/$dir_1/$dir_2/$filename' ";
+        $query_upd_img .= "WHERE attribute_id IN (87, 88, 89, 154) ";
+        $query_upd_img .= "AND entity_id = '".$id."'";
+        $result_upd_img = $conn->query($query_upd_img);
+
+        $query_id_img = "SELECT value_id ";
+        $query_id_img .= "FROM mgkf_catalog_product_entity_media_gallery_value ";
+        $query_upd_img .= "WHERE entity_id = '".$id."'";
+        $result_id_img = $conn->query($query_id_img);
+        $row_id_img = $result_id_img->fetch_row();
+        $id_image = $row_id_img[0];
+
+        $query_base = "UPDATE mgkf_catalog_product_entity_media_gallery ";
+        $query_base .= "SET value = '/$dir_1/$dir_2/$filename' ";
+        $query_base .= "WHERE value_id = '".$id_image."'";
+        $result_base = $conn->query($query_base);
+    }
+
+    $query_seller_currency = "SELECT currency FROM mgkf_marketplace_seller_currency ";
+    $query_seller_currency .= "WHERE seller_id = '".$seller_id."'";
+    $result_seller_currency = $conn->query($query_seller_currency);
+    $row_seller_currency = $result_seller_currency->fetch_row();
+    $seller_currency = $row_seller_currency[0];
+    if ($seller_currency != '') {
+        $currency = $seller_currency;
+        if ($currency == 'RON') {
+            $price = $price / 4.726883;
+        } else if ($currency == 'USD') {
+            $price = $price / 1.121762;
+        } else if ($currency == 'EUR') {
+            $price = $price;
+        }
+    }
+
+    $category_id_name = $_POST['product_category'];
+    $subcategory = $_POST['product_subcategory'];
+    $category = intval($category_id_name);
+    $category_name_basic = str_replace($category, '', $category_id_name);
+    $category_name = strtolower($category_name_basic);
+    $category_name = str_replace(' ', '-', $category_name);
+
+    $subcategory = $category_name . '/' . $subcategory;
+
+    $query = "SELECT entity_id FROM mgkf_catalog_category_entity_varchar ";
+    $query .= "WHERE value LIKE '%$subcategory%'";
+    $result = $conn->query($query);
+    $subcategory = $result->fetch_row();
+    $subcategory = $subcategory[0];
+
+    $query_select = "SELECT min(category_id) FROM mgkf_catalog_category_product ";
+    $query_select .= "WHERE product_id = '".$id."'";
+    $result_select = $conn->query($query_select);
+    $row_select_category = $result_select->fetch_row();
+    $row_category = $row_select_category[0];
+
+    $query_update_category = "UPDATE mgkf_catalog_category_product ";
+    $query_update_category .= "SET category_id = '".$category."' ";
+    $query_update_category .= "WHERE product_id = '".$id."' ";
+    $query_update_category .= "AND category_id = '".$row_category."'";
+    $result_update_category = $conn->query($query_update_category);
+
+    $query = "UPDATE mgkf_catalog_product_entity ";
+    $query .= "SET sku = '".$name."' ";
+    $query .= "WHERE entity_id = '".$id."'";
+    $result = $conn->query($query);
+
+    $query = "UPDATE mgkf_catalog_product_entity_varchar ";
+    $query .= "SET value = '".$name."' ";
+    $query .= "WHERE entity_id = '".$id."' ";
+    $query .= "AND attribute_id = 73";
+    $result = $conn->query($query);
+
+    $query = "UPDATE mgkf_catalog_product_index_price ";
+    $query .= "SET price = '".$price."', ";
+    $query .= "final_price = '".$price."', ";
+    $query .= "min_price = '".$price."', ";
+    $query .= "max_price = '".$price."' ";
+    $query .= "WHERE entity_id = '".$id."'";
+    $result = $conn->query($query);
+
+    $query = "SELECT child_id FROM mgkf_catalog_product_relation ";
+    $query .= "WHERE parent_id = '".$id."'";
+    $result = $conn->query($query);
+    while ($row = $result->fetch_assoc()) {
+        $child = $row['child_id'];
+
+        $query_decimal = "UPDATE mgkf_catalog_product_entity_decimal ";
+        $query_decimal .= "SET value = '".$price."' ";
+        $query_decimal .= "WHERE entity_id = '".$child."'";
+        $result_decimal = $conn->query($query_decimal);
+
+        $query_product = "UPDATE mgkf_catalog_product_index_price ";
+        $query_product .= "SET price = '".$price."', ";
+        $query_product .= "final_price = '".$price."', ";
+        $query_product .= "min_price = '".$price."', ";
+        $query_product .= "max_price = '".$price."' ";
+        $query_product .= "WHERE entity_id = '".$child."'";
+        $result_product = $conn->query($query_product);
+    }
+
+    $qty_related = $_POST['qty_related'];
+    $id_related = $_POST['related_id'];
+
+    for ($k = 0; $k < count($id_related); $k++) {
+        $qty_k = $qty_related[$k];
+        $id_k = $id_related[$k];
+
+        $query_qty = "UPDATE mgkf_inventory_source_item ";
+        $query_qty .= "SET quantity = '".$qty_k."' ";
+        $query_qty .= "WHERE source_item_id = '".$id_k."'";
+        $result_qty = $conn->query($query_qty);
+
+        $query_qty_base = "UPDATE mgkf_cataloginventory_stock_status ";
+        $query_qty_base .= "SET qty = '".$qty_k."' ";
+        $query_qty_base .= "WHERE product_id = '".$id_k."'";
+        $result_qty_base = $conn->query($query_qty_base);
+    }
+    ?>
+    <br>
+    <span class="alert alert-success">
+        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('success_product_was_updated')->toHtml(); ?>
+    </span>
+    <br><br>
+    <?php
+}
+if (isset($_POST['edit'])) {
+    $id = $_POST['id'];
+    $seller_id = $_POST['seller_id'];
+    $name = $_POST['name'];
+    $price = $_POST['price'];
+    $sku = $_POST['sku'];
+
+    $sku_tmp = explode("-", $sku);
+    $sku = $sku_tmp[0];
+
+    if(isset($_POST['edit_product_discount_type'])) {
+        $discount = $_POST['edit_product_discount_type'];
+        $dateFrom = $_POST['edit_product_date_from'];
+        $dateTo = $_POST['edit_product_date_to'];
+        if($date >= $dateFrom && $date <= $dateTo) {
+            $isActive = 1;
+        }
+        else {
+            $isActive = 0;
+        }
+
+        $query_discount = "UPDATE mgkf_marketplace_discount_products ";
+        $query_discount .= "SET discount = '".$discount."', ";
+        $query_discount .= "is_active = '".$isActive."', ";
+        $query_discount .= "date_from = '".$dateFrom."', ";
+        $query_discount .= "date_to = '".$dateTo."' ";
+        $query_discount .= "WHERE product_id = '".$id."'";
+        $result_discount = $conn->query($query_discount);
+    }
+    if(isset($_POST['product_discount_type'])) {
+        $productPrice = $price . ' RON';
+        $discount = $_POST['product_discount_type'];
+        $dateFrom = $_POST['product_date_from'];
+        $dateTo = $_POST['product_date_to'];
+        if($date >= $dateFrom && $date <= $dateTo) {
+            $isActive = 1;
+        }
+        else {
+            $isActive = 0;
+        }
+
+        $query_discount = "INSERT INTO mgkf_marketplace_discount_products ";
+        $query_discount .= "(seller_id, product_id, product_name, product_price, discount, is_active, date_from, date_to) ";
+        $query_discount .= "VALUES ";
+        $query_discount .= "('".$seller_id."', '".$id."', '".$name."', '".$productPrice."', '".$discount."', '".$isActive."', '".$dateFrom."', '".$dateTo."')";
+        $result_discount = $conn->query($query_discount);
+    }
+
+    $query_seller_currency = "SELECT currency FROM mgkf_marketplace_seller_currency ";
+    $query_seller_currency .= "WHERE seller_id = '".$seller_id."'";
+    $result_seller_currency = $conn->query($query_seller_currency);
+    $row_seller_currency = $result_seller_currency->fetch_row();
+    $seller_currency = $row_seller_currency[0];
+    if ($seller_currency != '') {
+        $currency = $seller_currency;
+        if ($currency == 'RON') {
+            $price = $price / 4.726883;
+        } else if ($currency == 'USD') {
+            $price = $price / 1.121762;
+        } else if ($currency == 'EUR') {
+            $price = $price;
+        }
+    }
+
+    $query = "UPDATE mgkf_catalog_product_entity ";
+    $query .= "SET sku = '" . $name . "' WHERE entity_id = '".$id."'";
+    $result = $conn->query($query);
+
+    $query = "UPDATE mgkf_catalog_product_entity_varchar ";
+    $query .= "SET value = '".$name."' ";
+    $query .= "WHERE entity_id = '".$id."' ";
+    $query .= "AND attribute_id = 73";
+    $result = $conn->query($query);
+
+    $query = "UPDATE mgkf_catalog_product_index_price ";
+    $query .= "SET price = '".$price."', ";
+    $query .= "final_price = '".$price."', ";
+    $query .= "min_price = '".$price."', ";
+    $query .= "max_price = '".$price."' ";
+    $query .= "WHERE entity_id = '".$id."'";
+    $result = $conn->query($query);
+
+    $query = "SELECT child_id FROM mgkf_catalog_product_relation ";
+    $query .= "WHERE parent_id = '".$id."'";
+    $result = $conn->query($query);
+
+    while ($row = $result->fetch_assoc()) {
+        $child = $row['child_id'];
+
+        $query_decimal = "UPDATE mgkf_catalog_product_entity_decimal ";
+        $query_decimal .= "SET value = '".$price."' ";
+        $query_decimal .= "WHERE entity_id = '".$child."'";
+        $result_decimal = $conn->query($query_decimal);
+
+        $query_product = "UPDATE mgkf_catalog_product_index_price ";
+        $query_product .= "SET price = '".$price."', ";
+        $query_product .= "final_price = '".$price."', ";
+        $query_product .= "min_price = '".$price."', ";
+        $query_product .= "max_price = '".$price."' ";
+        $query_product .= "WHERE entity_id = '".$child."'";
+        $result_product = $conn->query($query_product);
+    }
+
+    $qty_related = $_POST['qty_related'];
+    $id_related = $_POST['related_id'];
+
+    for ($k = 0; $k < count($id_related); $k++) {
+        $qty_k = $qty_related[$k];
+        $id_k = $id_related[$k];
+
+        $query_qty = "UPDATE mgkf_inventory_source_item ";
+        $query_qty .= "SET quantity = '".$qty_k."' ";
+        $query_qty .= "WHERE source_item_id = '".$id_k."'";
+        $result_qty = $conn->query($query_qty);
+
+        $query_qty_base = "UPDATE mgkf_cataloginventory_stock_status ";
+        $query_qty_base .= "SET qty = '".$qty_k."' ";
+        $query_qty_base .= "WHERE product_id = '".$id_k."'";
+        $result_qty_base = $conn->query($query_qty_base);
+    }
+    ?>
+    <br>
+    <span class="alert alert-success">
+        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('success_product_was_updated')->toHtml(); ?>
+    </span>
+    <br><br>
+    <?php
+}
+if (isset($_POST['delete-related'])) {
+    $id = $_POST['product_related'];
+    $query = "DELETE FROM mgkf_catalog_product_entity ";
+    $query .= "WHERE entity_id = '".$id."'";
+    $result = $conn->query($query);
+}
+
+$sellerGroupId = $customerId = $customerGroupId = $status = '';
+$urlInterface = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\UrlInterface');
+$currentUrl = $urlInterface->getCurrentUrl();
+$helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+$customerSession = $helper->customerSession();
+$customerDatas = $customerSession->getCustomer();
+if ($customerSession->isLoggedIn()) {
+    $customerId = $customerSession->getId();
+    $customerGroupId = $customerDatas->getGroupId();
+    $helper = $this->helper('Apptha\Marketplace\Helper\Objectmanager');
+    $sellerGroupData = $helper->customerSessionGroup($customerGroupId);
+    $sellerGroupId = $sellerGroupData->getId();
+    $status = $helper->sellerStatus($customerId);
+}
+
+$searchProductName = $this->getRequest()->getParam('name');
+$searchProductStatus = $this->getRequest()->getParam('status');
+$searchProductPrice = $this->getRequest()->getParam('price');
+$searchProductSku = $this->getRequest()->getParam('sku');
+$searchProductType = $this->getRequest()->getParam('type');
+$delete = $this->getRequest()->getParam('multi');
+$entityIds = $this->getRequest()->getParam('id');
+$multisubmit = $this->getRequest()->getParam('multi_submit');
+$productDeleteOption = $block->getProductDeleteApproval();
+$productBulkOption = $block->getProductBulkApproval();
+$dataHelper = $this->helper('Apptha\Marketplace\Helper\Data');
+$sellerBlock = $dataHelper->getSellerDetails();
+?>
+<div class="mt-3">
+    <div class="row mb-3">
+        <div class="col-10 col-md-4">
+            <div class="input-group">
+                <input type="text" class="form-control" id="searched" oninput="find_results();">
+                <button type="button" class="input-group-text bg-transparent" onclick="find_results();">
+                    <i class="fa fa-search"></i>
+                </button>
+            </div>
+        </div>
+        <div class="col-2 col-md-8 text-right">
+            <a href="<?php echo $block->getAddProductUrl(); ?>" class="btn btn-success text-white">
+                <i class="fas fa-plus d-md-none"></i>
+                <span class="d-none d-md-block">
+                    <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_new_product')->toHtml(); ?>
+                </span>
+            </a>
+        </div>
+    </div>
+    <?php
+    $query = "SELECT * ";
+    $query .= "FROM mgkf_marketplace_seller_products ";
+    $query .= "WHERE seller_id = $customerId ";
+    $query .= "ORDER BY id DESC";
+    $result = $conn->query($query);
+
+    $query_check_disabled = "SELECT status FROM mgkf_marketplace_seller_products ";
+    $query_check_disabled .= "WHERE seller_id = $customerId ";
+    $query_check_disabled .= "AND status = 'Disabled'";
+    $result_check_disabled = $conn->query($query_check_disabled);
+
+    $query_base = "SELECT DISTINCT(mgkf_catalog_product_entity.entity_id) as id, sku as name, mgkf_catalog_product_index_price.max_price as price, mgkf_catalog_product_entity_int.value as seller_id ";
+    $query_base .= "FROM mgkf_catalog_product_entity, mgkf_catalog_product_index_price, mgkf_catalog_product_entity_int ";
+    $query_base .= "WHERE mgkf_catalog_product_entity.entity_id = mgkf_catalog_product_index_price.entity_id ";
+    $query_base .= "AND mgkf_catalog_product_entity_int.entity_id = mgkf_catalog_product_entity.entity_id ";
+    $query_base .= "AND mgkf_catalog_product_entity_int.attribute_id = 158 ";
+    $query_base .= "AND mgkf_catalog_product_entity_int.value = $customerId ";
+    $query_base .= "AND mgkf_catalog_product_entity.type_id = 'configurable' ";
+    $query_base .= "ORDER BY id DESC";
+    $result_base = $conn->query($query_base);
+    $count = $result_base->num_rows;
+    ?>
+    <input type="hidden" id="products-count" value="<?php echo $count; ?>" />
+    <?php
+    $i = 1;
+    while ($row_base = $result_base->fetch_assoc()) {
+        $id = $row_base['id'];
+        $name = $row_base['name'];
+        $price = $row_base['price'];
+
+        $query_image = "SELECT DISTINCT(value) FROM mgkf_catalog_product_entity_varchar ";
+        $query_image .= "WHERE attribute_id = 87 ";
+        $query_image .= "AND entity_id = $id";
+        $result_image = $conn->query($query_image);
+        $row_image = $result_image->fetch_row();
+        $image_small = $row_image[0];
+        $image = "/pub/media/catalog/product$image_small";
+
+        $query_description = "SELECT value FROM mgkf_catalog_product_entity_text ";
+        $query_description .= "WHERE entity_id = $id";
+        $result_description = $conn->query($query_description);
+        $row_description = $result_description->fetch_row();
+        $description = $row_description[0];
+        $description = addslashes($description);
+
+        $query_category = "SELECT MAX(category_id) FROM mgkf_catalog_category_product ";
+        $query_category .= "WHERE product_id = $id";
+        $result_cat_id = $conn->query($query_category);
+        $row_cat_id = $result_cat_id->fetch_row();
+        $category_id = $row_cat_id[0];
+
+        $query_category = "SELECT DISTINCT(mgkf_catalog_category_entity_varchar.value) as name ";
+        $query_category .= "FROM mgkf_catalog_category_product, mgkf_catalog_category_entity_varchar ";
+        $query_category .= "WHERE mgkf_catalog_category_product.category_id = mgkf_catalog_category_entity_varchar.entity_id ";
+        $query_category .= "AND mgkf_catalog_category_entity_varchar.entity_id = '" . $category_id . "' ";
+        $query_category .= "AND mgkf_catalog_category_entity_varchar.value LIKE '%/%' ";
+        $query_category .= "AND mgkf_catalog_category_product.product_id = $id ";
+        $query_category .= "LIMIT 1";
+        $result_category = $conn->query($query_category) or die($conn->error);
+        $row_category = $result_category->fetch_assoc();
+        $category_full = $row_category['name'];
+
+        $subcategory = substr($category_full, strrpos($category_full, '/') + 1);
+        $category = str_replace('/' . $subcategory, '', $category_full);
+        $category = ucfirst($category);
+        $subcategory = ucfirst($subcategory);
+
+        $query_link = "SELECT request_path FROM mgkf_url_rewrite ";
+        $query_link .= "WHERE target_path = 'catalog/product/view/id/$id' ";
+        $query_link .= "ORDER BY url_rewrite_id DESC LIMIT 0,1";
+        $result_link = $conn->query($query_link);
+        $row_link = $result_link->fetch_row();
+        $link = $row_link[0];
+
+        if (strpos($currentUrl, '/ro/') !== false) {
+            $link = '/ro/' . $link;
+        }
+        if (strpos($currentUrl, '/uk/') !== false) {
+            $link = '/uk/' . $link;
+        } else {
+            $link = $link;
+        }
+
+        $query_sku = "SELECT sku FROM mgkf_catalog_product_entity ";
+        $query_sku .= "WHERE type_id = virtual ";
+        $query_sku .= "AND entity_id = '".$id."'";
+        $result_sku = $conn->query($query_sku);
+
+        $query_attr = "SELECT brand,material,model,stil,imprimeu,sezon,talie,maneca ";
+        $query_attr .= "FROM mgkf_product_attributes, mgkf_catalog_product_entity_text ";
+        $query_attr .= "WHERE mgkf_product_attributes.product_id = mgkf_catalog_product_entity_text.entity_id ";
+        $query_attr .= "AND mgkf_product_attributes.product_id = '".$id."'";
+        $result_attr = $conn->query($query_attr);
+
+        $query_seller_currency = "SELECT currency FROM mgkf_marketplace_seller_currency ";
+        $query_seller_currency .= "WHERE seller_id = '".$customerId."'";
+        $result_seller_currency = $conn->query($query_seller_currency);
+        $row_seller_currency = $result_seller_currency->fetch_row();
+        $seller_currency = $row_seller_currency[0];
+
+        if ($seller_currency != '') {
+            $currency = $seller_currency;
+            if ($currency == 'RON') {
+                $price = $price * 4.726883;
+            } else if ($currency == 'USD') {
+                $price = $price * 1.121762;
+            } else if ($currency == 'EUR') {
+                $price = $price;
+            }
+        }
+
+        $query_category = "SELECT mgkf_catalog_category_entity_varchar.entity_id, mgkf_catalog_category_entity_varchar.value ";
+        $query_category .= "FROM mgkf_catalog_category_entity_varchar, mgkf_catalog_category_product ";
+        $query_category .= "WHERE mgkf_catalog_category_entity_varchar.entity_id = mgkf_catalog_category_product.category_id ";
+        $query_category .= "AND mgkf_catalog_category_entity_varchar.store_id = 0 ";
+        $query_category .= "AND mgkf_catalog_category_entity_varchar.attribute_id = 45 ";
+        $query_category .= "AND mgkf_catalog_category_product.product_id = '".$id."' ";
+        $query_category .= "LIMIT 0,1";
+        $result_category = $conn->query($query_category);
+        $row_category = $result_category->fetch_assoc();
+        $categoryId = $row_category['entity_id'];
+
+        $query_category_discount = "SELECT category_id, subcategory_name, discount_type, date_from, date_to ";
+        $query_category_discount .= "FROM mgkf_marketplace_discount_category ";
+        $query_category_discount .= "WHERE category_id = '".$categoryId."' ";
+        $query_category_discount .= "AND subcategory_name = '".$subcategory."' ";
+        $query_category_discount .= "AND seller_id = '".$customerId."' ";
+        $query_category_discount .= "AND is_active = 1 ";
+        $query_category_discount .= "AND date_from <= '".$date."' ";
+        $query_category_discount .= "AND date_to >= '".$date."'";
+        $result_category_discount = $conn->query($query_category_discount);
+        $countCategoryDiscount = $result_category_discount->num_rows;
+        if($countCategoryDiscount > 0) {
+            $row_category_discount = $result_category_discount->fetch_assoc();
+            $discountCategory = str_replace("%", "", $row_category_discount['discount_type']);
+            $dateFrom = $row_category_discount['date_from'];
+            $dateTo = $row_category_discount['date_to'];
+        }
+
+        $query_product_discount = "SELECT * FROM mgkf_marketplace_discount_products ";
+        $query_product_discount .= "WHERE is_active = 1 ";
+        $query_product_discount .= "AND seller_id = '".$customerId."' ";
+        $query_product_discount .= "AND product_id = '".$id."' ";
+        $query_product_discount .= "AND date_from <= '".$date."' ";
+        $query_product_discount .= "AND date_to >= '".$date."'";
+        $result_product_discount = $conn->query($query_product_discount);
+        $countProductDiscount = $result_product_discount->num_rows;
+        if($countProductDiscount > 0) {
+            $row_product_discount = $result_product_discount->fetch_assoc();
+            $discountFormat = $row_product_discount['discount'];
+            $discount = str_replace("%", "", $row_product_discount['discount']);
+            $discountProduct = $discount;
+            $dateFrom = $row_product_discount['date_from'];
+            $dateTo = $row_product_discount['date_to'];
+        }
+
+        if($countCategoryDiscount > 0) {
+            $discount = $discountCategory;
+            $newPrice = number_format(($price - ($price * ($discountCategory / 100))), 2, ',', '.');
+        }
+        if($countProductDiscount > 0) {
+            $discount = $discountProduct;
+            $newPrice = number_format(($price - ($price * ($discountProduct / 100))), 2, ',', '.');
+        }
+        if($countCategoryDiscount > 0 && $countProductDiscount > 0) {
+            if($discountCategory >= $discountProduct) {
+                $discount = $discountCategory;
+                $newPrice = number_format(($price - ($price * ($discountCategory / 100))), 2, ',', '.');
+            }
+            else {
+                $discount = $discountProduct;
+                $newPrice = number_format(($price - ($price * ($discountProduct / 100))), 2, ',', '.');
+            }
+            $discount = $discount . '%';
+        }
+    ?>
+        <div class="shadow py-3 px-4 mb-3" id="product-<?php echo $i; ?>">
+            <input type="hidden" id="product-name-<?php echo $i; ?>" value="<?php echo $name; ?>" />
+            <div class="row">
+                <div class="col-md-3 col-xl-1">
+                    <p class="m-0 font-weight-bold">
+                        <img class="img-fluid" src="<?php echo $image; ?>" alt="<?php echo $name; ?>">
+                    </p>
+                </div>
+                <div class="col-md-9 col-xl-11">
+                    <div class="row">
+                        <div class="col-sm-6 col-xl-4 mt-2 mt-xl-0">
+                            <p class="m-0 font-weight-bold">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('product_name')->toHtml(); ?>:
+                                <span class="font-weight-normal">
+                                    <?php echo $name; ?>
+                                </span>
+                            </p>
+                        </div>
+                            <div class="col-sm-6 col-xl-3 mt-2 mt-xl-0">
+                            <p class="m-0 font-weight-bold">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('product_price')->toHtml(); ?>:
+                                <span class="font-weight-normal">
+                                    <?php 
+                                    if($countProductDiscount > 0 || $countCategoryDiscount > 0) { ?>
+                                        <span style="text-decoration:line-through !important;">
+                                            <?php echo number_format($price, 2, '.', '') . ' ' . ucfirst(strtolower($seller_currency)); ?>
+                                        </span>
+                                        &nbsp;
+                                        <span style="color:red;">
+                                            <?php echo $newPrice . ' ' . ucfirst(strtolower($seller_currency)); ?>
+                                        </span>
+                                    <?php
+                                    }
+                                    else {
+                                        echo number_format($price, 2, '.', '') . ' ' . ucfirst(strtolower($seller_currency));
+                                    }
+                                    ?>
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-sm-6 col-xl-2">
+                            <p class="m-0 font-weight-bold">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('status')->toHtml(); ?>:
+                                <span class="font-weight-normal">
+                                    <?php echo 'Activ'; ?>
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-12 col-xl-3 text-xl-right mt-3 mt-xl-0">
+                            <form method="post" action="">
+                                <a href="<?= $link; ?>" class="btn btn-sm rounded border-0 mr-2 btn-secondary text-white" title="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('view_product_on_website')->toHtml(); ?>" target="_blank">
+                                    <i class="far fa-eye"></i>
+                                </a>                            
+                                <input type="hidden" name="id" value="<?php echo $id; ?>">
+                                <input type="hidden" name="name" value="<?php echo $name; ?>">
+                                <input type="hidden" name="price" value="<?php echo $price; ?>">
+                                <input type="hidden" name="image" value="<?php echo $image; ?>">
+                                <input type="hidden" name="description" value="<?php echo $description; ?>">
+                                <input type="hidden" name="category" value="<?php echo $category_id; ?>">
+                                <input type="hidden" name="subcategory" value="<?php echo $subcategory; ?>">
+                                <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>">
+                                <button type="button" class="btn btn-sm edit-product-1 rounded border-0 mr-2 btn-secondary" onclick="quickEditProduct(<?php echo $i; ?>);" title="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('quick_edit_product')->toHtml(); ?>">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button type="button" class="full-edit btn btn-sm rounded border-0 mr-2 btn-secondary" onclick="fullEditProduct(<?php echo $i; ?>);" title="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('edit_product_properties')->toHtml(); ?>">
+                                    <i class="far fa-edit"></i>
+                                </button>
+                                <button type="submit" class="btn btn-sm rounded border-0 mr-2 btn-secondary" title="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('copy_product')->toHtml(); ?>">
+                                    <i class="far fa-clone"></i>
+                                </button>
+                                <button type="submit" class="btn btn-sm rounded border-0 btn-secondary" title="<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('delete_product')->toHtml(); ?>">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="edit-product-<?php echo $i; ?>" class="return-details" style="display:none;">
+                <form method="post" action="">
+                    <div class="row mt-3">
+                        <div class="col-md-6 col-lg-4 mb-2 col-xl-3">
+                            <label for="product-name" class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('product_name')->toHtml(); ?>
+                            </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="name" value="<?php echo $name; ?>" required>
+                                <span class="input-group-text bg-transparent">
+                                    <i class="fas fa-money-check"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-4 mb-2 col-xl-3">
+                            <label for="product-price" class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('product_price')->toHtml(); ?> (<?php echo ucfirst(strtolower($seller_currency)); ?>)
+                            </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="price" value="<?php echo number_format($price, 2, '.', ''); ?>" required>
+                                <span class="input-group-text bg-transparent">
+                                    <i class="fas fa-money-bill-wave-alt"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <h4 class="mt-2">
+                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_discount')->toHtml(); ?>
+                    </h4>
+                    <div class="row mt-3">
+                        <div class="col-md-6 col-lg-4 col-xl-3">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type')->toHtml(); ?>
+                            </label>
+                            <select class="form-select" id="product-discount-type-<?php echo $i; ?>" name="product_discount_type">
+                                <option></option>
+                                <?php
+                                $query_discount_type = "SELECT discount_type ";
+                                $query_discount_type .= "FROM mgkf_marketplace_discount_type ";
+                                $query_discount_type .= "ORDER BY discount_type ASC";
+                                $result_discount_type = $conn->query($query_discount_type);
+                                while($row_discount_type = $result_discount_type->fetch_assoc()) {
+                                    $option = $row_discount_type['discount_type']; ?>
+                                    <option value="<?php echo $option; ?>"><?php echo $option; ?></option>
+                                <?php
+                                }
+                                ?>
+                            </select>
+                            <span style="display:none;" id="product-discount-type-not-selected" class="alert alert-warning">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type_not_selected')->toHtml(); ?>
+                            </span>
+                        </div>
+                        <div class="col-md-6 col-lg-4 col-xl-3">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_from')->toHtml(); ?>
+                            </label>
+                            <div class="input-group mb-2">
+                                <input type="date" class="form-control" id="edit-product-date-from-<?php echo $i; ?>" name="product_date_from" onchange="edit_product_get_selected_date_from(<?php echo $i; ?>);">
+                                <span class="input-group-text bg-transparent">
+                                    <i class="fas fa-calendar-day"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-4 col-xl-3">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_to')->toHtml(); ?>
+                            </label>
+                            <div class="input-group mb-2">
+                                <input type="date" class="form-control" id="edit-product-date-to-<?php echo $i; ?>" name="product_date_to" onchange="edit_product_get_selected_date_to(<?php echo $i; ?>);">
+                                <span class="input-group-text bg-transparent">
+                                    <i class="fas fa-calendar-day"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row align-items-end">
+                        <div class="col-md-6 col-lg-5">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('size')->toHtml(); ?>
+                            </label>
+                            <select class="form-select form-select mb-2" size="4" name="size_adult-bottom[]" multiple>
+                                <option value="28">28</option>
+                                <option value="29">29</option>
+                                <option value="30">30</option>
+                                <option value="31">31</option>
+                                <option value="32">32</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 col-lg-5">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('color')->toHtml(); ?>
+                            </label>
+                            <select class="form-select form-select mb-2" size="4" name="color[]" multiple>
+                                <option>Black</option>
+                                <option>Blue</option>
+                                <option>Brown</option>
+                                <option>Gray</option>
+                                <option>Green</option>
+                                <option>Labender</option>
+                                <option>Multi</option>
+                                <option>Orange</option>
+                                <option>Purple</option>
+                                <option>Red</option>
+                                <option>White</option>
+                                <option>Yellow</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 col-lg-2">
+                            <button type="button" class="btn btn-primary mb-2 btn-block">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('generate')->toHtml(); ?>
+                            </button>
+                        </div>
+                    </div>                
+                    <div class="row mt-3 d-none">
+                        <div class="col-md-6">
+                            <h5 class="mb-2">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_options')->toHtml(); ?>
+                            </h5>
+                            <div class="p-3 row shadow">
+                                <div class="col-12 mb-2">
+                                    <div class="row d-none d-md-flex">
+                                        <div class="col-2">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('size')->toHtml(); ?>
+                                            </p>
+                                        </div>
+                                        <div class="col-2">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('color')->toHtml(); ?>
+                                            </p>
+                                        </div>
+                                        <div class="col-6">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('qty')->toHtml(); ?>
+                                            </p>
+                                        </div>
+                                        <div class="col-2 text-right">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('action')->toHtml(); ?>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="sizes_block_quick"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mb-2">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_image_for_each_color')->toHtml(); ?>
+                            </h5>
+                            <div class="images-block_quick"></div>
+                        </div>
+                    </div>
+                    <?php
+                    $query_related = "SELECT child_id FROM mgkf_catalog_product_relation ";
+                    $query_related .= "WHERE parent_id = $id";
+                    $result_related = $conn->query($query_related);
+                    while ($row_related = $result_related->fetch_assoc()) {
+                        $related = $row_related['child_id'];
+                        $query_related_product = "SELECT sku, quantity FROM mgkf_inventory_stock_1 ";
+                        $query_related_product .= "WHERE product_id = $related";
+                        $result_related_product = $conn->query($query_related_product);
+                        while ($row_related_product = $result_related_product->fetch_assoc()) {
+                            $related_product = $row_related_product['sku'];
+                            $sku = $related_product;
+                            $related_product_new = str_replace('-', ' ', $related_product);
+                            $size = (int) filter_var($related_product_new, FILTER_SANITIZE_NUMBER_INT);
+                            $to_remove = substr($related_product_new, 0, strpos($related_product_new, ' '));
+                            $color = str_replace($size, '', $related_product_new);
+                            $qty = number_format($row_related_product['quantity']);                        
+                            $words = explode(' ', $color);
+                            $words = array_filter($words);
+                            $color = end($words);
+                        }
+                        ?>
+                        <div class="shadow py-3 px-2 px-md-3 my-3">
+                            <div class="row">
+                                <div class="col-sm-6 col-xl-3 mt-2 mt-xl-0">
+                                    <p class="m-0 font-weight-bold">
+                                        <?php echo 'SKU'; ?>:
+                                        <span class="font-weight-normal">
+                                            <?php echo $sku; ?>
+                                        </span>
+                                    </p>
+                                </div>
+                                <div class="col-sm-6 col-xl-2 mt-2 mt-xl-0">
+                                    <p class="m-0 font-weight-bold">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('size')->toHtml(); ?>:
+                                        <span class="font-weight-normal">
+                                            <?php echo $size; ?>
+                                        </span>
+                                    </p>
+                                </div>
+                                <?php
+                                $query = "SELECT COUNT(entity_id) as count FROM mgkf_catalog_product_index_eav ";
+                                $query .= "WHERE attribute_id = 93 AND store_id = 1 AND entity_id = '".$id."'";
+                                $result = $conn->query($query);
+                                $row = $result->fetch_assoc();
+                                $colorsCount = $row['count'];
+                                if($colorsCount > 0) {
+                                ?>
+                                    <div class="col-sm-6 col-xl-3 mt-2 mt-xl-0">
+                                        <p class="m-0 font-weight-bold">
+                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('color')->toHtml(); ?>:
+                                            <span class="font-weight-normal">
+                                                <?php echo $color; ?>
+                                            </span>
+                                        </p>
+                                    </div>
+                                <?php
+                                }
+                                ?>
+                                <div class="col-12 col-xl-4 mt-3 mt-xl-0">
+                                    <label for="product-name" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('qty')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="hidden" name="related_id[]" value="<?php echo $related; ?>">
+                                        <input type="text" class="form-control" value="<?php echo $qty; ?>" name="qty_related[]">
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="fas fa-money-check"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php
+                    }
+                    ?>
+                    <input type="hidden" name="id" value="<?php echo $id; ?>" />
+                    <input type="hidden" name="sku" value="<?php echo $sku; ?>" />
+                    <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>" />
+                    <div class="col-md-6 col-lg-2">
+                        <button type="submit" name="edit" class="btn btn-primary mb-2 btn-block">
+                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('save')->toHtml(); ?>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div id="full-edit-<?php echo $i; ?>" class="mt-3" style="display:none;">
+                <form action="" method="post" enctype="multipart/form-data">
+                    <div class="row align-items-end">
+                        <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('product_image')->toHtml(); ?>
+                            </label>
+                            <div class="form-file">
+                                <input type="file" class="form-file-input" name="product_images[]" id="browse" onchange="previewFiles();">
+                                <label class="form-file-label">
+                                    <span class="form-file-text">
+                                        Adauga Imagine
+                                    </span>
+                                    <span class="form-file-button">
+                                        <i class="fas fa-calendar-day"></i>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4 col-lg-3">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('product_name')->toHtml(); ?>
+                            </label>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" name="name" value="<?php echo $name; ?>" required>
+                                <span class="input-group-text bg-transparent">
+                                    <i class="fas fa-address-card"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4 col-lg-3">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('product_price')->toHtml(); ?> (<?php echo ucfirst(strtolower($seller_currency)); ?>)
+                            </label>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" name="price" value="<?php echo number_format($price, 2, '.', ''); ?>" required>
+                                <span class="input-group-text bg-transparent">
+                                    <i class="fas fa-money-bill-wave-alt"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                            <?php
+                            $query_single = "SELECT DISTINCT(entity_id) FROM mgkf_catalog_category_entity_varchar ";
+                            $query_single .= "WHERE value = '" . $category . "'";
+                            $result_single = $conn->query($query_single);
+                            $row_single = $result_single->fetch_row();
+                            $id_base = $row_single[0];
+                            ?>
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('category')->toHtml(); ?>
+                            </label>
+                            <input type="hidden" id="id_base_category" value="<?php echo $id_base; ?>">
+                            <select class="form-select" onchange="get_subcategory();" id="get_sub" name="product_category">
+                                <option value="<?php echo $id_base; ?>"><?php echo $category; ?></option>
+                                <?php
+                                $query_cat = "SELECT DISTINCT(entity_id), value FROM mgkf_catalog_category_entity_varchar ";
+                                $query_cat .= "WHERE ASCII(value) BETWEEN 65 AND 90 ";
+                                $query_cat .= "AND value != 'PRODUCTS' ";
+                                $query_cat .= "AND value NOT LIKE '%Default%' ";
+                                $query_cat .= "AND value NOT LIKE '%Root%' ";
+                                $query_cat .= "AND value NOT LIKE '%Page%' ";
+                                $query_cat .= "AND value NOT LIKE '%Dama%' ";
+                                $query_cat .= "AND value NOT LIKE '%Barbati%' ";
+                                $query_cat .= "AND value NOT LIKE '%Fete%' ";
+                                $query_cat .= "AND value NOT LIKE '%Baieti%' ";
+                                $query_cat .= "AND value NOT LIKE '%Barbabti%' ";
+                                $query_cat .= "AND value NOT LIKE '%$category%' ";
+                                $query_cat .= "ORDER BY value";
+                                $result_cat = $conn->query($query_cat);
+                                while ($row_cat = $result_cat->fetch_assoc()) {
+                                    $category_id = $row_cat['entity_id'];
+                                    $category_name = $row_cat['value'];
+                                ?>
+                                    <option value="<?php echo $category_id . $category_name; ?>"><?php echo $category_name; ?></option>
+                                <?php
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                            <?php
+                            $query_sub = "SELECT DISTINCT(value) FROM mgkf_catalog_category_entity_varchar ";
+                            $query_sub .= "WHERE value IN ('Barbati', 'Dama', 'baieti', 'fete') ";
+                            $query_sub .= "AND value NOT LIKE '%$subcategory%';";
+                            $result_sub = $conn->query($query_sub);
+                            ?>
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('subcategory')->toHtml(); ?>
+                            </label>
+                            <select class="form-select" onchange="get_subcategory_second();" name="product_subcategory" id="child">
+                                <option value=""><?php echo $subcategory; ?></option>
+                                <?php
+                                while ($row_sub = $result_sub->fetch_assoc()) {
+                                    $category_sub = $row_sub['value'];
+                                ?>
+                                    <option value=""><?php echo $category_sub; ?></option>
+                                <?php
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <?php
+                        $row_attr = $result_attr->fetch_assoc();
+                        $query = "SELECT mgkf_eav_attribute_option_value.value ";
+                        $query .= "FROM mgkf_eav_attribute_option_value, mgkf_catalog_product_entity_int ";
+                        $query .= "WHERE mgkf_eav_attribute_option_value.option_id = mgkf_catalog_product_entity_int.value ";
+                        $query .= "AND mgkf_eav_attribute_option_value.store_id = 0 ";
+                        $query .= "AND mgkf_catalog_product_entity_int.attribute_id = '197' ";
+                        $query .= "AND mgkf_catalog_product_entity_int.entity_id = '".$id."'";
+                        $result = $conn->query($query);
+                        $row = $result->fetch_assoc();
+                        $brand = $row['value'];
+                        
+                        $query = "SELECT mgkf_eav_attribute_option_value.value ";
+                        $query .= "FROM mgkf_eav_attribute_option_value, mgkf_catalog_product_entity_int ";
+                        $query .= "WHERE mgkf_eav_attribute_option_value.option_id = mgkf_catalog_product_entity_int.value ";
+                        $query .= "AND mgkf_eav_attribute_option_value.store_id = 0 ";
+                        $query .= "AND mgkf_catalog_product_entity_int.attribute_id = '131' ";
+                        $query .= "AND mgkf_catalog_product_entity_int.entity_id = '".$id."'";
+                        $result = $conn->query($query);
+                        $row = $result->fetch_assoc();
+                        $material = $row['value'];
+
+                        $query = "SELECT mgkf_eav_attribute_option_value.value ";
+                        $query .= "FROM mgkf_eav_attribute_option_value, mgkf_catalog_product_entity_int ";
+                        $query .= "WHERE mgkf_eav_attribute_option_value.option_id = mgkf_catalog_product_entity_int.value ";
+                        $query .= "AND mgkf_eav_attribute_option_value.store_id = 0 ";
+                        $query .= "AND mgkf_catalog_product_entity_int.attribute_id = '200' ";
+                        $query .= "AND mgkf_catalog_product_entity_int.entity_id = '".$id."'";
+                        $result = $conn->query($query);
+                        $row = $result->fetch_assoc();
+                        $model = $row['value'];
+
+                        $query = "SELECT mgkf_eav_attribute_option_value.value ";
+                        $query .= "FROM mgkf_eav_attribute_option_value, mgkf_catalog_product_entity_int ";
+                        $query .= "WHERE mgkf_eav_attribute_option_value.option_id = mgkf_catalog_product_entity_int.value ";
+                        $query .= "AND mgkf_eav_attribute_option_value.store_id = 0 ";
+                        $query .= "AND mgkf_catalog_product_entity_int.attribute_id = '201' ";
+                        $query .= "AND mgkf_catalog_product_entity_int.entity_id = '".$id."'";
+                        $result = $conn->query($query);
+                        $row = $result->fetch_assoc();
+                        $stil = $row['value'];
+
+                        $query = "SELECT mgkf_eav_attribute_option_value.value ";
+                        $query .= "FROM mgkf_eav_attribute_option_value, mgkf_catalog_product_entity_int ";
+                        $query .= "WHERE mgkf_eav_attribute_option_value.option_id = mgkf_catalog_product_entity_int.value ";
+                        $query .= "AND mgkf_eav_attribute_option_value.store_id = 0 ";
+                        $query .= "AND mgkf_catalog_product_entity_int.attribute_id = '202' ";
+                        $query .= "AND mgkf_catalog_product_entity_int.entity_id = '".$id."'";
+                        $result = $conn->query($query);
+                        $row = $result->fetch_assoc();
+                        $imprimeu = $row['value'];
+
+                        $query = "SELECT mgkf_eav_attribute_option_value.value ";
+                        $query .= "FROM mgkf_eav_attribute_option_value, mgkf_catalog_product_entity_int ";
+                        $query .= "WHERE mgkf_eav_attribute_option_value.option_id = mgkf_catalog_product_entity_int.value ";
+                        $query .= "AND mgkf_eav_attribute_option_value.store_id = 0 ";
+                        $query .= "AND mgkf_catalog_product_entity_int.attribute_id = '205' ";
+                        $query .= "AND mgkf_catalog_product_entity_int.entity_id = '".$id."'";
+                        $result = $conn->query($query);
+                        $row = $result->fetch_assoc();
+                        $sezon = $row['value'];
+
+                        $query = "SELECT mgkf_eav_attribute_option_value.value ";
+                        $query .= "FROM mgkf_eav_attribute_option_value, mgkf_catalog_product_entity_int ";
+                        $query .= "WHERE mgkf_eav_attribute_option_value.option_id = mgkf_catalog_product_entity_int.value ";
+                        $query .= "AND mgkf_eav_attribute_option_value.store_id = 0 ";
+                        $query .= "AND mgkf_catalog_product_entity_int.attribute_id = '203' ";
+                        $query .= "AND mgkf_catalog_product_entity_int.entity_id = '".$id."'";
+                        $result = $conn->query($query);
+                        $row = $result->fetch_assoc();
+                        $talie = $row['value'];
+
+                        $query = "SELECT mgkf_eav_attribute_option_value.value ";
+                        $query .= "FROM mgkf_eav_attribute_option_value, mgkf_catalog_product_entity_int ";
+                        $query .= "WHERE mgkf_eav_attribute_option_value.option_id = mgkf_catalog_product_entity_int.value ";
+                        $query .= "AND mgkf_eav_attribute_option_value.store_id = 0 ";
+                        $query .= "AND mgkf_catalog_product_entity_int.attribute_id = '204' ";
+                        $query .= "AND mgkf_catalog_product_entity_int.entity_id = '".$id."'";
+                        $result = $conn->query($query);
+                        $row = $result->fetch_assoc();
+                        $maneca = $row['value'];
+                        ?>
+                        <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('brand')->toHtml(); ?>
+                            </label>
+                            <select class="form-select" name="brand" id="get_brand">
+                                <option value="<?php echo $brand; ?>" selected><?php echo $brand; ?></option>
+                                <?php
+                                $query_brands = "SELECT DISTINCT(value) FROM mgkf_eav_attribute_option_value, mgkf_eav_attribute_option ";
+                                $query_brands .= "WHERE mgkf_eav_attribute_option_value.option_id = mgkf_eav_attribute_option.option_id ";
+                                $query_brands .= "AND attribute_id = 197 AND value NOT LIKE '%$brand'";
+                                $result_brands = $conn->query($query_brands);
+                                while ($row_brands = $result_brands->fetch_assoc()) {
+                                ?>
+                                    <option value="<?php echo $row_brands['value']; ?>"><?php echo $row_brands['value']; ?></option>
+                                <?php
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                            <label class="form-label">
+                                <?php echo 'Material'; ?>
+                            </label>
+                            <select class="form-select" name="material" id="get_material">
+                                <option value="<?php echo $material; ?>" selected><?php echo $material; ?></option>
+                                <?php
+                                $query_material = "SELECT DISTINCT(value) FROM mgkf_eav_attribute_option_value, mgkf_eav_attribute_option ";
+                                $query_material .= "WHERE mgkf_eav_attribute_option_value.option_id = mgkf_eav_attribute_option.option_id ";
+                                $query_material .= "AND attribute_id = 131 ";
+                                $query_material .= "AND mgkf_eav_attribute_option_value.option_id >= 270 ";
+                                $query_material .= "AND value NOT LIKE '%$material%'";
+                                $result_material = $conn->query($query_material);
+                                while ($row_material = $result_material->fetch_assoc()) {
+                                ?>
+                                    <option value="<?php echo $row_material['value']; ?>"><?php echo $row_material['value']; ?></option>
+                                <?php
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                            <label class="form-label">
+                                <?php echo 'Model/Croiala'; ?>
+                            </label>
+                            <select class="form-select" name="model" id="get_model">
+                                <option value="<?php echo $model; ?>" selected><?php echo $model; ?></option>
+                                <?php
+                                $query_model = "SELECT DISTINCT(value) FROM mgkf_eav_attribute_option_value, mgkf_eav_attribute_option ";
+                                $query_model .= "WHERE mgkf_eav_attribute_option_value.option_id = mgkf_eav_attribute_option.option_id ";
+                                $query_model .= "AND attribute_id = 200 ";
+                                $query_model .= "AND mgkf_eav_attribute_option_value.option_id >= 224 ";
+                                $query_model .= "AND value NOT LIKE '%$model%'";
+                                $result_model = $conn->query($query_model);
+                                while ($row_model = $result_model->fetch_assoc()) {
+                                ?>
+                                    <option value="<?php echo $row_model['value']; ?>"><?php echo $row_model['value']; ?></option>
+                                <?php
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                            <label class="form-label">
+                                <?php echo 'Stil'; ?>
+                            </label>
+                            <select class="form-select" name="stil" id="get_stil">
+                                <option value="<?php echo $stil; ?>" selected><?php echo $stil; ?></option>
+                                <?php
+                                $query_stil = "SELECT DISTINCT(value) FROM mgkf_eav_attribute_option_value, mgkf_eav_attribute_option ";
+                                $query_stil .= "WHERE mgkf_eav_attribute_option_value.option_id = mgkf_eav_attribute_option.option_id ";
+                                $query_stil .= "AND attribute_id = 201 ";
+                                $query_stil .= "AND mgkf_eav_attribute_option_value.option_id >= 240 ";
+                                $query_stil .= "AND value NOT LIKE '%$stil%'";
+                                $result_stil = $conn->query($query_stil);
+                                while ($row_stil = $result_stil->fetch_assoc()) {
+                                ?>
+                                    <option value="<?php echo $row_stil['value']; ?>"><?php echo $row_stil['value']; ?></option>
+                                <?php
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                            <label class="form-label">
+                                <?php echo 'Sezon'; ?>
+                            </label>
+                            <select class="form-select" name="sezon" id="get_sezon">
+                                <option value="<?php echo $sezon; ?>" selected><?php echo $sezon; ?></option>
+                                <?php
+                                $query_sezon = "SELECT DISTINCT(value) FROM mgkf_eav_attribute_option_value ";
+                                $query_sezon .= "WHERE value IN ('Iarna', 'Primavara', 'Vara', 'Toamna');";
+                                $result_sezon = $conn->query($query_sezon);
+                                while ($row_sezon = $result_sezon->fetch_assoc()) {
+                                ?>
+                                    <option value="<?php echo $row_sezon['value']; ?>"><?php echo $row_sezon['value']; ?></option>
+                                <?php
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
+                            <label class="form-label">
+                                <?php echo 'Talie'; ?>
+                            </label>
+                            <select class="form-select" name="talie" id="get_talie">
+                                <option value="<?php echo $talie; ?>" selected><?php echo $talie; ?></option>
+                                <?php
+                                $query_talie = "SELECT DISTINCT(value) FROM mgkf_eav_attribute_option_value, mgkf_eav_attribute_option ";
+                                $query_talie .= "WHERE mgkf_eav_attribute_option_value.option_id = mgkf_eav_attribute_option.option_id ";
+                                $query_talie .= "AND attribute_id = 203 ";
+                                $query_talie .= "AND mgkf_eav_attribute_option_value.option_id >= 262 ";
+                                $query_talie .= "AND value NOT LIKE '%$talie%'";
+                                $result_talie = $conn->query($query_talie);
+                                while ($row_talie = $result_talie->fetch_assoc()) {
+                                ?>
+                                    <option value="<?php echo $row_talie['value']; ?>"><?php echo $row_talie['value']; ?></option>
+                                <?php
+                                }
+                                ?>
+                            </select>
+                        </div>
+                    </div>
+                    <h4 class="mt-2">
+                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_discount')->toHtml(); ?>
+                    </h4>
+                    <div class="row mt-3">
+                        <div class="col-md-6 col-lg-4 col-xl-3">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_type')->toHtml(); ?>
+                            </label>
+                            <select class="form-select" id="product-discount-type-<?php echo $i; ?>" name="product_discount_type">
+                                <option></option>
+                                <?php
+                                $query_discount_type = "SELECT discount_type ";
+                                $query_discount_type .= "FROM mgkf_marketplace_discount_type ";
+                                $query_discount_type .= "ORDER BY discount_type ASC";
+                                $result_discount_type = $conn->query($query_discount_type);
+                                while($row_discount_type = $result_discount_type->fetch_assoc()) {
+                                    $option = $row_discount_type['discount_type']; ?>
+                                    <option value="<?php echo $option; ?>"><?php echo $option; ?></option>
+                                <?php
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6 col-lg-4 col-xl-3">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_from')->toHtml(); ?>
+                            </label>
+                            <div class="input-group mb-2">
+                                <input type="date" class="form-control" name="product_date_from" onchange="edit_product_get_selected_date_from(<?php echo $i; ?>);">
+                                <span class="input-group-text bg-transparent">
+                                    <i class="fas fa-calendar-day"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-4 col-xl-3">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('discount_to')->toHtml(); ?>
+                            </label>
+                            <div class="input-group mb-2">
+                                <input type="date" class="form-control" name="product_date_to" onchange="edit_product_get_selected_date_to(<?php echo $i; ?>);">
+                                <span class="input-group-text bg-transparent">
+                                    <i class="fas fa-calendar-day"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row align-items-end">
+                        <div class="col-md-6 col-lg-5">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('size')->toHtml(); ?>
+                            </label>
+                            <select class="form-select select-size form-select mb-2" size="4" id="size_adult_bottom" name="size_adult-bottom[]" multiple>
+                                <option>28</option>
+                                <option>29</option>
+                                <option>30</option>
+                                <option>31</option>
+                                <option>32</option>
+                                <option>33</option>
+                                <option>34</option>
+                                <option>36</option>
+                                <option>38</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 col-lg-5">
+                            <label class="form-label">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('color')->toHtml(); ?>
+                            </label>
+                            <select id="get_color" name="color[]" class="form-select select-color form-select mb-2" size="4" multiple>
+                                <option>Black</option>
+                                <option>Blue</option>
+                                <option>Brown</option>
+                                <option>Gray</option>
+                                <option>Green</option>
+                                <option>Labender</option>
+                                <option>Multi</option>
+                                <option>Orange</option>
+                                <option>Purple</option>
+                                <option>Red</option>
+                                <option>White</option>
+                                <option>Yellow</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 col-lg-2">
+                            <button type="button" id="generatorEvent" class="btn btn-primary mb-2 btn-block">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('generate')->toHtml(); ?>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row mt-3 d-none" id="generate_block">
+                        <div class="col-md-6">
+                            <h5 class="mb-2">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_options')->toHtml(); ?>
+                            </h5>
+                            <div class="p-3 row shadow">
+                                <div class="col-12 mb-2">
+                                    <div class="row d-none d-md-flex">
+                                        <div class="col-2">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('color')->toHtml(); ?>
+                                            </p>
+                                        </div>
+                                        <div class="col-2">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('size')->toHtml(); ?>
+                                            </p>
+                                        </div>
+                                        <div class="col-6">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('qty')->toHtml(); ?>
+                                            </p>
+                                        </div>
+                                        <div class="col-2 text-right">
+                                            <p class="m-0 font-weight-bold">
+                                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('action')->toHtml(); ?>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="sizes_block"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mb-2">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('add_image_for_each_color')->toHtml(); ?>
+                            </h5>
+                            <div class="images-block"></div>
+                        </div>
+                    </div>
+                    <?php
+                    $query_related = "SELECT child_id FROM mgkf_catalog_product_relation ";
+                    $query_related .= "WHERE parent_id = $id";
+                    $result_related = $conn->query($query_related);
+                    while ($row_related = $result_related->fetch_assoc()) {
+                        $related = $row_related['child_id'];
+                        $query_related_product = "SELECT sku, quantity FROM mgkf_inventory_stock_1 ";
+                        $query_related_product .= "WHERE product_id = $related";
+                        $result_related_product = $conn->query($query_related_product);
+                        while ($row_related_product = $result_related_product->fetch_assoc()) {
+                            $related_product = $row_related_product['sku'];
+                            $sku = $related_product;
+                            $related_product_new = str_replace('-', ' ', $related_product);
+                            $size = (int) filter_var($related_product_new, FILTER_SANITIZE_NUMBER_INT);
+                            $to_remove = substr($related_product_new, 0, strpos($related_product_new, ' '));
+                            $color = str_replace($size, '', $related_product_new);
+                            $color = str_replace($to_remove, '', $color);
+                            $qty = number_format($row_related_product['quantity']);
+                            $words = explode(' ', $color);
+                            $words = array_filter($words);
+                            $color = end($words);
+                        }
+                    ?>
+                        <div class="shadow py-3 px-2 px-md-3 mt-3">
+                            <div class="row">
+                                <div class="col-sm-6 col-xl-3 mt-2 mt-xl-0">
+                                    <p class="m-0 font-weight-bold">
+                                        <?php echo 'SKU'; ?>:
+                                        <span class="font-weight-normal">
+                                            <?php echo $sku; ?>
+                                        </span>
+                                    </p>
+                                </div>
+                                <div class="col-sm-6 col-xl-2 mt-2 mt-xl-0">
+                                    <p class="m-0 font-weight-bold">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('size')->toHtml(); ?>:
+                                        <span class="font-weight-normal">
+                                            <?php echo $size; ?>
+                                        </span>
+                                    </p>
+                                </div>
+                                <?php
+                                $query = "SELECT COUNT(entity_id) as count FROM mgkf_catalog_product_index_eav ";
+                                $query .= "WHERE attribute_id = 93 AND store_id = 1 AND entity_id = '".$id."'";
+                                $result = $conn->query($query);
+                                $row = $result->fetch_assoc();
+                                $colorsCount = $row['count'];
+                                if($colorsCount > 0) {
+                                ?>
+                                    <div class="col-sm-6 col-xl-3 mt-2 mt-xl-0">
+                                        <p class="m-0 font-weight-bold">
+                                            <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('color')->toHtml(); ?>:
+                                            <span class="font-weight-normal">
+                                                <?php echo $color; ?>
+                                            </span>
+                                        </p>
+                                    </div>
+                                <?php
+                                }
+                                ?>
+                                <div class="col-12 col-xl-4 mt-3 mt-xl-0">
+                                    <label for="product-name" class="form-label">
+                                        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('qty')->toHtml(); ?>
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="hidden" name="related_id[]" value="<?php echo $related; ?>">
+                                        <input type="number" class="form-control" value="<?php echo $qty; ?>" name="qty_related[]" required>
+                                        <span class="input-group-text bg-transparent">
+                                            <i class="fas fa-money-check"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php
+                    }
+                    ?>
+                    <div class="row mt-3">
+                        <div class="col-sm-5 col-md-3">
+                            <input type="hidden" name="id" value="<?php echo $id; ?>">
+                            <input type="hidden" name="seller_id" value="<?php echo $customerId; ?>">
+                            <input type="hidden" name="sku" id="sku" value="<?php echo $sku; ?>">                                       
+                            <button type="submit" name="full-edit" class="btn btn-primary btn-block">
+                                <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('save')->toHtml(); ?>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <?php
+        $i++;
+    }
+    ?>
+    <div class="alert alert-warning d-none" id="no-products">
+        <?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('no_records_found')->toHtml(); ?>
+    </div>
+</div>
+<script>
+// close alert
+require([
+    'jquery'
+], function($) {
+    'use strict';
+    $(document).ready(function() {
+        $('#closeAlert').on('click', function() {
+            $('#alertBlock').fadeOut();
+        });
+        // upload files js
+        $(".custom-file-input").on("change", function() {
+            var fileName = $(this).val().split("\\").pop();
+            $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+        });
+    });
+});
+
+var clicked = false;
+
+function previewFiles() {
+    var preview = document.querySelector('#preview');
+    var files = document.querySelector('input[type=file]').files;
+
+    function readAndPreview(file) {
+        if (/\.(jpe?g|png|gif)$/i.test(file.name)) {
+            var reader = new FileReader();
+
+            reader.addEventListener("load", function() {
+                var image = new Image(150, 200);
+                image.title = file.name;
+                image.src = this.result;
+                preview.appendChild(image);
+            }, false);
+
+            reader.readAsDataURL(file);
+        }
+    }
+    if (files) {
+        [].forEach.call(files, readAndPreview);
+    }
+}
+
+function get_subcategory() {
+    var selector = document.getElementById("get_sub");
+    var value = selector[selector.selectedIndex].value;
+    var check = value.includes("Copii");
+
+    if (check == true) {
+        document.getElementById("sub-1").style.display = "block";
+        document.getElementById("sub-2").style.display = "none";
+    } else {
+        document.getElementById("sub-1").style.display = "none";
+        document.getElementById("sub-2").style.display = "block";
+    }
+}
+
+function new_color_size() {
+    document.getElementById("matrix").style.display = "block";
+}
+var clicked = false;
+
+function get_dropdowns(id) {
+
+    if (clicked) {
+        document.getElementById("options_" + id).style.display = "flex";
+    } else {
+        document.getElementById("options_" + id).style.display = "none";
+    }
+    clicked = !clicked;
+}
+
+function matrix(id) {
+    var size_adult_bottom = $("#size_adult_bottom_" + id).val();
+    var color = $("#get_color_" + id).val();
+
+    if (size_adult_bottom.length > 0) {
+        var table = jQuery("#myTable_" + id);
+        var array = [];
+        for (var i = 0; i < size_adult_bottom.length; i++) {
+            for (var j = 0; j < color.length; j++) {
+                document.getElementById("matrix_" + id).style.display = "block";
+                var z = 0;
+                var sku = document.getElementById("sku").value;
+                if (color[j] == 'Black') z = 1;
+                if (color[j] == 'Blue') z = 2;
+                if (color[j] == 'Brown') z = 3;
+                if (color[j] == 'Gray') z = 4;
+                if (color[j] == 'Green') z = 5;
+                if (color[j] == 'Lavender') z = 6;
+                if (color[j] == 'Multi') z = 7;
+                if (color[j] == 'Orange') z = 8;
+                if (color[j] == 'Purple') z = 9;
+                if (color[j] == 'Red') z = 10;
+                if (color[j] == 'White') z = 11;
+                if (color[j] == 'Yellow') z = 12;
+                var k;
+                if (size_adult_bottom[i] == 'XS' || size_adult_bottom[i] == 'S' || size_adult_bottom[i] == 'M' || size_adult_bottom[i] == 'L' || size_adult_bottom[i] == 'XL') {
+                    if (size_adult_bottom[i] == 'XS') y = 1;
+                    if (size_adult_bottom[i] == 'S') y = 2;
+                    if (size_adult_bottom[i] == 'M') y = 3;
+                    if (size_adult_bottom[i] == 'L') y = 4;
+                    if (size_adult_bottom[i] == 'XL') y = 5;
+                    k = y + z;
+                } else k = size_adult_bottom[i] + z;
+                var size_color = size_adult_bottom[i] + color[j];
+                var size_unique = size_color.replace(/\D+/g, '');
+                var color_unique = size_color.replace(size_unique, '');
+                var row = "<tr id=" + k + "><input type=\"hidden\" name=\"full_text_scope[]\" value=" + sku + '-' + color[j] + '-' + size_adult_bottom[i] + "><input type=\"hidden\" name=\"product[]\" value=" + size_adult_bottom[i] + '_' + color[j] + "></tr><tr id=" + k + "><td name=" + size_adult_bottom[i] + ">" + size_adult_bottom[i] + "&nbsp" + "</td><td name=" + color[j] + ">" + color[j] + "</td><td><input name=\"qty[]\" type=\"number\" class=\"form-control\"></td><td><span class=\"btn btn-danger\" id=\"span\" onclick=\"delete_table_row(" + k + ");\">&nbsp;x</span></td></tr>";
+                array.push(row);
+                table.append(row);
+            }
+        }
+    }
+}
+
+function delete_table_row(k) {
+    $("tr[id=" + k + "]").remove();
+}
+
+function previewFiles() {
+    var preview = document.querySelector('#preview');
+    var files = document.querySelector('input[type=file]').files;
+
+    function readAndPreview(file) {
+        if (/\.(jpe?g|png|gif)$/i.test(file.name)) {
+            var reader = new FileReader();
+
+            reader.addEventListener("load", function() {
+                var image = new Image(150, 200);
+                //   image.height = 40;
+                image.title = file.name;
+                image.src = this.result;
+                preview.appendChild(image);
+            }, false);
+
+            reader.readAsDataURL(file);
+        }
+    }
+    if (files) {
+        [].forEach.call(files, readAndPreview);
+    }
+}
+var clicked = true;
+
+function show_menu() {
+    var megamenu = document.getElementsByClassName("megamenu-top")[0];
+    var close_megamenu = document.getElementsByClassName("close-menu")[0];
+    megamenu.classList.add("open-nav");
+    close_megamenu.setAttribute("onclick", "close_megamenu();");
+    document.getElementById("nav-mobile").style.display = "block";
+}
+
+function close_megamenu() {
+    var megamenu = document.getElementsByClassName("megamenu-top open-nav");
+    megamenu[0].classList.remove("open-nav");
+}
+
+function quickEditProduct(k) {
+    var count = document.getElementById("products-count").value;
+    for(var i=0; i<=count; i++) {
+        if(document.getElementById("edit-product-"+i)) {
+            document.getElementById("edit-product-"+i).style.display = "none";
+            document.getElementById("full-edit-"+i).style.display = "none";
+        }
+    }
+    document.getElementById("edit-product-"+k).style.display = "block";
+}
+
+function fullEditProduct(k) {
+    var count = document.getElementById("products-count").value;
+    for(var i=0; i<=count; i++) {
+        if(document.getElementById("full-edit-"+i)) {
+            document.getElementById("full-edit-"+i).style.display = "none";
+            document.getElementById("edit-product-"+i).style.display = "none";
+        }
+    }
+    document.getElementById("full-edit-"+k).style.display = "block";
+}
+
+function add_product_discount(k) {
+    document.getElementById("add-product-discount-block-"+k).style.display = "flex";
+}
+
+function hide_add_product_discount_block(k) {
+    document.getElementById("add-product-discount-block-"+k).style.display = "none";
+}
+
+function hide_block(k) {
+    document.getElementById("full_edit_"+k).style.display = "none";
+}
+
+function full_edit_add_product_discount(k) {
+    document.getElementById("full-edit-add-product-discount-block-"+k).style.display = "flex";
+}
+
+function hide_full_edit_discount_block(k) {
+    document.getElementById("full-edit-add-product-discount-block-"+k).style.display = "none";
+}
+
+function find_results(k) {
+    var count_rows = document.getElementById("products-count").value;
+    var searched = document.getElementById("searched");
+
+    if(searched.value == '') {
+        if(k == 1) searched.style.border = "2px solid red";
+    }
+    else {
+        if(k == 1) searched.removeAttribute("style");
+    }
+
+    for(var i=0; i<=count_rows; i++) {
+        if(document.getElementById("product-name-"+i)) {
+            var j = 0;
+            var product_name = document.getElementById("product-name-"+i).value;
+            if(product_name.includes(searched.value)) {
+                document.getElementById("product-"+i).classList.remove("d-none");
+                document.getElementById("product-"+i).classList.add("active");
+                document.getElementById("product-"+i).classList.remove("disabled");
+                document.getElementById("no-products").classList.add("d-none");
+            }
+            else {
+                document.getElementById("product-"+i).classList.add("d-none");
+                document.getElementById("product-"+i).classList.remove("active");
+                document.getElementById("product-"+i).classList.add("disabled");
+            }
+        }
+    }
+
+    var count_active_rows = document.getElementsByClassName("shadow py-3 px-4 mb-3 active").length;
+    if(count_active_rows == 0) {
+        document.getElementById("no-products").classList.remove("d-none");
+    }
+}
+
+function clear_search_input() {
+    document.getElementById("searched").value = "";
+    document.getElementById("clear-search-input").style.display = "none";
+    find_results(2);
+}
+
+var saveBlock = document.querySelector('#save-block');
+
+// generate matrix
+document.querySelector('#generatorEvent').addEventListener('click', generateFunction);
+
+function showDetails() {
+    saveBlock.classList.remove('d-none')
+    quickEdit.classList.toggle('d-none');
+    fullEdit.classList.add('d-none');
+    if (quickEdit.classList.contains('d-none')) {
+        saveBlock.classList.add('d-none');
+    }
+}
+
+function showFullEdit() {
+    saveBlock.classList.remove('d-none')
+    fullEdit.classList.toggle('d-none')
+    quickEdit.classList.add('d-none');
+    if (fullEdit.classList.contains('d-none')) {
+        saveBlock.classList.add('d-none');
+    }
+}
+
+function deleteCantItems(e) {
+    var field_to_delete = e.currentTarget.dataset.delete;
+    var el = document.getElementById(field_to_delete);
+    el.parentNode.removeChild(el);
+}
+
+function generateFunction() {
+    var sizes = [];
+    var colors = [];
+    var size_nodes = document.querySelector('.sizes_block');
+    var images_nodes = document.querySelector('.images-block');
+
+    var sizeSelect = Array.from(document.querySelectorAll('.select-size option:checked')).map(el => sizes.push(el
+    .value));
+    var colorSelect = Array.from(document.querySelectorAll('.select-color option:checked')).map(el => colors.push(el
+    .value));
+
+    if (sizes.length > 0 && colors.length > 0) {
+        // remove div before adding new nodes
+        size_nodes.innerHTML = '';
+        images_nodes.innerHTML = '';
+
+        for (let size of sizes) {
+            for (let color of colors) {
+            var box_color =
+                `<div id="${size + '_' + color}">
+                <div class="row mb-2 align-items-end">
+                <div class="col-2">
+                    <p class="m-0 text-capitalize">${color}</p>
+                </div>
+                <div class="col-2">
+                    <p class="m-0 text-capitalize">${size}</p>
+                </div>
+                <div class="col-6">
+                    <div class="input-group">
+                    <input type="number" class="form-control" id="basic-url">
+                    <span class="input-group-text bg-transparent" id="basic-addon3">
+                        <i class="fas fa-file-signature"></i>
+                    </span>
+                    </div>
+                </div>
+                <div class="col-2 text-right">
+                    <button role="button" data-delete="${size + '_' + color}" onclick="deleteCantItems(event); return false"
+                    class="delete_cant_item btn rounded border-0 btn-secondary">
+                    <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                </div>
+            </div>`;
+
+            var div = document.createElement("div");
+            div.innerHTML = box_color;
+            div.setAttribute('class', 'col-sm-12 mb-2');
+            size_nodes.appendChild(div);
+            }
+        }
+        for (let color of colors) {
+            // console.error(c)
+            var box_image = `
+        <div id="${'id' + color}">
+            <div class="row align-items-end mb-3">
+            <div class="col-12">
+                <div class="form-file">
+                <input type="file" class="form-file-input" id="customFile">
+                <label class="form-file-label" for="customFile">
+                    <span class="form-file-text">Choose ${color} file</span>
+                    <span class="form-file-button">Browse</span>
+                </label>
+                </div>
+            </div>
+            </div>
+        </div>
+        `;
+            var div_img = document.createElement("div");
+            div_img.innerHTML = box_image;
+            images_nodes.appendChild(div_img);
+        }
+        document.querySelector('#generate_block').classList.remove('d-none');
+    }
+}
+</script>

@@ -1,0 +1,189 @@
+<div class="header-container">
+	<div class="top-link-container">
+		<div class="container">
+			<div class="top-header">
+				<div class="row">
+					<div class="col-sm-6 col-md-7 left-bar">
+							<?php echo $block->getLayout()->createBlock('Magento\Cms\Block\Block')->setBlockId('welcome')->toHtml();?>
+					</div>
+					<div class="col-sm-6 col-md-5 right-bar">	  
+              <?php echo $this->getChildHtml("currency"); ?>
+              <?php echo $this->getChildHtml("store_language"); ?>
+							<a class="login" href="<?php echo $this->getUrl('customer/test') ?>">
+                <?php echo __('Login/Register') ?>
+              </a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="header">
+		<div class="container">
+			<div class="header-inner">
+				<div class="row">
+          <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12 col-logo">
+            <div class="box-logo">
+              <div class="logo-menu">
+                <?php echo $this->getChildHtml("logo"); ?>  
+              </div>
+            </div>
+          </div>
+          <div class="col-md-5 col-sm-12 col-xs-12">
+            <?php echo $this->getChildHtml("topSearch"); ?>
+          </div>
+					<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+						<div class="box-quick-access">
+							
+							
+							<div class="quick-access">
+								<div class="link-wishlist link-wishlist1">
+									<?php echo $this->getChildHtml("top.links"); ?>
+								</div>
+								<?php echo $this->getChildHtml("minicart");?>
+								<a class="menu-bar mobile-navigation" href="javascript:void(0);"> <i class="flaticon-05menu"></i> </a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="top-menu-wrapper">
+    <div class="container">
+      <div class="top-menu-inner">
+        <div class="menu-vertical">
+          <div class="box-menu">
+            <div class="vertical-menu-title">
+              <div class="btn-mega">
+                <span></span>
+                <?php echo __('All departments') ?>
+              </div>
+            </div>
+            <?php echo $block->getLayout()->createBlock('Themevast\MegaMenu\Block\Widget\Megamenu')->setMenu('vertical-menu')->toHtml();?>
+          </div>
+        </div>
+        <div class="menu-horizontal">
+          <div class="megamenu-top">
+            <div class="menu-overlay"></div>
+            <div class="megamenu-inner">
+              <h3 class="title-mobile-menu"><?php echo __('Menu') ?><span class="close-menu"><i class="pe-7s-close"></i></span></h3>
+              <?php echo $block->getLayout()->createBlock('Themevast\MegaMenu\Block\Widget\Megamenu')->setMenu('top-menu')->toHtml();?>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      
+    </div>
+  </div>
+</div>
+
+<script>
+  require([
+    'jquery'
+  ], function ($) {
+    'use strict';
+    $( document ).ready(function() {
+      $('.icon-magnifier').click(function(event){
+        $('body').toggleClass('open');
+        
+      });
+    });
+  });
+</script>
+<script>
+  require([
+    'jquery'
+  ], function ($) {
+    'use strict';
+    $( document ).ready(function() {
+      $('#b-close_search').click(function(event){
+        $('body').removeClass('open');
+        
+      });
+    });
+  });
+</script>
+<script>
+  require([
+    'jquery'
+  ], function ($) {
+    'use strict';
+    $( document ).ready(function() {
+      $('.showcart').click(function(event){
+        $('body').addClass('open1');
+        
+      });
+    });
+  });
+</script>
+<script>
+  require([
+    'jquery'
+  ], function ($) {
+    'use strict';
+    $( document ).ready(function() {
+      $('.btn-minicart-close1').click(function(event){
+        $('body').removeClass('open1');
+        
+      });
+    });
+  });
+</script>
+<script>
+  require([
+    'jquery'
+  ], function ($) {
+    'use strict';
+    $( document ).ready(function() {
+      $('.mobile-navigation').click(function(event){
+        $('body').toggleClass('open2');
+        
+      });
+    });
+  });
+</script>
+<script>
+  require([
+    'jquery'
+  ], function ($) {
+    'use strict';
+    $( document ).ready(function() {
+      $('.close-menu').click(function(event){
+        $('body').removeClass('open2');
+        
+      });
+    });
+  });
+</script>
+<script>
+  require([
+    'jquery'
+  ], function ($) {
+    'use strict';
+    $( document ).ready(function() {
+      $('.menu-overlay').click(function(event){
+        $('body').removeClass('open2');
+        
+      });
+    });
+  });
+</script>
+<script>
+  require([
+    'jquery'
+  ], function ($) {
+    'use strict';
+    $( document ).ready(function() {
+      $('.vertical-menu-title').click(function(event){
+        $('.menu-vertical').toggleClass('active');
+        
+      });
+    });
+  });
+</script>
+
+
+
+
+

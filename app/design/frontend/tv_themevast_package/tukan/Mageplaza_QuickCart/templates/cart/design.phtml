@@ -1,0 +1,157 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_QuickCart
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+/** @var \Mageplaza\QuickCart\Block\Cart\Design $block */
+
+$helper = $block->getHelper();
+
+if (!$helper->isEnabled()) {
+    return;
+}
+?>
+
+<?php if ($helper->isFixedIcon()) : ?>
+    <script type="text/javascript">
+        require(['jquery'], function ($) {
+            $(document).ready(function () {
+                var sticky = $('.mpquickcart-icon-wrapper');
+                if (!sticky.length) {
+                    return;
+                }
+
+                var stickyTop = sticky.offset().top;
+
+                $(window).scroll(function () {
+                    if (stickyTop < $(window).scrollTop()) {
+                        sticky.css('position', 'fixed');
+                    } else {
+                        sticky.css('position', '');
+                    }
+                });
+            });
+        });
+    </script>
+<?php endif; ?>
+
+<?php if ($helper->isAutoOpen()) : ?>
+    <script type="text/javascript">
+        require(['jquery'], function ($) {
+            $(document).on('ajax:addToCart', function () {
+                $('.mpquickcart .minicart-wrapper').modal('openModal')
+            });
+        });
+    </script>
+<?php endif; ?>
+
+<style type="text/css">
+    .mpquickcart .modal-header {
+        background-color: <?= /** @noEscape */ $helper->getHeaderBackground() ?>;
+        color: <?= /** @noEscape */ $helper->getHeaderText() ?>;
+    }
+
+    .mpquickcart .modal-header .action-close:before {
+        color: <?= /** @noEscape */ $helper->getHeaderText() ?>;
+    }
+
+    .mpquickcart .cart-totals {
+        background-color: <?= /** @noEscape */ $helper->getSubtotalBackground() ?>;
+        color: <?= /** @noEscape */ $helper->getSubtotalText() ?>;
+    }
+
+    <?= /** @noEscape */ $helper->getCustomCss() ?>
+
+    <?php if ($block->getCurrentTheme() === 'Smartwave/porto') : ?>
+    .mpquickcart .button-action:before {
+        font-family: 'porto-icons';
+    }
+    .mpquickcart .button-action.minus:before {
+        content: '\f812';
+    }
+    .mpquickcart .button-action.plus:before {
+        content: '\f811';
+    }
+    <?php endif; ?>
+</style>
+
+<script>
+function remove_item(k, entityId, itemId, productTotal, grandTotal) {
+    var counter = document.getElementsByClassName("counter-number")[0].innerText;
+    var new_counter = Number(counter) - 1;
+    document.getElementsByClassName("counter-number")[0].innerText = new_counter;
+
+    var entity_id = entityId;
+    var item_id = itemId;
+    var product_total = productTotal;
+    var grand_total = grandTotal;
+    var list = document.querySelectorAll('#mini-cart li');
+    for(var i=0; li=list[i]; i++) {
+        if(k == i) {
+            li.parentNode.removeChild(li);
+        }
+    }
+
+    jQuery.ajax({
+        type:"POST",
+        url: "/minicartDelete.php",
+        data: "entity_id="+entity_id+"&item_id="+item_id+"&product_total="+product_total+"&grand_total="+grand_total,
+        success: '',
+    });
+
+    var interval = setInterval(myTimer, 2000);     
+    
+    function myTimer() {
+        if(document.getElementById("customer_id")) {
+            var customer_id = document.getElementById("customer_id").value;
+        }
+        if(document.getElementById("customer_id_value")) {
+            var customer_id = document.getElementById("customer_id_value").value;
+        }
+        jQuery("#mini-cart").load("/minicartUpdate.php", {customer_id:customer_id});
+        var count = document.getElementById("mini-cart").getElementsByTagName("li").length;
+        if(count == 0) {
+            document.getElementById("block-content-block-footer").style.display = "none";
+            document.getElementById("no-items-block").style.display = "block";
+        }
+        else {
+            jQuery("#block-content-block-footer").load("/minicartUpdateTotals.php", {customer_id:customer_id});
+        }
+
+        var client = document.getElementById("client").value;
+        var total = document.getElementById("product_total").innerText;
+        document.getElementById("place-order-btn").setAttribute("onclick", "saveTotal("+client+", "+total+");");
+        stopTimer();
+    }
+    function stopTimer() {
+        clearInterval(interval);
+    }
+}
+
+var clicked = false;
+function show_summary() {
+    if(!clicked) {
+        document.getElementById("additional-info").removeAttribute("class");
+    }
+    else {
+        document.getElementById("additional-info").setAttribute("class", "d-none");
+    }
+    clicked = !clicked;
+}
+</script>

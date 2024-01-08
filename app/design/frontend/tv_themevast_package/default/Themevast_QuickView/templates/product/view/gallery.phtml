@@ -1,0 +1,38 @@
+<?php
+/**
+ * Copyright © 2016 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+/**
+ * Product media data template
+ *
+ * @var $block \Magento\Catalog\Block\Product\View\Gallery
+ */
+$images = $block->getGalleryImages();
+if(count($images) > 0) {
+	$mainImage = $images->getFirstItem();
+	foreach($images as $image) {
+		if($block->isMainImage($image)) {
+			$mainImage = $image;
+			break;
+		}
+	}
+?>
+<div class="gallery-placeholder _block-content-loading" data-gallery-role="gallery-placeholder" id="gallery_<?php echo $block->getProduct()->getId(); ?>" >
+	<div class="product-slider-wrapper">
+		<div class="main-img-quickview">
+			<a href="<?php echo $mainImage->getData('large_image_url'); ?>" class="cloud-zoom" rel="transparentImage: 'data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', useWrapper: false, showTitle: false, zoomWidth:'100', adjustY:0, adjustX:0">
+				<img src="<?php echo $mainImage->getData('medium_image_url'); ?>">
+			</a>
+		</div>
+	</div>
+	<div class="thumnail owl-carousel">
+		<?php foreach ($images as $_image) { ?>
+			<div class="small_image <?php if($block->isMainImage($_image)) echo "active"; ?>"><img src="<?php echo $_image->getData('small_image_url'); ?>"data-href="<?php echo $_image->getData('large_image_url'); ?>" data-thumb-image="<?php echo $_image->getData('medium_image_url'); ?>"></div>
+		<?php } ?>
+	</div>
+</div>
+<?php } ?>

@@ -1,0 +1,80 @@
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_Osc
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+
+<div data-bind="fadeVisible: isPasswordVisible() == false">
+    <div class="my-3" data-bind="visible: isCheckboxRegisterVisible">
+        <div class="custom-control custom-checkbox p-0">
+            <input type="checkbox"
+                   checked="checked"
+                   name="create-account-checkbox"
+                   data-bind="checked: isRegisterVisible, attr: {id: 'create-account-checkbox'}"
+                   class="custom-control-input" id="customCheck1">
+            <label class="custom-control-label user-select-none" data-bind="attr: {for: 'create-account-checkbox'}" for="customCheck1">
+                <span data-bind="i18n: 'Create account'"></span>
+            </label>
+        </div>
+    </div>
+    <div class="mb-3" data-bind="fadeVisible: isRegisterVisible">
+        <form class="row justify-content-between" id="create-account-form">
+            <div class="col-6">
+                <!-- ko ifnot: window.checkoutConfig.oscConfig.isUsedMaterialDesign -->
+                <label for="osc-password" class="label"><span data-bind="i18n: 'Password'"></span></label>
+                <!-- /ko -->
+                <div class="control input-field">
+                    <input type="password" name="password" id="osc-password"
+                           class="form-control rounded shadow-none"
+                           data-bind="
+                               attr: {
+                                    'data-password-min-length': dataPasswordMinLength,
+                                    'data-password-min-character-sets': dataPasswordMinCharacterSets
+                               },
+                               event: {change: function(){validate('password')}}"
+                           data-validate="{required:true, 'validate-customer-password':true}"
+                           autocomplete="off" required/>
+                    <!-- ko if: window.checkoutConfig.oscConfig.isUsedMaterialDesign -->
+                    <label for="osc-password" class="label"><span data-bind="i18n: 'Password'"></span><i
+                            class="required-entry">*</i></label>
+                    <div for="osc-password" generated="true" class="mage-error" id="osc-password-error"></div>
+                    <!-- /ko -->
+                </div>
+            </div>
+            <div class="col-6">
+                <!-- ko ifnot: window.checkoutConfig.oscConfig.isUsedMaterialDesign -->
+                <label for="osc-password-confirmation" class="label"><span data-bind="i18n: 'Confirm Password'"></span></label>
+                <!-- /ko -->
+                <div class="control input-field">
+                    <input type="password" name="password_confirmation" id="osc-password-confirmation"
+                           class="form-control rounded shadow-none"
+                           data-bind="event: {change: function(){validate('password-confirmation')}}"
+                           data-validate="{required:true, equalTo:'#osc-password'}"
+                           autocomplete="off" required/>
+                    <!-- ko if: window.checkoutConfig.oscConfig.isUsedMaterialDesign -->
+                    <label for="osc-password-confirmation" class="label"><span
+                            data-bind="i18n: 'Confirm Password'"></span><i class="required-entry">*</i></label>
+                    <div for="osc-password-confirmation" generated="true" class="mage-error"
+                         id="osc-password-confirmation-error"></div>
+                    <!-- /ko -->
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

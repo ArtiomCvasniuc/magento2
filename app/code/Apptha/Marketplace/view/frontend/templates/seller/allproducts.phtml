@@ -1,0 +1,106 @@
+<?php
+/**
+ * Apptha
+ * NOTICE OF LICENSE
+ * This source file is subject to the EULA
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://www.apptha.com/LICENSE.txt
+ * ==============================================================
+ * MAGENTO EDITION USAGE NOTICE
+ * ==============================================================
+ * This package designed for Magento COMMUNITY edition
+ * Apptha does not guarantee correct work of this extension
+ * on any other Magento edition except Magento COMMUNITY edition.
+ * Apptha does not provide extension support in case of
+ * incorrect edition usage.
+ * ==============================================================
+ *
+ * @category Apptha
+ * @package Apptha_Marketplace
+ * @version 1.2
+ * @author Apptha Team <developers@contus.in>
+ * @copyright Copyright (c) 2017 Apptha. (http://www.apptha.com)
+ * @license http://www.apptha.com/LICENSE.txt
+ */
+
+use Magento\Framework\App\Action\Action;
+
+$productCollection = $block->getAllProducts();
+$vacationCollection = $block->getVacationDetails();
+$dataHelper = $this->helper('Apptha\Marketplace\Helper\Data');
+?>
+<div>
+    <?php if (count($productCollection) && !$vacationCollection->getVacationMessage()) { ?>
+        <div class="row g-2">
+            <?php
+            foreach ($productCollection as $product) {
+                $productPrice = number_format($product->getPrice(), 2, '.', '');
+                $productId = $product->getId();
+                $imagehelper = $this->helper('Magento\Catalog\Helper\Image');
+                $productImage = $imagehelper->init($product, 'category_page_list')->constrainOnly(FALSE)->keepAspectRatio(TRUE)->keepFrame(FALSE)->resize(240, 300)->getUrl();
+            ?>
+                <li class="col-6 col-md-4 col-lg-3 col-xxl-20">
+                    <div class="card">
+                        <div class="product-img-block image-developer-store">
+                            <a href="<?php echo $product->getProductUrl() ?>" class="product photo product-item-photo" tabindex="-1">
+                                <img class="card-img-top" src="<?php echo $productImage; ?>" alt="<?php echo $product->getName(); ?>">
+                            </a>
+                            <a href="<?php /* @escapeNotVerified */ echo $product->getProductUrl() ?>">
+                                <div class="pro-overlay"></div>
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div>
+                                <a class="card-title h4 text-body d-block test-overflow-eli text-capitalize" href="<?php echo $product->getProductUrl() ?>">
+                                    <?php echo  $product->getName(); ?>
+                                </a>
+                                <div class="price-box price-final_price" data-role="priceBox" data-product-id="1">
+                                    <span class="price-container price-final_price tax weee">
+                                        <span id="product-price-1" data-price-amount="<?php echo $productPrice; ?>" data-price-type="finalPrice" class="price-wrapper ">
+                                            <span class="price">
+                                                <?php
+                                                if (!empty($product->getSpecialPrice())) {
+                                                    echo $dataHelper->getFormattedPrice($product->getSpecialPrice());
+                                                } else {
+                                                    echo $block->getProductPrice($product);
+                                                }
+                                                ?>
+                                            </span>
+                                        </span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            <?php } ?>
+        </div>
+        <?php if ($block->getPagerHtml()) { ?>
+            <div class="order-products-toolbar toolbar bottom"><?php echo $block->getPagerHtml(); ?></div>
+        <?php } ?>
+    <?php } else if ($vacationCollection->getVacationMessage()) { ?>
+        <div class="vacation-mode">
+            <span>
+                <?php echo __('Seller was on vacation mode till:&nbsp;' . $vacationCollection->getToDate()); ?>
+            </span>
+            <span>
+                <?php echo __('Vacation Message:&nbsp;' . $vacationCollection->getVacationMessage()); ?>
+            </span>
+        </div>
+        <span class="noproducts">
+            <?php /* @escapeNotVerified */ echo __('No products to display') ?>
+        </span>
+    <?php } else { ?>
+        <span class="noproducts">
+            <?php /* @escapeNotVerified */ echo __('No products to display') ?>
+        </span>
+    <?php } ?>
+</div>
+<script type="text/x-magento-init">
+    {
+        "[data-role=tocart-form], .form.map.checkout": {
+            "catalogAddToCart": {}
+        }
+    }
+</script>

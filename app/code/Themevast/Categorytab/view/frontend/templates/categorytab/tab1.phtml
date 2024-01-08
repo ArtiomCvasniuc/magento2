@@ -1,0 +1,92 @@
+<?php 
+	use Magento\Framework\App\Action\Action;
+	$enable = $block->getConfigSys('enabled');
+	if($enable < 1) return ;
+	$cattabHelper = $this->helper('Themevast\Categorytab\Helper\Data');
+	$items = $block->getConfig('items');
+	$speed = $block->getConfig('speed');
+	$qty = $block->getConfig('qty');
+	$showCart = $block->getConfig('addtocart');
+	$showWishlist = $block->getConfig('wishlist');
+	$showCompare = $block->getConfig('compare');
+	$show_navigation = $block->getConfig('navigation');
+	$show_pagination = $block->getConfig('pagination');
+	$auto = $block->getConfig('auto');
+	$rows = $block->getConfig('row');
+	$show_slider = $block->getConfig('show_slider');
+	$title = $block->getTitle(); 
+	$identify = trim($block->getIdentify()); 
+	$categoryIds = $block->getCategoryIds();
+	$categoryIds = explode(',', $categoryIds);
+
+	$productsOnRow = 2 ;
+	if(!$productsOnRow) $productsOnRow = 3;
+	$image_width=300;
+	$image_height=300;
+	$show_image=1;
+	$alt_image=1;
+	$_imgHelper = $this->helper('Themevast\Categorytab\Helper\Image');
+	$alt_image_column ='position';
+	$alt_image_column_value = 2 ;
+	$strRandom   = $block->generateRandomString(10);
+	$id          = 'cattab_'.$identify;
+	$show_best = $this->getConfig('show_best');
+	$config = $this->getData();
+	$config['show_best'] = $show_best;
+	$config['qty'] = $block->getConfig('qty',8);
+	$customClass ='categorytab_'.$this->getConfig('templatetype');
+?>
+<div id="<?php echo $id ?>" class="categorytab first <?php echo $customClass ?> ">
+	<div class="cattabs_title">
+		 <?php if($this->getConfig('icon_image')): ?>
+			<p class="icon_image"><img src="<?php echo $block->filterImage($this->getConfig('icon_image')); ?>" alt="<?php echo __($title)?>"/></p>
+		<?php endif; ?>
+	<?php echo __($title); ?>
+	</div>
+	<div class="cattabs_wrapper">
+		<div class="cattab_items_container">
+			<div class="cattabFirst_loading"></div>
+				<?php $cate_id = $categoryIds[0];?>
+				<div class="cattab_items_<?php echo $this->getConfig('templatetype')?>">
+					<div class="products-grid cattab_items_inner">
+						<?php
+							$data = $config;
+							$_productCollectionT = $block->getProductCate($cate_id);
+							$_collectionSizeT = $_productCollectionT->count();
+							$data['productCollection'] = $_productCollectionT;
+						?>		
+						<?php echo $block->getProductHtml($data);?>
+					</div>
+			   </div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+require(['jquery','mage/mage','themevast/owl'], function () {
+	jQuery(document).ready(function ($) {
+		(function (tab1) {
+				var $tab1 = $(tab1),
+				$grid = $('.products-grid', $tab1),
+				$item =$('.item',$grid),
+				$item_vertical = $('li.item_vertical', $grid);
+				setTimeout(function () {
+				$('.cattabFirst_loading', $tab1).remove()},300);
+				$item.hide();
+				$item.first().show();
+				$item.first().addClass('active');
+				$item_vertical.first().addClass('active');
+				$item_vertical.on('click',function(){
+					var $this = $(this)
+					$idClass = $(this).attr('data-id');
+					$item_vertical.removeClass('active');
+					$this.addClass('active');
+					$item.hide();
+					$item.removeClass('active');
+					var $item_active =$($idClass,$tab1);
+					$item_active.slideDown();
+					$item_active.addClass('active');
+				})
+		})('#<?php echo $id; ?>');
+	});
+});
+</script>

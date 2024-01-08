@@ -1,0 +1,84 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category   Mageplaza
+ * @package    Mageplaza_PdfInvoice
+ * @copyright   Copyright (c) Mageplaza (http://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+$_source = $block->getSource();
+$_order = $block->getOrder();
+$grandTotal = 0;
+$label = 'GRAND TOTAL';
+$flag = false;
+?>
+<div class="mp-hr"></div>
+<div class="total-left">
+    <?php foreach ($block->getTotals() as $_code => $_total) : ?>
+        <?php
+        if ($_code == 'grand_total_incl' || ($_code == 'grand_total' && !$flag)) {
+            $grandTotal = $_total;
+            $label = $block->escapeHtml($_total->getLabel());
+            $flag = true;
+            continue;
+        }
+        ?>
+        <?php if ($_total->getBlockName()) : ?>
+            <div class="custom mp">
+                <?= /** @noEscape */ $block->getChildHtml($_total->getBlockName(), false) ?>
+            </div>
+        <?php else : ?>
+            <div class="<?= /* @noEscape */ $_code ?> mp">
+                <div class="row-left">
+                    <strong><?= /** @noEscape */ $block->escapeHtml($_total->getLabel()) ?></strong>
+                </div>
+                <div class="row-right">
+                    <?= /* @noEscape */ $block->formatValue($_total) ?>
+                </div>
+            </div>
+        <?php endif ?>
+    <?php endforeach ?>
+
+    <?php if ($_source->getCustomerBalanceAmount()) : ?>
+        <div class="mp">
+            <div class="row-left">
+                <?= /* @noEscape */ __('Store Credit') ?>
+            </div>
+            <div class="row-right">
+                <span class="balance discount">-<?= /* @noEscape */ $_order->formatPrice($_source->getCustomerBalanceAmount()) ?></span>
+            </div>
+        </div>
+    <?php endif ?>
+
+    <?php if ($_source->getCustomerBalTotalRefunded()) : ?>
+        <div class="mp">
+            <div class="row-left">
+                <?= /* @noEscape */ __('Refunded to Store Credit') ?>
+            </div>
+            <div class="row-right">
+                <span class="balance discount">-<?= /* @noEscape */ $_order->formatPrice($_source->getCustomerBalTotalRefunded()) ?></span>
+            </div>
+        </div>
+    <?php endif ?>
+</div>
+<div class="total-right">
+    <div class="grand-total">
+        <h3><?= /** @noEscape */ strtoupper($label) ?></h3>
+    </div>
+    <div class="grand-total-price">
+        <h1> <?= /* @noEscape */ $block->formatValue($grandTotal) ?></h1>
+    </div>
+</div>

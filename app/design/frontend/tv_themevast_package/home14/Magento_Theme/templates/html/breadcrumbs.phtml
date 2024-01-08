@@ -1,0 +1,83 @@
+<?php
+/**
+ * Copyright © 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+if(!empty($crumbs) && is_array($crumbs)) {
+	foreach ($crumbs as $crumbInfo) {
+		if ($crumbInfo['last']) {
+			$product_name = $block->escapeHtml($crumbInfo['label']);
+		}
+	}
+	?>
+	<?php if ($crumbs && is_array($crumbs)) { ?>
+		<div class="breadcrumbs">
+			<div class="container">
+				<ul class="items" id="breadcrumbs">
+					<?php foreach ($crumbs as $crumbName => $crumbInfo) { ?>
+						<li class="item <?php /* @escapeNotVerified */ echo $crumbName ?>">
+						<?php if ($crumbInfo['link']) { ?>
+							<a class="breadcrumbs_category" href="<?php /* @escapeNotVerified */ echo $crumbInfo['link'] ?>" title="<?php echo $block->escapeHtml($crumbInfo['title']) ?>">
+								<?php echo $block->escapeHtml($crumbInfo['label']) ?>
+							</a>
+						<?php } elseif ($crumbInfo['last']) { ?>
+							<strong id="breadcrumbs_current"><?php echo $block->escapeHtml($crumbInfo['label']) ?></strong>
+						<?php } else { ?>
+							<?php echo $block->escapeHtml($crumbInfo['label']) ?>
+						<?php } ?>
+						</li>
+					<?php } ?>
+				</ul>
+			</div>
+		</div>
+	<?php } ?>
+	<script>
+	var breadcrumbs = document.getElementById("breadcrumbs");
+	var breadcrumbs_category = document.getElementsByClassName("breadcrumbs_category");
+	for (var i=0; i < breadcrumbs_category.length; i++) {
+		breadcrumbs_category[i].setAttribute("id", "breadcrumbs_category_"+i);
+	}
+	var breadcrumbs_1 = document.getElementById("breadcrumbs_category_1") 
+	if (breadcrumbs_1) {
+		var category_name = document.getElementById("breadcrumbs_category_1").innerHTML;
+		var subcategory_name = document.getElementById("breadcrumbs_current").innerHTML;
+		var subcategory_name_full = category_name + subcategory_name;
+
+		document.getElementById("breadcrumbs_current").innerHTML = subcategory_name_full;
+	}
+	var breadcrumbs_2 = document.getElementById("breadcrumbs_category_2");
+	if(breadcrumbs_2) {
+		var category_name = document.getElementById("breadcrumbs_category_1").innerHTML;
+		var subcategory_name = document.getElementById("breadcrumbs_category_2").innerHTML;
+		var subcategory_name_full = category_name + subcategory_name;
+		breadcrumbs_2.innerHTML = subcategory_name_full;
+
+		var current = document.getElementById("breadcrumbs_current").innerHTML;
+		current = current.replace(category_name, "");
+		var current_breadcrumbs = subcategory_name_full + current;
+		document.getElementById("breadcrumbs_current").innerHTML = current_breadcrumbs;
+	}
+	var breadcrumbs_3 = document.getElementById("breadcrumbs_category_3");
+	if(breadcrumbs_3) {	
+		var subcategory_first = document.getElementById("breadcrumbs_category_2").innerHTML;
+		var subcategory_second = document.getElementById("breadcrumbs_category_3").innerHTML;
+		document.getElementById("breadcrumbs_category_3").innerHTML = subcategory_first + subcategory_second;
+
+		var current = document.getElementById("breadcrumbs_current").innerHTML;
+		var breadcrumbs_category_1 = document.getElementById("breadcrumbs_category_1").innerHTML;
+		var breadcrumbs_category_2 = document.getElementById("breadcrumbs_category_2").innerHTML;
+		var common = breadcrumbs_category_2;
+		var current_breadcrumbs = current;
+		current_breadcrumbs = current_breadcrumbs.replace(common, "");
+
+		var breadcrumbs_category_3 = document.getElementById("breadcrumbs_category_3").innerHTML;
+		var breadcrumbs_current = breadcrumbs_category_3 + current_breadcrumbs;
+		document.getElementById("breadcrumbs_current").innerHTML = breadcrumbs_current;
+	}
+	</script>
+<?php 
+}
+?>
