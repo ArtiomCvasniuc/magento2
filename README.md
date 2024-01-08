@@ -1,6 +1,3 @@
-# atytude-com
-https://atytude.com
-
 # Install Ubuntu App from MS Store + WSL
 Get the app from: https://www.microsoft.com/en-us/p/ubuntu/9nblggh4msv6
 
@@ -121,22 +118,6 @@ grunt watch
 ```
 
 # Github Process
-whatsapp:
-```bash
-ok deci ideea e cam asa:
-
-- inainte de a face modificari/commit rulezi: git pull
-- dupa care ne mutam pe un branch nou folosind comanda: git checkout -b herk_123
- (unde herk_123 e un nume pentru branch, ca sa aveti idee de ce ati facut acolo, in mare)
-- odata facut asta, lucrezi ca si normal, foarte important ca la "git status" sa nu apara ca sunteti pe master ci pe branchul creat, faceti commit normal acolo
-- la git push, o sa apara o comanda pe care o cere git, trebuie facut doar copy paste si rulata aia
-- dupa care puteti rula: git checkout master
- si o luati de la capat
-
-si cam atat, asta inseamna ca s-a creat un branch nou si a fost urcat in github cu noile modificari
-dupa care puteti lasa un mesaj aici si le fac eu merge, pot sa fac asta oricand ca nu dureaza mult
-```
-
 ```bash
 git pull
 git checkout -b herk_123_new_branch_checkout_changes
