@@ -162,7 +162,7 @@ if(isset($_POST['customer_id'])) {
         
         $state = 'new';
         $status = 'pending';
-        $storeName = 'Main Website Atytude.ro English';
+        $storeName = 'Main Website test.ro English';
         $incrementId = $lastOrderId + $i +1;
 
         $query_parent_id = "SELECT parent_id FROM mgkf_catalog_product_relation ";
@@ -355,7 +355,7 @@ if(isset($_POST['guest'])) {
         
         $state = 'new';
         $status = 'pending';
-        $storeName = 'Main Website Atytude.ro English';
+        $storeName = 'Main Website test.ro English';
         $incrementId = $lastOrderId + $i +1;
 
         $query_parent_id = "SELECT parent_id FROM mgkf_catalog_product_relation ";

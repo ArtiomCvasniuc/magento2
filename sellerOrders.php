@@ -123,8 +123,8 @@ if (isset($_POST['awb_submit'])) {
     $to = $email;
     $subject = 'Order Shipping';
     $body_message = "Your order #'.$order_id.' was shipped. AWB Number is '".$awb."'. Courier Name is '".$courier."'";
-    $body_message.= '\nBest regards, Atytude Marketplace';
-    $from = 'atytude@atytude.com';
+    $body_message.= '\nBest regards, test Marketplace';
+    $from = 'test@test.com';
 
     $headers = 'From: ' . $from . "\r\n";
 
@@ -157,8 +157,8 @@ if (isset($_POST['not_in_stock'])) {
     $to = $email;
     $subject = 'Order Cancelling';
     $body_message = 'Your order #'.$order_id.' was cancelled because product is not in stock';
-    $body_message.= 'Best regards, Atytude Marketplace';
-    $from = 'atytude@atytude.com';
+    $body_message.= 'Best regards, test Marketplace';
+    $from = 'test@test.com';
 
     $headers = 'From: ' . $from . "\r\n";
 
@@ -190,7 +190,7 @@ if (isset($_POST['has_defects'])) {
     $to = $email;
     $subject = 'Order Cancelling';
     $body_message = 'Your order #'.$order_id.' was cancelled because product has defects\r\n';
-    $body_message.= 'Best regards, Atytude Marketplace';
+    $body_message.= 'Best regards, test Marketplace';
     $from = 'atytude@atytude.com';
 
     $headers = 'From: ' . $from . "\r\n";

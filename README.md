@@ -1,5 +1,5 @@
-# atytude-com
-https://atytude.com
+# magento2
+https://magento2.test (local)
 
 # Install Ubuntu App from MS Store + WSL
 Get the app from: https://www.microsoft.com/en-us/p/ubuntu/9nblggh4msv6
@@ -53,8 +53,8 @@ sudo update-rc.d redis-server defaults
 mkdir ~/sites
 cd ~/sites
 
-git clone --recurse-submodules -j2 https://github.com/atytude/atytude-com.git
-cd atytude-com
+git clone --recurse-submodules -j2 https://github.com/ArtiomCvasniuc/magento2.git
+cd magento2
 valet link
 valet secure
 
@@ -62,9 +62,9 @@ composer install
 
 sed -i 's/continue;/continue 2;/g' vendor/zendframework/zend-stdlib/src/ArrayObject.php
 
-mysql -u root -p -e "CREATE DATABASE atytude_market;"
-mysql -u root -p -e "CREATE USER 'atytude_market'@'%' IDENTIFIED WITH mysql_native_password BY 'y.yMWsB0L.FT';"
-mysql -u root -p -e "GRANT ALL PRIVILEGES ON atytude_market.* TO atytude_market@'%';"
+mysql -u root -p -e "CREATE DATABASE test_market;"
+mysql -u root -p -e "CREATE USER 'test_market'@'%' IDENTIFIED WITH mysql_native_password BY '';"
+mysql -u root -p -e "GRANT ALL PRIVILEGES ON test_market.* TO test_market@'%';"
 
 # ... get db snapshot !?
 # ... create app/etc/env.php !!
@@ -72,9 +72,9 @@ mysql -u root -p -e "GRANT ALL PRIVILEGES ON atytude_market.* TO atytude_market@
 php -f bin/magento deploy:mode:set developer
 php -f bin/magento cache:enable
 php -f bin/magento setup:di:compile
-php -f bin/magento config:set web/unsecure/base_url http://atytude-com.test/
-php -f bin/magento config:set web/secure/base_url http://atytude-com.test/
-php -f bin/magento config:set web/cookie/cookie_domain atytude-com.test
+php -f bin/magento config:set web/unsecure/base_url http://magento2.test/
+php -f bin/magento config:set web/secure/base_url http://magento2.test/
+php -f bin/magento config:set web/cookie/cookie_domain magento2.test
 ```
 
 # Windows 10 Acrylic DNS Proxy Setup

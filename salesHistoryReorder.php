@@ -56,7 +56,7 @@ if(isset($_POST['order_id'])) {
     $incrementId = $row_check_last_order_id['increment_id'] + 1;
 
     $state = 'new';
-    $storeName = 'Main Website Atytude.ro English';
+    $storeName = 'Main Website test.ro English';
     $date = date("d.m.y");
 
     $query = "SELECT mgkf_sales_order.status, mgkf_sales_order.shipping_description, mgkf_sales_order.total_qty_ordered, mgkf_sales_order.subtotal, mgkf_sales_order.quote_id, mgkf_sales_order.shipping_incl_tax, mgkf_sales_order_grid.customer_id, mgkf_sales_order_grid.grand_total, mgkf_sales_order_grid.order_currency_code, mgkf_sales_order_grid.shipping_name, mgkf_sales_order_grid.billing_name, mgkf_sales_order_grid.billing_address, mgkf_sales_order_grid.shipping_address, mgkf_sales_order_grid.shipping_information, mgkf_sales_order_grid.customer_name, mgkf_sales_order_grid.customer_email, mgkf_sales_order_grid.payment_method ";
